@@ -7,87 +7,91 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 3 — Validation & Authorization (101)
+ * Chapter 4 — State (101)
  *
- * Diagram visible: same as Ch 2 (no new boxes; gates are conceptual overlay).
+ * Diagram visible by end of chapter at 101: browser, fe-pool, be-pool,
+ * db-primary, + cache (new this chapter)
  *
  * Slide arc:
- *   1. Why every operation needs gates
- *   2. Authentication vs. authorization
- *   3. The third gate: data validation
- *   4. Why front-end checks aren't security
+ *   1. What "state" actually means
+ *   2. The three places state lives — memory, disk, cache
+ *   3. The three questions you ask of every piece of state
+ *   4. Source of truth — when copies disagree, which one wins
  *   5. Recap (with prompts)
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — Why gates --------------------------- */
+/* --------------------------- Slide 1 — What state means --------------------------- */
 
-const whyGates: Block[] = [
-  p(_('Coming out of Chapter 2, we know how the back-end identifies who’s asking. But knowing who someone is doesn’t tell you what they’re allowed to do — or whether what they sent is even something the system should accept.')),
-  p(_('Imagine a back-end URL that updates a user’s profile, with no checks at all on it. What could go wrong?')),
-  ul(
-    [_('Someone could call it without logging in — and the system has no way to refuse.')],
-    [_('A logged-in user could call it with someone else’s user ID in the URL — and edit a stranger’s profile.')],
-    [_('Someone could send a "name" field that’s absurdly long, or contains code, or is a number where text was expected — and the database accepts the garbage and corrupts itself.')],
-  ),
-  p(_('Every one of these is a regular bug class that ships to production whenever someone forgets to add the right check. What needs to happen: every meaningful operation passes through three gates before anything actually changes — authentication, authorization, validation.')),
-]
-
-/* --------------------------- Slide 2 — Authn vs Authz --------------------------- */
-
-const authnVsAuthz: Block[] = [
-  p(_('The first two gates sound similar but answer very different questions. Engineers shorten them to "authn" and "authz" — and it’s worth getting straight which is which.')),
-  ul(
-    [t('Authentication', 'authentication'), _(' (authn) — Are you who you say you are? This is the gate that checks the token from Chapter 2. Valid token → you’re in. No token, expired token, or tampered token → request is rejected with status code '), t('401 Unauthorized', '401'), _(' (which despite the name actually means "unauthenticated").')],
-    [t('Authorization', 'authorization'), _(' (authz) — OK, you’re really you. But are you allowed to do *this specific thing*? Read this particular order? Edit this particular profile? Delete this comment? Authorization is the per-action check. Failure here returns '), t('403 Forbidden', '403'), _('.')],
-  ),
-  p(_('Here’s the trap: a successful login (authentication) doesn’t mean you can do anything. A logged-in user can still try to read someone else’s data, and authorization is what stops them. The auth checks happen on every single request, every single endpoint — not just at the login screen.')),
-  p(_('A common authorization mistake: an endpoint that accepts a `userId` from the request body and returns that user’s data. The token authenticates you as user 47, but if the endpoint blindly returns whatever userId you asked for, you can pass `userId=48` and read someone else’s data. The fix: derive the user ID from the *token*, not from anything the caller can change.')),
-]
-
-/* --------------------------- Slide 3 — Data validation --------------------------- */
-
-const dataValidation: Block[] = [
-  p(_('You’re authenticated, you’re authorized, and now the back-end actually has to look at what you sent. Even from a legitimate user, the data could be malformed, out of range, or actively malicious.')),
+const whatIsState: Block[] = [
+  p(_('Coming out of Chapter 3, we know how the back-end identifies users (Ch 2) and gates their requests (Ch 3). The next question: when a request arrives that asks "show me X," where does X actually live?')),
+  p(_('Everything the system "knows" about the world lives somewhere. The user’s name. Their shopping cart. Whether they’re logged in. How many items are left in inventory. Which notifications they haven’t opened. All of it has to be held somewhere between requests, so the next one can find it.')),
   p(
-    t('Validation', 'validation'),
-    _(' is the third gate: is this input even something the system can safely use? Required fields present? Numbers within the expected range? Text fields short enough to fit? Email addresses shaped like email addresses? An empty or wrong-shaped request gets rejected with status code '),
-    t('400 Bad Request', '400'),
-    _(', and nothing in the database changes.'),
+    _('All of that — every fact the system holds about the world right now — is called '),
+    t('state', 'state'),
+    _('. It’s a generic word that covers a lot of ground: the contents of the database, the user’s active session, a temporary calculation in progress, a cached copy of yesterday’s analytics.'),
   ),
-  p(_('Validation also defends against actively hostile inputs. Two of the most common attack categories — both worth knowing by name:')),
-  ul(
-    [t('SQL injection', 'sql-injection'), _(' — When user input ends up inside a database query as if it were code, an attacker can put fragments of database language into a form field and trick the system into running them. ("Put your name here:" → the attacker types something that means "delete the entire users table.") Modern frameworks defend against this, but only if developers use them correctly.')],
-    [t('Cross-site scripting (XSS)', 'xss'), _(' — When user input is shown back to other users without being cleaned up, an attacker can hide little bits of code in their post that runs in your browser when you read it. Modern frameworks again defend against this, but only if used correctly.')],
-  ),
-  p(_('The pattern in both: an attacker putting code where data was expected. Validation is what catches it before it reaches the part of the system that would execute it.')),
+  p(_('Quick anchor before we go further: most of this state lives in a database, and a database is structured like a stack of spreadsheets. Each spreadsheet is called a *table* (one for users, one for orders, one for messages); each row is one record (one user, one order); each column is one field (name, email, created_at). When the rest of this primer talks about "rows" and "tables," that’s the picture.')),
+  p(_('Tying back to Chapter 2: most rows carry the user ID of their owner as one of those columns. The "stamp" you saw the back-end pull a slice off of — "give me everything stamped 123" — is the database filtering rows by that column on every query. Same idea, now with the structure underneath it.')),
+  p(_('What needs to happen: every piece of state has to be put somewhere on purpose, with the right tradeoffs for what it is. Three main places it can go.')),
 ]
 
-/* --------------------------- Slide 4 — Front-end checks aren't security --------------------------- */
+/* --------------------------- Slide 2 — Three places --------------------------- */
 
-const frontendNotSecurity: Block[] = [
-  p(_('Every modern web app has front-end checks: the email field that turns red when you type something invalid, the "delete" button that’s grayed out for users who don’t own the resource, the form that won’t submit if a required field is empty. These are good UX. They are *not* security.')),
-  p(_('The reason: the front-end runs on the user’s machine. Anyone who controls a machine controls what runs on it. They can:')),
+const threePlaces: Block[] = [
+  p(_('When you have a piece of data the system needs to hold onto, you have three main options for where to put it. Each one is a tradeoff.')),
   ul(
-    [_('Open the browser’s developer tools and call the API directly, skipping every front-end check.')],
-    [_('Modify the page in DevTools to un-disable the "delete" button and click it.')],
-    [_('Write a script that sends fake requests pretending to be the front-end. The back-end has no reliable way to tell the difference.')],
+    [t('Memory (RAM)', 'memory'), _(' — The server’s working memory. Reading and writing is essentially instant (nanoseconds — a billionth of a second; effectively free). The catch: when the server restarts (a deploy, a crash, a routine maintenance window), everything in memory is gone. Use this for data you’re actively computing with right now, or for data that’s OK to lose (a user’s in-progress search query).')],
+    [t('Database (disk)', 'database'), _(' — A specialized program (like '), t('PostgreSQL', 'postgresql'), _(' or '), t('MySQL', 'mysql'), _(') that writes data to disk in a structured way. Slower than memory (milliseconds — a thousandth of a second; noticeable when you stack thousands of them) but the data survives restarts, crashes, and machine failures. This is where you put anything that has to outlive the next reboot — accounts, orders, posts, settings.')],
+    [t('Cache', 'cache'), _(' — A fast copy of database data, usually held in memory, used to avoid hitting the slow database when the same answer would come back. '), t('Redis', 'redis'), _(' is the most common. The catch: a cached copy can be out of date if the database changed since the cache was filled. Use this for data that’s expensive to compute and tolerable to be a few seconds stale (a leaderboard, a homepage banner, a list of trending posts).')],
   ),
-  p(_('The rule: if it matters, the back-end checks it. The front-end can check the same things on top, for UX reasons (instant feedback, fewer round-trips), but the back-end check is the real one. Hiding a button doesn’t protect the underlying URL — and "we hid the button" is one of the most consistent sources of "we shipped a security hole" stories.')),
-  p(_('When directing an agent to add a feature, ask explicitly: where is this validated on the back-end? Where is permission checked on the back-end?')),
+  p(_('In our diagram, the cache is the new box that just appeared between the back-end and the database. When the back-end needs data, it checks the cache first; if the answer is there and recent enough, it skips the database entirely. If not, it reads from the database and stores the answer in the cache for next time.')),
+  p(_('Three places, three sets of tradeoffs. Choosing the right place comes down to three questions.')),
 ]
 
-/* --------------------------- Chapter 3 export --------------------------- */
+/* --------------------------- Slide 3 — The three questions --------------------------- */
+
+const threeQuestions: Block[] = [
+  p(_('Where a piece of data lives comes down to three questions. Each one maps to a specific choice, and a piece of data often lives in more than one place at once.')),
+  ul(
+    [_('**Does it need to survive a restart?** — A user’s purchase history must. A "thinking…" spinner doesn’t. **No → memory is fine. Yes → it must go in the database.**')],
+    [_('**Does it need to be perfectly current?** — A bank account balance does. A "trending posts" list can be a few seconds stale and nobody notices. **Tolerant of staleness → a cache becomes an option. Must be exact → read straight from the database.**')],
+    [_('**Is the database fast enough on its own?** — Usually yes. When it isn’t (millions of reads of the same answer, or one query that takes seconds to compute), **you put a cache in front of the database as a speed layer.**')],
+  ),
+  p(_('Three example pieces of data:')),
+  ul(
+    [_('A user’s order history — must survive restart, must be current → **database only.**')],
+    [_('A homepage "trending posts" list — must survive restart, tolerates staleness, hit on every page load → **database, with a cache in front.**')],
+    [_('A "loading…" indicator on the user’s screen — doesn’t need to survive anything → **memory only.**')],
+  ),
+  p(_('When you direct an AI agent to add a feature that touches data, these are the three questions to ask out loud. The answers narrow down where the data should live. If the agent picks a place without checking these, that’s where to push back.')),
+]
+
+/* --------------------------- Slide 4 — Source of truth --------------------------- */
+
+const sourceOfTruth: Block[] = [
+  p(_('Once you have data in multiple places — the database, a cache, sometimes the user’s browser — they can disagree. The cache says the user has 5 unread messages; the database says 7. Which one is correct?')),
+  p(
+    _('The '),
+    t('source of truth', 'source-of-truth'),
+    _(' is the one place that, when in doubt, is treated as authoritative. Every other copy is just that — a copy. Caches, browser-side data, in-memory snapshots: all derived. When they conflict with the source of truth, the source of truth wins.'),
+  ),
+  p(_('In almost every system, the database is the source of truth for durable data. The cache is allowed to be stale (a copy that hasn’t caught up yet); when you need to be sure, you read from the database. This is why you’ll often hear engineers say "let me hit the database directly to confirm" — they’re bypassing the cache to get the real answer.')),
+  p(_('Source-of-truth thinking matters for any feature that involves data living in multiple places. Synced contacts, inventory across stores, a user’s settings on web and mobile — every one of these has a source of truth, and copies that catch up to it. Knowing which is which prevents a whole class of "I updated it but it’s not showing up" bugs.')),
+  p(_('Next chapter: we’ve been treating "the back-end" as one server. Real systems have many — and the way they\'re arranged, and how requests are routed across them, is its own subject.')),
+]
+
+/* --------------------------- Chapter 4 export --------------------------- */
 
 export const chapter04: Chapter = {
-  id: 'ch3',
-  number: 3,
-  title: 'Validation & Authorization',
-  subtitle: 'Three gates every request passes through',
+  id: 'ch4',
+  number: 4,
+  title: 'State',
+  subtitle: 'Where data lives, and why that matters',
   slides: [
-    { id: 's1', level: 101, headline: 'Why every operation needs gates', body: { kind: 'prose', blocks: whyGates }, diagramFocus: 'app' },
-    { id: 's2', level: 101, headline: 'Authentication vs. authorization', body: { kind: 'prose', blocks: authnVsAuthz }, diagramFocus: 'app' },
-    { id: 's3', level: 101, headline: 'The third gate — is the data even valid?', body: { kind: 'prose', blocks: dataValidation }, diagramFocus: 'app' },
-    { id: 's4', level: 101, headline: 'Why front-end checks aren’t security', body: { kind: 'prose', blocks: frontendNotSecurity }, diagramFocus: 'browser' },
+    { id: 's1', level: 101, headline: 'What state actually means', body: { kind: 'prose', blocks: whatIsState }, diagramFocus: 'data' },
+    { id: 's2', level: 101, headline: 'Three places state lives', body: { kind: 'prose', blocks: threePlaces }, diagramFocus: 'data' },
+    { id: 's3', level: 101, headline: 'Three questions that decide where data lives', body: { kind: 'prose', blocks: threeQuestions }, diagramFocus: 'data' },
+    { id: 's4', level: 101, headline: 'Source of truth', body: { kind: 'prose', blocks: sourceOfTruth }, diagramFocus: 'data' },
     {
       id: 's5',
       level: 101,
@@ -96,18 +100,20 @@ export const chapter04: Chapter = {
       body: {
         kind: 'recap',
         learned: [
-          'Every request passes three gates at the back-end: authentication (who you are), authorization (what you’re allowed to do), validation (is the data even acceptable)',
-          'A 401 means "we don’t know who you are"; 403 means "we know who you are, but you can’t do this"; 400 means "the request itself is malformed"',
-          'Front-end checks (graying out a button, validating a form) are UX, not security — anyone can call the API directly',
-          'Authorization mistakes (like trusting a userId from the request body) are one of the most common sources of "user A read user B’s data" bugs',
+          'State is everything the system "knows" about the world right now — every fact it holds, anywhere',
+          'Three places to put state: memory (instant, lost on restart), database (slower, durable), cache (fast copy that may be stale)',
+          'Three questions decide where each piece of state lives: does it need to survive a restart, does it need to be perfectly current, is the database fast enough on its own',
+          'When copies disagree, the source of truth wins — usually the database; everything else is a copy catching up',
         ],
         whereInSystem: [
-          _('The three gates live in the back-end, between the request arriving and any data being read or written. Identity from Chapter 2 (the '),
-          t('token', 'token'),
-          _(') flows in with the request and is what the authentication and authorization gates evaluate.'),
+          _('The '),
+          t('database', 'database'),
+          _(' (Postgres, MySQL) sits at the bottom of the diagram as the source of truth — durable, slower, the one that everything else syncs against. The '),
+          t('cache', 'cache'),
+          _(' (Redis) sits between the back-end and the database, holding fast copies of recent answers so the database doesn’t get hit for the same question over and over.'),
         ],
         bridge: [
-          _('Coming up — Chapter 4: State. We now know who’s asking and what they\'re allowed to do. The next question is *where the data they\'re asking for actually lives* — memory, database, cache — and the tradeoffs between them.'),
+          _('Coming up — Chapter 5: Architecture & Communication Patterns. We\'ve been drawing the back-end as one server. Real systems have many — and the way they\'re arranged (load balancers, CDNs, monolith vs. services) is the next layer of the picture.'),
         ],
       },
     },

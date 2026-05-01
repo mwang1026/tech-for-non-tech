@@ -1,145 +1,220 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
+import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
 const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+const step = (
+  content: Inline,
+  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
+): StepItem => ({ content, ...opts })
+const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 
 /* ============================================================================
- * Chapter 8 — Code Lifecycle (101)
+ * Chapter 7 — Putting It Together (101)
  *
- * No new diagram boxes at 101 — code lifecycle is process, not architecture.
+ * No new diagram boxes — this chapter exercises the existing diagram by
+ * walking real request scenarios through it. DiagramFocus shifts per scenario.
  *
  * Slide arc:
- *   1. Why "save the file" isn't enough
- *   2. Git: a record of every change
- *   3. Pull requests — proposing a change
- *   4. Tests + CI — verifying behavior automatically
- *   5. Recap (with prompts)
+ *   1. Intro — we've built the whole system; now let's run things through it
+ *   2. Happy path — authenticated user reads their data
+ *   3. Auth failure — no/expired token (401)
+ *   4. Authz failure — valid user, forbidden action (403)
+ *   5. Validation failure — bad input (400)
+ *   6. Recap (with prompts)
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — Save isn't enough --------------------------- */
+/* --------------------------- Slide 1 — Intro --------------------------- */
 
-const saveNotEnough: Block[] = [
-  p(_('Act I done — coming out of Chapter 7, you have the full mental model of how a request flows through the running system. Act II is the orthogonal story: how the code that runs all this gets there in the first place. Starting with the very first problem: editing files.')),
-  p(_('Imagine for a moment a team of ten engineers, all editing the same codebase by just saving files to a shared folder. The problems start immediately:')),
-  ul(
-    [_('Two engineers edit the same file at the same time. One save overwrites the other. Hours of work, gone.')],
-    [_('Something breaks in production. You ask "when did this break?" — and there’s no record. No history. Just the current state of the files.')],
-    [_('You want to try a risky change without affecting anyone else. There’s no way to do that without making your own copy of the whole codebase.')],
-    [_('You want to roll back to last Tuesday’s working version. There’s no last Tuesday — only now.')],
-  ),
-  p(_('What needs to happen: a system that records *every* change anyone ever made, lets people work on different versions in parallel, and gives you a way to bring those versions back together (or revert them) safely.')),
-  p(_('That system is called version control, and the version that essentially every team uses is git.')),
+const intro: Block[] = [
+  p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing, front-end and back-end pools, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
+  p(_('We’ve built it one concept at a time. We have not yet watched anything actually flow through it.')),
+  p(_('That’s this chapter — the climax of Act I. We’re going to walk four real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
+  p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?" Pattern recognition for the failure modes is the whole point.')),
+  p(_('Four scenarios. Happy path first.')),
 ]
 
-/* --------------------------- Slide 2 — Git basics --------------------------- */
+/* --------------------------- Slide 2 — Happy path --------------------------- */
 
-const gitBasics: Block[] = [
-  p(
-    t('Git', 'git'),
-    _(' is a system that tracks every change anyone makes to the code, with full history. It lives in your project folder and treats the whole codebase as a sequence of snapshots over time.'),
+const happyPath: Block[] = [
+  p(_('A logged-in user opens their dashboard. Press → to walk through what happens.')),
+  steps(
+    step(
+      [_('Browser asks for the dashboard HTML and assets. The CDN serves cached HTML, JavaScript, CSS, and fonts in tens of milliseconds, never touching our origin servers.')],
+      { highlight: ['browser', 'cdn'], status: 'pass', focus: 'edge' },
+    ),
+    step(
+      [_('Browser fires a separate API request for the user’s actual data, with the auth token attached. This one is dynamic — can’t be cached at the CDN. It passes through to the load balancer.')],
+      { highlight: ['lb'], status: 'pass', focus: 'lb' },
+    ),
+    step(
+      [_('Load balancer picks an available front-end server and forwards the request. The front-end passes it on to a back-end server.')],
+      { highlight: ['fe-pool', 'be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Back-end runs the three gates: authentication (token valid ✓), authorization (user is reading their own data ✓), validation (request shape fine ✓).')],
+      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Back-end checks the cache. On a hit, the answer comes back in ~12ms. On a miss, the back-end queries the database (~180ms) and stores the answer in the cache for next time.')],
+      { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
+    ),
+    step(
+      [_('Data travels back: back-end → front-end → load balancer → browser. The browser renders it. Total round trip: a few hundred milliseconds.')],
+      { highlight: ['browser'], status: 'pass', focus: 'full' },
+    ),
   ),
-  p(_('Three ideas do most of the work:')),
-  ul(
-    [t('Commit', 'commit'), _(' — A snapshot of the code at a moment in time, with a message explaining what changed and why. Every commit has an author, a timestamp, and a unique ID. You can travel back to any commit. "I broke X yesterday afternoon" → find the commit that broke it, look at exactly what changed.')],
-    [t('Branch', 'branch'), _(' — A parallel timeline of commits. The main timeline is usually called `main` (or sometimes `master`). When you want to work on a feature without disturbing the main timeline, you create a branch off of it, make commits there, and the main branch stays untouched. Other people can be working on their own branches at the same time.')],
-    [t('Merge', 'merge'), _(' — Bringing changes from one branch back into another. When your feature branch is ready, you merge it into main, and main now contains your work plus everyone else’s. Sometimes git can do this automatically; sometimes it can’t.')],
-  ),
-  p(
-    _('When git can’t merge automatically, it’s because two branches changed the same lines of the same file. Git doesn’t know which version should win, so it asks a human. This is called a '),
-    t('merge conflict', 'merge-conflict'),
-    _('. The person merging looks at both versions, picks (or combines) the right answer, and saves the resolution. Common, not scary, just tedious.'),
-  ),
-  p(_('Most teams host their git repositories on '), t('GitHub', 'github'), _(' or '), t('GitLab', 'gitlab'), _(' — services that store the code and add review and collaboration features on top. Which is the next slide.')),
+  p(_('Every gate green. The user sees their dashboard, probably without thinking about any of this.')),
 ]
 
-/* --------------------------- Slide 3 — Pull requests --------------------------- */
+/* --------------------------- Slide 3 — Auth failure --------------------------- */
 
-const pullRequests: Block[] = [
-  p(_('Imagine you’ve made a branch, written some code, and you think it’s ready. You don’t just merge it into main yourself. You open a pull request.')),
-  p(
-    _('A '),
-    t('pull request', 'pull-request'),
-    _(' (often shortened to "PR" — or "MR" for "merge request" on GitLab) is a *proposal* to merge your branch into main. It’s where the team reviews the change before it actually happens. The PR shows the '),
-    t('diff', 'diff'),
-    _(' — the exact lines added, removed, and changed — alongside discussion threads where reviewers can comment on specific lines.'),
+const authFailure: Block[] = [
+  p(_('Same browser, same dashboard, but this time the request arrives at the back-end without a valid token. Maybe the session expired, maybe an attacker hit the API directly with no token at all. Press → to watch where it stops.')),
+  steps(
+    step(
+      [_('Request travels through CDN, load balancer, front-end, back-end. Same path as the happy case so far — the CDN doesn’t check tokens; that’s the back-end’s job.')],
+      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+    ),
+    step(
+      [_('Back-end’s first check is authentication: is the token here, and does it verify? It’s missing or expired. The back-end immediately returns '), t('401 Unauthorized', '401'), _('.')],
+      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+    ),
+    step(
+      [_('No database query. No cache lookup. Nothing is read; nothing is changed. The 401 travels back the way the request came in.')],
+      { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
+    ),
+    step(
+      [_('The browser sees the 401 and typically redirects the user to the login page. They re-authenticate, get a fresh token, retry — back to the happy path.')],
+      { highlight: ['browser'], status: 'neutral', focus: 'full' },
+    ),
   ),
-  p(_('What a pull request does:')),
-  ul(
-    [_('Makes the change visible. Other engineers see what you’re proposing and can comment, ask questions, or request changes before anything ships.')],
-    [_('Forces a review. Most teams require at least one approval from another engineer before a PR can be merged.')],
-    [_('Triggers automated checks. The moment you open the PR, automated tests start running against your branch. If they fail, the PR is blocked from merging until you fix them. (More on this next slide.)')],
-    [_('Creates a record. The PR’s description, the discussion, and the list of commits become permanent history. Six months from now, when someone asks "why did we do this?", the PR is the answer.')],
-  ),
-  p(_('When you direct an AI agent to make a change, the agent doesn’t commit directly to main. It (and you) work on a branch; the work becomes a PR; the PR gets reviewed; the PR gets merged. Reading the diff in the PR is your last chance to catch mistakes before they ship — never skip it.')),
+  p(_('Why this matters: authentication is the *first* gate. A request that fails it never gets near your data. This is also why you never write code that does any sensitive work before checking the token — that work would be exposed even on rejected requests.')),
 ]
 
-/* --------------------------- Slide 4 — Tests and CI --------------------------- */
+/* --------------------------- Slide 4 — Authz failure --------------------------- */
 
-const testsAndCI: Block[] = [
-  p(_('When you open a pull request, you usually want to know one thing right away: did your change break anything? Doing that by hand — clicking through the entire app to make sure nothing’s broken — is impossibly slow. So we automate it.')),
-  p(
-    t('Tests', 'tests'),
-    _(' are little programs that exercise the real code and check that it does what it’s supposed to. The simplest kind tests one function in isolation: "given this input, did we get the right output?" Bigger tests stand up parts of the system together and check that they cooperate. The biggest tests drive a fake browser through the full app to make sure the user-visible flow still works.'),
+const authzFailure: Block[] = [
+  p(_('User 47 is logged in with a valid token. They open the API in their browser’s developer tools and call `GET /api/orders/12345` — but order 12345 belongs to user 92. Press → to walk through what happens.')),
+  steps(
+    step(
+      [_('Same path through CDN, load balancer, front-end, back-end.')],
+      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+    ),
+    step(
+      [_('Authentication: token is valid. User 47 is who they say they are. ✓')],
+      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Authorization: the back-end looks up order 12345, sees it belongs to user 92, compares against user 47 (from the token). Mismatch. Returns '), t('403 Forbidden', '403'), _('.')],
+      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+    ),
+    step(
+      [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response, even if the UI hid it.')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('The 403 goes back to the browser. The user sees an error, a redirect, or nothing — but never sees order 12345.')],
+      { highlight: ['browser'], status: 'neutral', focus: 'full' },
+    ),
   ),
-  p(
-    _('When a pull request opens, an automation called '),
-    t('CI', 'ci'),
-    _(' (Continuous Integration) runs the entire test suite against your branch automatically. If every test passes, your PR shows up '),
-    t('green', 'green-build'),
-    _(' — ready for review and merge. If anything fails, your PR shows up '),
-    t('red', 'red-build'),
-    _(' — blocked from merging until you fix it. The team’s rule is usually simple: red PRs do not get merged.'),
-  ),
-  p(
-    _('CI usually also runs other automated checks alongside tests: linting (style consistency), type checking (catching obvious mismatches like "expected a number, got text"), and sometimes security scans. All of them have to pass. Common CI services: '),
-    t('GitHub Actions', 'github-actions'),
-    _(' (built into GitHub), '),
-    t('CircleCI', 'circleci'),
-    _(', '),
-    t('GitLab CI', 'gitlab-ci'),
-    _(', '),
-    t('Buildkite', 'buildkite'),
-    _('.'),
-  ),
+  p(_('This is the failure mode that produces "user A read user B’s data" headlines when it’s done wrong. The fix is always the same: the back-end has to compare the resource’s owner against the user from the token, on every single request, on every single endpoint that returns user-specific data. Hide-the-button-in-the-UI is not enough.')),
 ]
 
-/* --------------------------- Chapter 8 export --------------------------- */
+/* --------------------------- Slide 5 — Validation failure --------------------------- */
+
+const validationFailure: Block[] = [
+  p(_('User 47 is updating their profile. They’re authenticated, they’re editing their own profile (so authorization passes), but they sent the request with the email field missing, or set to "not-actually-an-email." Press → to walk through what happens.')),
+  steps(
+    step(
+      [_('Same path through CDN, load balancer, front-end, back-end.')],
+      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+    ),
+    step(
+      [_('Authentication ✓. Authorization ✓ (user 47 is editing user 47’s profile).')],
+      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Validation: back-end checks the request body. Email missing? Required field error. Email malformed? Format error. Either way, back-end returns '), t('400 Bad Request', '400'), _(' with a message describing what was wrong.')],
+      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+    ),
+    step(
+      [_('Nothing is written to the database. The user’s real profile is unchanged.')],
+      { highlight: ['db-primary'], status: 'pass', focus: 'data' },
+    ),
+    step(
+      [_('The 400 goes back to the browser, which usually shows the user a form error highlighting the problem field.')],
+      { highlight: ['browser'], status: 'neutral', focus: 'full' },
+    ),
+  ),
+  p(_('Validation also catches actively malicious inputs — somebody trying to put database commands or executable code into a form field. Same response: 400, nothing changes, error returned. The system stays clean because the validation gate ran before any code took the bad input seriously.')),
+  p(_('Three failure modes, three different gates, three different status codes — and a clear pattern: the request never gets further than the gate that can reject it. This is what a well-built system looks like in motion.')),
+]
+
+/* --------------------------- Slide 6 — Concurrency failure --------------------------- */
+
+const concurrencyFailure: Block[] = [
+  p(_('Three failure modes so far were caught at one of the gates — auth, authz, or validation. Now a fourth scenario, and it’s the one gate-thinking alone can’t catch. Two users, on opposite sides of the country, both buy the last copy of a popular book within the same 50 milliseconds. Press → to walk through it.')),
+  steps(
+    step(
+      [_('Both requests hit the load balancer. It hands them to two different back-end servers, both of which begin processing in parallel.')],
+      { highlight: ['lb', 'be-pool'], status: 'neutral', focus: 'lb' },
+    ),
+    step(
+      [_('Both back-ends run the three gates: authentication ✓ (both users are logged in), authorization ✓ (both are allowed to buy), validation ✓ (both requests are well-formed). The gates pass *both* requests.')],
+      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Both back-ends read the inventory: count = 1. Both see "yes, in stock." Neither has written anything yet — they’re looking at the same starting state.')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('Both back-ends subtract 1 and write count = 0. The second write silently overwrites the first, as if the first never happened. The database thinks one book was sold; in reality, two were promised.')],
+      { highlight: ['db-primary'], status: 'reject', focus: 'data' },
+    ),
+    step(
+      [_('Both browsers get a 200 OK. Both customers get a confirmation email. The system stayed "up." Nothing was rejected. But one of those orders is going to ship; the other isn’t.')],
+      { highlight: ['browser'], status: 'reject', focus: 'full' },
+    ),
+  ),
+  p(_('This is the failure mode that *passes* every gate. Authentication, authorization, validation — they all said yes, twice. The bug is at the back-end ↔ database seam, where two requests racing on the same row both got "in stock" before either had written. Chapter 6’s transactions and locks are how this gets fixed; the pattern to recognize is read-modify-write on shared data.')),
+  p(_('Why this belongs in the synthesis: gate-thinking catches a lot, but it doesn’t catch this. When you direct an agent on anything involving counters, balances, uniqueness checks, or state transitions, this is the failure mode to ask about explicitly — "could two of these run at the same time and both see the same starting value?"')),
+]
+
+/* --------------------------- Chapter 7 export --------------------------- */
 
 export const chapter07: Chapter = {
-  id: 'ch8',
-  number: 8,
-  title: 'Code Lifecycle',
-  subtitle: 'How code becomes the running system',
+  id: 'ch7',
+  number: 7,
+  title: 'Putting It Together',
+  subtitle: 'Real request flows, end-to-end',
   slides: [
-    { id: 's1', level: 101, headline: 'Save isn’t enough', body: { kind: 'prose', blocks: saveNotEnough }, diagramFocus: 'full' },
-    { id: 's2', level: 101, headline: 'Git — a record of every change', body: { kind: 'prose', blocks: gitBasics }, diagramFocus: 'full' },
-    { id: 's3', level: 101, headline: 'Pull requests — proposing a change', body: { kind: 'prose', blocks: pullRequests }, diagramFocus: 'full' },
-    { id: 's4', level: 101, headline: 'Tests and CI — verifying behavior automatically', body: { kind: 'prose', blocks: testsAndCI }, diagramFocus: 'full' },
+    { id: 's1', level: 101, headline: 'Watching the system run', body: { kind: 'prose', blocks: intro }, diagramFocus: 'full' },
+    { id: 's2', level: 101, headline: 'Happy path — request that works', body: { kind: 'prose', blocks: happyPath }, diagramFocus: 'full' },
+    { id: 's3', level: 101, headline: 'Auth failure — 401 Unauthorized', body: { kind: 'prose', blocks: authFailure }, diagramFocus: 'app' },
+    { id: 's4', level: 101, headline: 'Authz failure — 403 Forbidden', body: { kind: 'prose', blocks: authzFailure }, diagramFocus: 'app' },
+    { id: 's5', level: 101, headline: 'Validation failure — 400 Bad Request', body: { kind: 'prose', blocks: validationFailure }, diagramFocus: 'app' },
+    { id: 's6', level: 101, headline: 'Race condition — both requests pass every gate', body: { kind: 'prose', blocks: concurrencyFailure }, diagramFocus: 'data' },
     {
-      id: 's5',
+      id: 's7',
       level: 101,
       kind: 'recap',
       headline: 'What you have so far',
       body: {
         kind: 'recap',
         learned: [
-          'Git tracks every change to the code with full history; commits are snapshots, branches are parallel timelines, merges combine them',
-          'Pull requests are proposals to merge — where reviewers see the diff, comment, and approve before anything ships',
-          'CI runs the test suite automatically on every PR; green means tests passed and the PR can merge, red means blocked',
-          'Reading the diff before a PR merges is your last chance to catch mistakes — especially important when the code came from an AI agent',
+          'Every request flows through the same path — but where it stops, and which gate stops it, depends on what’s wrong',
+          '401 means "we don’t know you"; 403 means "we know you, but you can’t do this"; 400 means "the request itself is broken"',
+          'Concurrency failures are the ones that pass every gate — two requests racing on the same row, neither rejected, but the result is wrong',
+          'Failed requests should be rejected at the earliest gate possible — never returned-and-then-hidden in the UI',
+          'Pattern recognition for these failure modes is what lets you spot missing checks (and missing transactions) in agent-generated code',
         ],
         whereInSystem: [
-          _('Code lifecycle happens *upstream* of the running system: developers write code on their machines, commit to git, open pull requests on '),
-          t('GitHub', 'github'),
-          _(' or '),
-          t('GitLab', 'gitlab'),
-          _(', and pass through CI before the new version ever reaches the production servers we drew in earlier chapters.'),
+          _('All five scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate. Concurrency lives at that last seam — the back-end ↔ database — and is what bites when two requests race on the same row.'),
         ],
         bridge: [
-          _('Coming up — Chapter 9: Deployment & Operations. Once a pull request passes CI and gets merged into main, the code still has to actually reach production safely — without breaking the live system for users in the middle of a session.'),
+          _('Act I is done. Coming up — Chapter 8: Code Lifecycle. We\'ve walked through how the system runs at runtime; Act II is the orthogonal story of how the code that runs all this becomes the system in the first place. Then Ch 10 is the payoff: directing an AI coding agent against the whole picture.'),
         ],
       },
     },

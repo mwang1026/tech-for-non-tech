@@ -11,36 +11,26 @@ import { chapter09 } from './chapter-09'
 import { chapter10 } from './chapter-10'
 
 /**
- * Display order. The number rendered to the reader comes from each chapter's
- * `number` field, NOT from this array index. URL hash IDs (`ch3` etc.) are
- * stable and decoupled from display order — old links keep working.
+ * Display order. Filename N == const chapterN == id `chN` == display number N.
  *
- * Act I — Anatomy of a request:
- *   1. Request-Response (ch1)
- *   2. Identity (ch3)
- *   3. Validation & Authorization (ch4)
- *   4. State (ch2)
- *   5. Architecture (ch6)
- *   6. Concurrency (ch5)
- *   7. Putting It Together (ch9)
- *
- * Act II — How code becomes the running system:
- *   8. Code Lifecycle (ch7)
- *   9. Deployment & Operations (ch8)
- *
- * Act III — Working with the agent:
- *   10. Working with Claude Code (ch10)
+ * Act I — Anatomy of a request: 1–7
+ *   1. Request-Response, 2. Identity, 3. Validation & Authorization,
+ *   4. State, 5. Architecture, 6. Concurrency, 7. Putting It Together
+ * Act II — How code becomes the running system: 8–9
+ *   8. Code Lifecycle, 9. Deployment & Operations
+ * Act III — Working with the agent: 10
+ *   10. Working with Claude Code
  */
 export const chapters: Chapter[] = [
   chapter01,
+  chapter02,
   chapter03,
   chapter04,
-  chapter02,
-  chapter06,
   chapter05,
-  chapter09,
+  chapter06,
   chapter07,
   chapter08,
+  chapter09,
   chapter10,
 ]
 

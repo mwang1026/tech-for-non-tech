@@ -1,220 +1,124 @@
-import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
+import type { Chapter, Block, BodyNode, Inline } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
 const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-const step = (
-  content: Inline,
-  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
-): StepItem => ({ content, ...opts })
-const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
+// const h = (text: string): Block => ({ kind: 'h', text })  // available; rarely needed
+const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 7 — Putting It Together (101)
- *
- * No new diagram boxes — this chapter exercises the existing diagram by
- * walking real request scenarios through it. DiagramFocus shifts per scenario.
+ * Chapter 9 — Deployment & Operations (101)
  *
  * Slide arc:
- *   1. Intro — we've built the whole system; now let's run things through it
- *   2. Happy path — authenticated user reads their data
- *   3. Auth failure — no/expired token (401)
- *   4. Authz failure — valid user, forbidden action (403)
- *   5. Validation failure — bad input (400)
- *   6. Recap (with prompts)
+ *   1. It works on my machine        (containers)
+ *   2. Three places the code lives    (dev / staging / production)
+ *   3. Updating without going down    (blue/green, canary, rolling)
+ *   4. How you find out it broke      (logs, metrics, errors)
+ *   5. Recap + Claude Code prompts
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — Intro --------------------------- */
+/* --------------------------- Slide 1 — It works on my machine --------------------------- */
 
-const intro: Block[] = [
-  p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing, front-end and back-end pools, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
-  p(_('We’ve built it one concept at a time. We have not yet watched anything actually flow through it.')),
-  p(_('That’s this chapter — the climax of Act I. We’re going to walk four real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
-  p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?" Pattern recognition for the failure modes is the whole point.')),
-  p(_('Four scenarios. Happy path first.')),
-]
-
-/* --------------------------- Slide 2 — Happy path --------------------------- */
-
-const happyPath: Block[] = [
-  p(_('A logged-in user opens their dashboard. Press → to walk through what happens.')),
-  steps(
-    step(
-      [_('Browser asks for the dashboard HTML and assets. The CDN serves cached HTML, JavaScript, CSS, and fonts in tens of milliseconds, never touching our origin servers.')],
-      { highlight: ['browser', 'cdn'], status: 'pass', focus: 'edge' },
-    ),
-    step(
-      [_('Browser fires a separate API request for the user’s actual data, with the auth token attached. This one is dynamic — can’t be cached at the CDN. It passes through to the load balancer.')],
-      { highlight: ['lb'], status: 'pass', focus: 'lb' },
-    ),
-    step(
-      [_('Load balancer picks an available front-end server and forwards the request. The front-end passes it on to a back-end server.')],
-      { highlight: ['fe-pool', 'be-pool'], status: 'pass', focus: 'app' },
-    ),
-    step(
-      [_('Back-end runs the three gates: authentication (token valid ✓), authorization (user is reading their own data ✓), validation (request shape fine ✓).')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
-    ),
-    step(
-      [_('Back-end checks the cache. On a hit, the answer comes back in ~12ms. On a miss, the back-end queries the database (~180ms) and stores the answer in the cache for next time.')],
-      { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
-    ),
-    step(
-      [_('Data travels back: back-end → front-end → load balancer → browser. The browser renders it. Total round trip: a few hundred milliseconds.')],
-      { highlight: ['browser'], status: 'pass', focus: 'full' },
-    ),
+const containers: Block[] = [
+  p(_('We have code that passed review, passed its tests, and is sitting in the main branch waiting to go live. The next question is how it actually reaches the servers running in production.')),
+  p(_('Here’s the problem you hit the first time you try. The code runs perfectly on the developer’s laptop. You ship it to a server. It crashes. You investigate. The server is set up slightly differently than the laptop in some way that matters — a different version of a software dependency, a missing piece of configuration, anything. The phrase for this is "it works on my machine" — and it’s the most common cause of bad deploys in software history.')),
+  p(_('What needs to happen: the code should run in an identical environment everywhere — laptop, test server, production — so that "works on my machine" means "works in production."')),
+  p(
+    _('The way this is solved is by packaging the code together with everything it depends on — software libraries, configuration, operating system pieces — into a single portable bundle called a '),
+    t('container', 'container'),
+    _('. The container runs identically wherever you put it down: the developer runs the same container locally that production runs in the cloud. Containers are also an isolation mechanism — one application can’t interfere with another sharing the same machine, because each lives in its own sealed bundle.'),
   ),
-  p(_('Every gate green. The user sees their dashboard, probably without thinking about any of this.')),
-]
-
-/* --------------------------- Slide 3 — Auth failure --------------------------- */
-
-const authFailure: Block[] = [
-  p(_('Same browser, same dashboard, but this time the request arrives at the back-end without a valid token. Maybe the session expired, maybe an attacker hit the API directly with no token at all. Press → to watch where it stops.')),
-  steps(
-    step(
-      [_('Request travels through CDN, load balancer, front-end, back-end. Same path as the happy case so far — the CDN doesn’t check tokens; that’s the back-end’s job.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
-    ),
-    step(
-      [_('Back-end’s first check is authentication: is the token here, and does it verify? It’s missing or expired. The back-end immediately returns '), t('401 Unauthorized', '401'), _('.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
-    ),
-    step(
-      [_('No database query. No cache lookup. Nothing is read; nothing is changed. The 401 travels back the way the request came in.')],
-      { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
-    ),
-    step(
-      [_('The browser sees the 401 and typically redirects the user to the login page. They re-authenticate, get a fresh token, retry — back to the happy path.')],
-      { highlight: ['browser'], status: 'neutral', focus: 'full' },
-    ),
+  p(
+    _('The dominant tool here is '), t('Docker', 'docker'),
+    _(' — when an engineer says "we run on Docker," they mean the back-end is packaged as Docker containers. Cloud platforms like '),
+    t('AWS', 'aws'), _(' and '), t('GCP', 'gcp'),
+    _(' deploy containers directly. Higher-level hosting platforms like '),
+    t('Vercel', 'vercel'), _(' and '), t('Netlify', 'netlify'),
+    _(' wrap your code in their own runtime instead — you never touch a container yourself, but the same "it works the same everywhere" property applies.'),
   ),
-  p(_('Why this matters: authentication is the *first* gate. A request that fails it never gets near your data. This is also why you never write code that does any sensitive work before checking the token — that work would be exposed even on rejected requests.')),
 ]
 
-/* --------------------------- Slide 4 — Authz failure --------------------------- */
+/* --------------------------- Slide 2 — Three places the code lives --------------------------- */
 
-const authzFailure: Block[] = [
-  p(_('User 47 is logged in with a valid token. They open the API in their browser’s developer tools and call `GET /api/orders/12345` — but order 12345 belongs to user 92. Press → to walk through what happens.')),
-  steps(
-    step(
-      [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
-    ),
-    step(
-      [_('Authentication: token is valid. User 47 is who they say they are. ✓')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
-    ),
-    step(
-      [_('Authorization: the back-end looks up order 12345, sees it belongs to user 92, compares against user 47 (from the token). Mismatch. Returns '), t('403 Forbidden', '403'), _('.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
-    ),
-    step(
-      [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response, even if the UI hid it.')],
-      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
-    ),
-    step(
-      [_('The 403 goes back to the browser. The user sees an error, a redirect, or nothing — but never sees order 12345.')],
-      { highlight: ['browser'], status: 'neutral', focus: 'full' },
-    ),
+const environments: Block[] = [
+  p(_('We have a way to package code so it runs the same everywhere. Now: where does it run?')),
+  p(_('The answer is "in several different places, on purpose." You don’t want code going straight from a developer’s laptop to your real users. Even with tests and review, things slip through — a bug only visible with real data, a configuration that’s right locally but wrong at scale, an interaction with another service nobody anticipated. You need a place to catch those before users do.')),
+  p(_('Most products run in three environments, each serving a specific purpose:')),
+  ul(
+    [t('dev', 'dev-environment'), _(' — The developer’s own laptop, or a personal cloud sandbox. Fake data. Frequent breakage is fine, because no real user is on it. This is where the engineer writes and tries the code.')],
+    [t('staging', 'staging-environment'), _(' — A copy of the production setup, but pointed at fake or anonymized data. Same servers, same configuration, same shape — except no real users. New code goes here first, so the team can poke at it, run end-to-end tests, and catch problems that only show up "in something that looks like prod."')],
+    [t('production', 'production-environment'), _(' — The real thing. Real users, real data, real consequences. Code only reaches here after passing through dev and staging, with reviewers signing off along the way.')],
   ),
-  p(_('This is the failure mode that produces "user A read user B’s data" headlines when it’s done wrong. The fix is always the same: the back-end has to compare the resource’s owner against the user from the token, on every single request, on every single endpoint that returns user-specific data. Hide-the-button-in-the-UI is not enough.')),
+  p(_('Some teams add more environments (a "preview" environment per pull request, a "QA" environment for the test team, a "performance" environment for load tests), but the core idea stays the same: the closer to real users, the higher the bar to ship there.')),
+  p(_('Now we have somewhere safe to put new code. The next question is how to actually swap it in for the old code without users noticing.')),
 ]
 
-/* --------------------------- Slide 5 — Validation failure --------------------------- */
+/* --------------------------- Slide 3 — Updating without going down --------------------------- */
 
-const validationFailure: Block[] = [
-  p(_('User 47 is updating their profile. They’re authenticated, they’re editing their own profile (so authorization passes), but they sent the request with the email field missing, or set to "not-actually-an-email." Press → to walk through what happens.')),
-  steps(
-    step(
-      [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
-    ),
-    step(
-      [_('Authentication ✓. Authorization ✓ (user 47 is editing user 47’s profile).')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
-    ),
-    step(
-      [_('Validation: back-end checks the request body. Email missing? Required field error. Email malformed? Format error. Either way, back-end returns '), t('400 Bad Request', '400'), _(' with a message describing what was wrong.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
-    ),
-    step(
-      [_('Nothing is written to the database. The user’s real profile is unchanged.')],
-      { highlight: ['db-primary'], status: 'pass', focus: 'data' },
-    ),
-    step(
-      [_('The 400 goes back to the browser, which usually shows the user a form error highlighting the problem field.')],
-      { highlight: ['browser'], status: 'neutral', focus: 'full' },
-    ),
+const noDowntime: Block[] = [
+  p(_('We have new code in staging that’s been verified, and we’re ready to put it into production. The naive way: stop the production servers, swap in the new code, start them back up.')),
+  p(_('That works — for about two seconds, and only if no users are on the site. Anything more than a tiny site will have users mid-request when you stop the servers, and they’ll see errors. If the new code turns out to be broken, you’ve already taken everyone offline. And if you do this every time you ship, you can’t ship often, because every release is a visible interruption.')),
+  p(_('What needs to happen: roll the new code out in a way where the old version keeps serving users until the new one is ready, with a way to undo instantly if something’s wrong.')),
+  p(_('There are three common patterns, in increasing sophistication:')),
+  ul(
+    [t('blue/green', 'blue-green-deployment'), _(' — You run two complete production environments side by side. "Blue" is what users are currently hitting. You deploy the new code to "green," let it warm up, run final checks. Then you flip a switch (in the load balancer) so all new traffic goes to green. Blue stays running, untouched. If green turns out to be broken, you flip the switch back to blue — instant rollback, no scrambling. Once you’re confident green is good, blue becomes the staging area for the next release.')],
+    [t('canary', 'canary-release'), _(' — You deploy the new code to a small slice of your servers (or a small percentage of users — say 1%, then 5%, then 25%). You watch error rates and performance. If something’s wrong, only that small slice was affected. If everything looks healthy, you gradually expand until 100% of traffic is on the new version. Named after canaries in coal mines: the small slice is the early warning.')],
+    [t('rolling deployment', 'rolling-deployment'), _(' — Update the servers one at a time. While server 1 is being replaced, servers 2 through 10 are still serving traffic. When server 1 comes back healthy, server 2 is taken offline for its turn, and so on. Slower than blue/green, simpler to operate, and uses no extra hardware.')],
   ),
-  p(_('Validation also catches actively malicious inputs — somebody trying to put database commands or executable code into a form field. Same response: 400, nothing changes, error returned. The system stays clean because the validation gate ran before any code took the bad input seriously.')),
-  p(_('Three failure modes, three different gates, three different status codes — and a clear pattern: the request never gets further than the gate that can reject it. This is what a well-built system looks like in motion.')),
+  p(_('All three patterns rely on the load balancer from Chapter 5 — that’s the piece that decides who sees the old version vs. the new version. Releasing a new version of your code is structurally the same problem as routing traffic across many servers; you’re just routing across many *versions* now too.')),
 ]
 
-/* --------------------------- Slide 6 — Concurrency failure --------------------------- */
+/* --------------------------- Slide 4 — How you find out it broke --------------------------- */
 
-const concurrencyFailure: Block[] = [
-  p(_('Three failure modes so far were caught at one of the gates — auth, authz, or validation. Now a fourth scenario, and it’s the one gate-thinking alone can’t catch. Two users, on opposite sides of the country, both buy the last copy of a popular book within the same 50 milliseconds. Press → to walk through it.')),
-  steps(
-    step(
-      [_('Both requests hit the load balancer. It hands them to two different back-end servers, both of which begin processing in parallel.')],
-      { highlight: ['lb', 'be-pool'], status: 'neutral', focus: 'lb' },
-    ),
-    step(
-      [_('Both back-ends run the three gates: authentication ✓ (both users are logged in), authorization ✓ (both are allowed to buy), validation ✓ (both requests are well-formed). The gates pass *both* requests.')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
-    ),
-    step(
-      [_('Both back-ends read the inventory: count = 1. Both see "yes, in stock." Neither has written anything yet — they’re looking at the same starting state.')],
-      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
-    ),
-    step(
-      [_('Both back-ends subtract 1 and write count = 0. The second write silently overwrites the first, as if the first never happened. The database thinks one book was sold; in reality, two were promised.')],
-      { highlight: ['db-primary'], status: 'reject', focus: 'data' },
-    ),
-    step(
-      [_('Both browsers get a 200 OK. Both customers get a confirmation email. The system stayed "up." Nothing was rejected. But one of those orders is going to ship; the other isn’t.')],
-      { highlight: ['browser'], status: 'reject', focus: 'full' },
-    ),
+const observability: Block[] = [
+  p(_('We have new code running in production, served to real users with no downtime. Eventually — guaranteed — something will go wrong. A bug nobody caught. A spike in traffic. A third-party service that goes down. The question is how you find out, and how fast.')),
+  p(_('You can’t log into each server one by one and watch what’s happening, because there are dozens of servers handling thousands of requests per second. You need the system to *tell you* what’s going on, in a form you can actually read after the fact.')),
+  p(_('Three different things help you do this, and they answer different questions:')),
+  ul(
+    [t('Logs', 'logs'), _(' — A timestamped record of what the program did. Every time the code runs an interesting line ("user logged in", "payment failed", "request took 4 seconds"), it writes a line to the log. When something goes wrong at 3 a.m., logs are how you go back and reconstruct what happened. Logs answer: "what did the program do, in order?"')],
+    [t('Metrics', 'metrics'), _(' — Numbers tracked over time. Requests per second, average response time, percentage of requests that returned an error, memory used. You watch dashboards of these, and set alerts so you’re paged when something crosses a threshold (e.g. error rate above 1%). Metrics answer: "is the system healthy right now, and how is it trending?"')],
+    [t('Errors', 'errors'), _(' — When the code crashes, you don’t want to find out by reading 100,000 log lines. Error tracking tools capture each crash, group similar ones together, and show you which crashes are happening most often, with the line of code where they originated. Errors answer: "what specifically is broken, and how often?"')],
   ),
-  p(_('This is the failure mode that *passes* every gate. Authentication, authorization, validation — they all said yes, twice. The bug is at the back-end ↔ database seam, where two requests racing on the same row both got "in stock" before either had written. Chapter 6’s transactions and locks are how this gets fixed; the pattern to recognize is read-modify-write on shared data.')),
-  p(_('Why this belongs in the synthesis: gate-thinking catches a lot, but it doesn’t catch this. When you direct an agent on anything involving counters, balances, uniqueness checks, or state transitions, this is the failure mode to ask about explicitly — "could two of these run at the same time and both see the same starting value?"')),
+  p(
+    _('The common tools: '), t('Sentry', 'sentry'), _(' for error tracking; '), t('Datadog', 'datadog'),
+    _(' (and similar platforms like New Relic, Honeycomb) for metrics, dashboards, and log aggregation. Smaller teams often start with the cloud provider’s built-in logging (AWS CloudWatch, GCP Cloud Logging) and add tools as they grow.'),
+  ),
+  p(_('Without these, you discover problems when users tweet about them. With these, you discover problems before users notice — and you have the evidence to fix them.')),
 ]
 
-/* --------------------------- Chapter 7 export --------------------------- */
+/* --------------------------- Chapter 9 export --------------------------- */
 
 export const chapter09: Chapter = {
-  id: 'ch7',
-  number: 7,
-  title: 'Putting It Together',
-  subtitle: 'Real request flows, end-to-end',
+  id: 'ch9',
+  number: 9,
+  title: 'Deployment & Operations',
+  subtitle: 'Changing a running system without breaking it',
   slides: [
-    { id: 's1', level: 101, headline: 'Watching the system run', body: { kind: 'prose', blocks: intro }, diagramFocus: 'full' },
-    { id: 's2', level: 101, headline: 'Happy path — request that works', body: { kind: 'prose', blocks: happyPath }, diagramFocus: 'full' },
-    { id: 's3', level: 101, headline: 'Auth failure — 401 Unauthorized', body: { kind: 'prose', blocks: authFailure }, diagramFocus: 'app' },
-    { id: 's4', level: 101, headline: 'Authz failure — 403 Forbidden', body: { kind: 'prose', blocks: authzFailure }, diagramFocus: 'app' },
-    { id: 's5', level: 101, headline: 'Validation failure — 400 Bad Request', body: { kind: 'prose', blocks: validationFailure }, diagramFocus: 'app' },
-    { id: 's6', level: 101, headline: 'Race condition — both requests pass every gate', body: { kind: 'prose', blocks: concurrencyFailure }, diagramFocus: 'data' },
+    { id: 's1', level: 101, headline: 'It works on my machine', body: { kind: 'prose', blocks: containers }, diagramFocus: 'app' },
+    { id: 's2', level: 101, headline: 'Three places the code lives', body: { kind: 'prose', blocks: environments }, diagramFocus: 'full' },
+    { id: 's3', level: 101, headline: 'Updating without going down', body: { kind: 'prose', blocks: noDowntime }, diagramFocus: 'app' },
+    { id: 's4', level: 101, headline: 'How you find out it broke', body: { kind: 'prose', blocks: observability }, diagramFocus: 'full' },
     {
-      id: 's7',
+      id: 's5',
       level: 101,
       kind: 'recap',
       headline: 'What you have so far',
       body: {
         kind: 'recap',
         learned: [
-          'Every request flows through the same path — but where it stops, and which gate stops it, depends on what’s wrong',
-          '401 means "we don’t know you"; 403 means "we know you, but you can’t do this"; 400 means "the request itself is broken"',
-          'Concurrency failures are the ones that pass every gate — two requests racing on the same row, neither rejected, but the result is wrong',
-          'Failed requests should be rejected at the earliest gate possible — never returned-and-then-hidden in the UI',
-          'Pattern recognition for these failure modes is what lets you spot missing checks (and missing transactions) in agent-generated code',
+          'Containers package code with all of its dependencies, so it runs the same on a laptop as it does in production',
+          'Code travels through dev → staging → production; the closer to real users, the higher the bar to ship',
+          'Blue/green, canary, and rolling deployments all let you swap in new code without taking the site down',
+          'Logs (what happened), metrics (how the system is trending), and errors (what crashed) are how you find out something\'s wrong before users do',
         ],
         whereInSystem: [
-          _('All five scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate. Concurrency lives at that last seam — the back-end ↔ database — and is what bites when two requests race on the same row.'),
+          _('Containers wrap the front-end and back-end servers from earlier chapters; the deployment patterns rely on the '),
+          t('load balancer', 'load-balancer'),
+          _(' to route traffic across versions; logs and metrics flow out of every server in the system to a separate observability tool.'),
         ],
         bridge: [
-          _('Act I is done. Coming up — Chapter 8: Code Lifecycle. We\'ve walked through how the system runs at runtime; Act II is the orthogonal story of how the code that runs all this becomes the system in the first place. Then Ch 10 is the payoff: directing an AI coding agent against the whole picture.'),
+          _('Notice the pattern: containers are isolation applied to environments. CI gates from the last chapter are validation (Chapter 3) for code. Blue/green is load balancing (Chapter 5) applied to versions. Same concepts, different layer. Coming up — Chapter 10: Working with Claude Code. You now have the full picture: how the system runs at runtime (Act I) AND how the code that runs it gets there (Act II). The final chapter is the payoff — how to direct an AI coding agent against a real codebase using the literacy you’ve built.'),
         ],
       },
     },
