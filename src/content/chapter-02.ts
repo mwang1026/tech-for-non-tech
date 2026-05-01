@@ -31,6 +31,7 @@ const whatIsState: Block[] = [
     _('. It’s a generic word that covers a lot of ground: the contents of the database, the user’s active session, a temporary calculation in progress, a cached copy of yesterday’s analytics.'),
   ),
   p(_('Quick anchor before we go further: most of this state lives in a database, and a database is structured like a stack of spreadsheets. Each spreadsheet is called a *table* (one for users, one for orders, one for messages); each row is one record (one user, one order); each column is one field (name, email, created_at). When the rest of this primer talks about "rows" and "tables," that’s the picture.')),
+  p(_('Tying back to Chapter 2: most rows carry the user ID of their owner as one of those columns. The "stamp" you saw the back-end pull a slice off of — "give me everything stamped 123" — is the database filtering rows by that column on every query. Same idea, now with the structure underneath it.')),
   p(_('What needs to happen: every piece of state has to be put somewhere on purpose, with the right tradeoffs for what it is. Three main places it can go.')),
 ]
 

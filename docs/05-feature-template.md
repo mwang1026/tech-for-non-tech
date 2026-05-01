@@ -22,17 +22,17 @@ The single most useful artifact in the primer. Forces the agent to think across 
 
 | # | Question | Covered in |
 |---|---|---|
-| 1 | State | Ch 2 |
-| 2 | API contract | Ch 1, Ch 6 |
-| 3 | Identity | Ch 3 |
-| 4 | Authorization & validation | Ch 4 |
-| 5 | Concurrency | Ch 5 |
-| 6 | Performance | Ch 2, Ch 6 |
-| 7 | Failure modes | Ch 6, Ch 8 |
+| 1 | State | Ch 4 |
+| 2 | API contract | Ch 1, Ch 5 |
+| 3 | Identity | Ch 2 |
+| 4 | Authorization & validation | Ch 3 |
+| 5 | Concurrency | Ch 6 |
+| 6 | Performance | Ch 4, Ch 5 |
+| 7 | Failure modes | Ch 5, Ch 9 |
 | 8 | Front-end & back-end | Ch 1 |
-| 9 | Diagram | Ch 1 (sequence), Ch 6 (architecture) |
+| 9 | Diagram | Ch 1 (sequence), Ch 5 (architecture) |
 
-This mapping itself is a slide in Ch 9 — it shows the learner that the template is the curriculum applied.
+This mapping itself is a slide in Ch 10 — it shows the learner that the template is the curriculum applied. Ch 10 also names the common red flags that should *fail* the template's review (see "Phase 4 — When the plan doesn't fit"): each red flag is a place where one of these nine questions was hand-waved.
 
 ## How to use it
 

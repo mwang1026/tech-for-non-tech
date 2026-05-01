@@ -20,7 +20,7 @@ Phase 5 — Polish & deploy
 ### Done
 
 - Project purpose, audience, thesis (`docs/01-purpose-and-audience.md`)
-- Curriculum structure: 10 chapters with 101/201/301 breakdowns and named-tech inventory (Ch 9 added as end-to-end synthesis playground; Working with Claude Code now Ch 10)
+- Curriculum structure: 10 chapters with 101/201/301 breakdowns and named-tech inventory; reordered around request-anatomy (Identity → V&A → State → Architecture → Concurrency → Putting It Together as Ch 7) with Working with Claude Code as Ch 10
 - Per-chapter recap pattern: each chapter ends bridging its concept onto the persistent diagram
 - Pedagogical model: layered slides (not parallel curricula), level toggle drives slides + glossary + diagram
 - Architecture-diagram spine with per-chapter accretion and per-level density tables
@@ -58,7 +58,7 @@ What the slice must demonstrate before authorizing Phase 4:
 - `Slide` component honoring the content-fit-per-slide rule
 - `LevelToggle` driving a `useLevel()` hook that filters slides
 - 2-3 slides authored as content data, not embedded in components
-- One chapter transition (Ch 6 → Ch 7) showing the explicit "Next" card pattern
+- One chapter transition (e.g. Ch 6 → Ch 7) showing the explicit "Next" card pattern
 - Keyboard navigation (`←` `→` `L`) wired
 - URL hash state for slide position
 

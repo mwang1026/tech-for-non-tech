@@ -152,6 +152,36 @@ const validationFailure: Block[] = [
   p(_('Three failure modes, three different gates, three different status codes — and a clear pattern: the request never gets further than the gate that can reject it. This is what a well-built system looks like in motion.')),
 ]
 
+/* --------------------------- Slide 6 — Concurrency failure --------------------------- */
+
+const concurrencyFailure: Block[] = [
+  p(_('Three failure modes so far were caught at one of the gates — auth, authz, or validation. Now a fourth scenario, and it’s the one gate-thinking alone can’t catch. Two users, on opposite sides of the country, both buy the last copy of a popular book within the same 50 milliseconds. Press → to walk through it.')),
+  steps(
+    step(
+      [_('Both requests hit the load balancer. It hands them to two different back-end servers, both of which begin processing in parallel.')],
+      { highlight: ['lb', 'be-pool'], status: 'neutral', focus: 'lb' },
+    ),
+    step(
+      [_('Both back-ends run the three gates: authentication ✓ (both users are logged in), authorization ✓ (both are allowed to buy), validation ✓ (both requests are well-formed). The gates pass *both* requests.')],
+      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+    ),
+    step(
+      [_('Both back-ends read the inventory: count = 1. Both see "yes, in stock." Neither has written anything yet — they’re looking at the same starting state.')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('Both back-ends subtract 1 and write count = 0. The second write silently overwrites the first, as if the first never happened. The database thinks one book was sold; in reality, two were promised.')],
+      { highlight: ['db-primary'], status: 'reject', focus: 'data' },
+    ),
+    step(
+      [_('Both browsers get a 200 OK. Both customers get a confirmation email. The system stayed "up." Nothing was rejected. But one of those orders is going to ship; the other isn’t.')],
+      { highlight: ['browser'], status: 'reject', focus: 'full' },
+    ),
+  ),
+  p(_('This is the failure mode that *passes* every gate. Authentication, authorization, validation — they all said yes, twice. The bug is at the back-end ↔ database seam, where two requests racing on the same row both got "in stock" before either had written. Chapter 6’s transactions and locks are how this gets fixed; the pattern to recognize is read-modify-write on shared data.')),
+  p(_('Why this belongs in the synthesis: gate-thinking catches a lot, but it doesn’t catch this. When you direct an agent on anything involving counters, balances, uniqueness checks, or state transitions, this is the failure mode to ask about explicitly — "could two of these run at the same time and both see the same starting value?"')),
+]
+
 /* --------------------------- Chapter 7 export --------------------------- */
 
 export const chapter09: Chapter = {
@@ -165,8 +195,9 @@ export const chapter09: Chapter = {
     { id: 's3', level: 101, headline: 'Auth failure — 401 Unauthorized', body: { kind: 'prose', blocks: authFailure }, diagramFocus: 'app' },
     { id: 's4', level: 101, headline: 'Authz failure — 403 Forbidden', body: { kind: 'prose', blocks: authzFailure }, diagramFocus: 'app' },
     { id: 's5', level: 101, headline: 'Validation failure — 400 Bad Request', body: { kind: 'prose', blocks: validationFailure }, diagramFocus: 'app' },
+    { id: 's6', level: 101, headline: 'Race condition — both requests pass every gate', body: { kind: 'prose', blocks: concurrencyFailure }, diagramFocus: 'data' },
     {
-      id: 's6',
+      id: 's7',
       level: 101,
       kind: 'recap',
       headline: 'What you have so far',
@@ -175,11 +206,12 @@ export const chapter09: Chapter = {
         learned: [
           'Every request flows through the same path — but where it stops, and which gate stops it, depends on what’s wrong',
           '401 means "we don’t know you"; 403 means "we know you, but you can’t do this"; 400 means "the request itself is broken"',
+          'Concurrency failures are the ones that pass every gate — two requests racing on the same row, neither rejected, but the result is wrong',
           'Failed requests should be rejected at the earliest gate possible — never returned-and-then-hidden in the UI',
-          'Pattern recognition for these failure modes is what lets you spot missing checks in agent-generated code',
+          'Pattern recognition for these failure modes is what lets you spot missing checks (and missing transactions) in agent-generated code',
         ],
         whereInSystem: [
-          _('All four scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate.'),
+          _('All five scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate. Concurrency lives at that last seam — the back-end ↔ database — and is what bites when two requests race on the same row.'),
         ],
         bridge: [
           _('Act I is done. Coming up — Chapter 8: Code Lifecycle. We\'ve walked through how the system runs at runtime; Act II is the orthogonal story of how the code that runs all this becomes the system in the first place. Then Ch 10 is the payoff: directing an AI coding agent against the whole picture.'),

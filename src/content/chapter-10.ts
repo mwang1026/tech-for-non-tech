@@ -75,15 +75,33 @@ const phase3: Block[] = [
   ),
   p(_('Close with: *"Don’t write any code yet — just explain the plan."*')),
   p(_('Each question maps to a chapter you’ve already done. Identity → Ch 2. Authorization & validation → Ch 3. State → Ch 4. Architecture & performance → Ch 5. Concurrency → Ch 6. Failure modes → Ch 5 (where things can break across the network) and Ch 9 (how you find out when they do). The template is this primer applied.')),
-  p(_('What you’re reading the answers for: hand-waves. "It’ll be cached" without saying where, or what the staleness window is, is a hand-wave. "It’s authenticated" without saying where the check happens is a hand-wave. Each hand-wave is a place to push back. Better to push back now, in plain English, than after the agent has written 800 lines of code.')),
+  p(_('What you’re reading the answers for: hand-waves. "It’ll be cached" without saying where, or what the staleness window is, is a hand-wave. "It’s authenticated" without saying where the check happens is a hand-wave. Each hand-wave is a place to push back — and the next slide is a catalog of the most common ones, mapped back to the chapters that named them.')),
 ]
 
-/* --------------------------- Slide 5 — Phase 4: Read the diff --------------------------- */
+/* --------------------------- Slide 5 — Phase 4: When the plan doesn't fit --------------------------- */
 
-const phase4: Block[] = [
-  p(_('The agent runs the template. The plan looks good. You give it the green light, and it writes the code. Pull request opens. CI goes green. Reviewers approve. Are you done?')),
+const phase4_pushback: Block[] = [
+  p(_('The agent runs the template. The plan comes back. Now what?')),
+  p(_('You read it for hand-waves and red flags. Each red flag corresponds to something this primer has already covered — naming it in the system\'s vocabulary is what makes pushback land.')),
+  p(_('Common red flags, mapped to chapters:')),
+  ul(
+    [_('**"The endpoint accepts a userId in the request body."** — Authorization smell (Ch 3). The user ID should come from the verified token, not from anything the caller can change.')],
+    [_('**"We\'ll keep it in memory."** — Durability smell (Ch 4). Anything that should survive a restart belongs in the database. Memory only works for state that\'s OK to lose.')],
+    [_('**"We\'ll cache it."** — Staleness smell (Ch 4). What\'s the freshness requirement? When does the cache get invalidated? "Just cache it" without answers ships a stale-data bug.')],
+    [_('**"Read the count, then write count − 1."** — Concurrency smell (Ch 6). Two requests will race; one silently overwrites the other. Needs a transaction with the right lock, or a single atomic statement.')],
+    [_('**"The front-end won\'t let users do that."** — Security smell (Ch 3). The front-end runs on the user\'s machine. Anyone can call the API directly. The check has to be on the back-end too.')],
+    [_('**"Add a NOT NULL column with no default."** — Deploy smell (Ch 9). Existing rows break the migration. Either add a default, or do a two-step deploy (column nullable first, fill it, then enforce).')],
+  ),
+  p(_('The move is the same in every case: don\'t accept "trust me." Ask why this approach. Name the concern in the system\'s vocabulary ("won\'t this race?"; "what\'s the staleness tolerance?"; "where\'s the back-end check?"). Propose the alternative the chapter taught you. The agent will either reach for a better answer or reveal it doesn\'t have one.')),
+  p(_('Pushing back here is the cheapest place to do it. Once the agent has written 800 lines of code, the cost of redirecting goes up. The whole point of running the template before any code gets written is to catch the bad plan in plain English, where reasoning about the system is fastest.')),
+]
+
+/* --------------------------- Slide 6 — Phase 5: Read the diff --------------------------- */
+
+const phase5_diff: Block[] = [
+  p(_('Plan iterated, plan accepted. The agent writes the code. Pull request opens. CI goes green. Reviewers approve. Are you done?')),
   p(_('No. Read the diff first.')),
-  p(_('The plan is one thing. The actual code change is another. Agents are very good at producing code that *resembles* what was planned and is subtly different — a check moved to the wrong layer, a transaction quietly omitted, a default value that doesn’t match what was discussed. CI catches the mistakes that have tests; it does not catch the mistakes that don’t.')),
+  p(_('The plan is one thing. The actual code change is another. Agents are very good at producing code that *resembles* the plan and is subtly different — a check moved to the wrong layer, a transaction quietly omitted, a default value that doesn’t match what was discussed. CI catches the mistakes that have tests; it does not catch the mistakes that don’t.')),
   p(_('What to look for as you read the diff:')),
   ul(
     [_('Each authorization check from the plan — is it actually present in the code, on the right side (back-end) of the boundary?')],
@@ -107,9 +125,10 @@ export const chapter10: Chapter = {
     { id: 's2', level: 101, headline: 'Phase 1 — Get oriented', body: { kind: 'prose', blocks: phase1 }, diagramFocus: 'full' },
     { id: 's3', level: 101, headline: 'Phase 2 — Learn on demand', body: { kind: 'prose', blocks: phase2 }, diagramFocus: 'full' },
     { id: 's4', level: 101, headline: 'Phase 3 — Run the feature template', body: { kind: 'prose', blocks: phase3 }, diagramFocus: 'full' },
-    { id: 's5', level: 101, headline: 'Phase 4 — Always read the diff', body: { kind: 'prose', blocks: phase4 }, diagramFocus: 'full' },
+    { id: 's5', level: 101, headline: 'Phase 4 — When the plan doesn’t fit', body: { kind: 'prose', blocks: phase4_pushback }, diagramFocus: 'full' },
+    { id: 's6', level: 101, headline: 'Phase 5 — Always read the diff', body: { kind: 'prose', blocks: phase5_diff }, diagramFocus: 'full' },
     {
-      id: 's6',
+      id: 's7',
       level: 101,
       kind: 'recap',
       headline: 'What you have, end to end',
@@ -117,9 +136,9 @@ export const chapter10: Chapter = {
         kind: 'recap',
         learned: [
           'You have a full mental model of how software systems work — request flow, state, identity, validation, concurrency, architecture, code lifecycle, deployment',
-          'You have a four-phase workflow with an AI agent: orient, learn on demand, run the feature template, read the diff',
+          'You have a five-phase workflow with an AI agent: orient, learn on demand, run the feature template, push back on red flags in the plan, read the diff',
           'You have a nine-question template that forces every plan to surface the tradeoffs you now know how to evaluate',
-          'You have a vocabulary of warning signs — the patterns that quietly produce bugs, and the questions to ask when you spot them',
+          'You have a vocabulary of warning signs — the patterns that quietly produce bugs, and the chapter each one maps back to when you need to push back',
         ],
         whereInSystem: [
           _('You are not a part of the diagram. You are the human watching it, directing changes to it, and verifying what comes back. The agent is your co-worker. The diagram is your shared reference. The feature template is your shared protocol.'),

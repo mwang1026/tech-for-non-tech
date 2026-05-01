@@ -11,7 +11,7 @@ Each chapter begins with the same four-part frame. The user explicitly requested
 3. **When it goes wrong** — what does the failure mode look like in practice?
 4. **When it works** — what does success look like, often invisibly?
 
-Concrete example (Chapter 5, Concurrency):
+Concrete example (Chapter 6, Concurrency):
 
 > **Job:** Let many requests run at the same time without corrupting shared data.
 > **Why:** A real system never serves one user at a time. The moment two requests touch the same row, you have a correctness problem that's invisible at low load and catastrophic at scale.
@@ -52,11 +52,11 @@ Why this and not three parallel curricula:
 
 The bad version of this is "201 = 101 with a sidebar of jargon." Every 201 slide must earn its place by genuinely changing how the learner understands the concept, not just adding name-drops. If a 201 slide could be deleted and the only loss is a few technology names, it should be a glossary entry, not a slide.
 
-## The meta-pattern (taught in Ch 9, foreshadowed throughout)
+## The meta-pattern (taught in Ch 10, foreshadowed throughout)
 
 > **Every feature is the same nine questions. See the pattern three times and you can predict it for any feature.**
 
-The nine questions are detailed in `05-feature-template.md`. Each chapter introduces one or more of them; Ch 9 ties them together into the template the learner runs every time they direct an agent.
+The nine questions are detailed in `05-feature-template.md`. Each chapter introduces one or more of them; Ch 10 ties them together into the template the learner runs every time they direct an agent — and adds an explicit pushback phase (Phase 4) for what to do when the agent's answers smell wrong.
 
 ## Worked examples — the same feature at growing complexity
 
@@ -64,33 +64,33 @@ The notes feature is built across the curriculum at four complexity tiers. Each 
 
 | Tier | Feature | Added complexity | Chapter where it lands |
 |---|---|---|---|
-| 1 | Notes box | Basic CRUD per user; isolation by `user_id` | Ch 3 (Identity) — first worked example |
-| 2 | Sharing notes | Authorization: can I see this shared note? | Ch 4 (Auth) |
-| 3 | Comments on notes | Cascading permissions: can I comment? | Ch 4 (Auth) |
-| 4 | Real-time updates | Push vs. pull, WebSocket transport | Ch 6 (Architecture) |
+| 1 | Notes box | Basic CRUD per user; isolation by `user_id` | Ch 2 (Identity) — first worked example |
+| 2 | Sharing notes | Authorization: can I see this shared note? | Ch 3 (Validation & Auth) |
+| 3 | Comments on notes | Cascading permissions: can I comment? | Ch 3 (Validation & Auth) |
+| 4 | Real-time updates | Push vs. pull, WebSocket transport | Ch 5 (Architecture) |
 
-By Ch 9 the learner has seen the same feature analyzed through identity, authorization, cascading permissions, and transport — and the nine-question template snaps into place naturally.
+By Ch 7 the learner has seen the same feature analyzed through identity, authorization, cascading permissions, and transport — and the nine-question template snaps into place naturally.
 
 ## Per-chapter recap — bridging concepts to the system end-to-end
 
-Every chapter (Ch 1-8) ends with a recap slide before its Claude Code prompts. Three parts:
+Every chapter ends with a recap slide before its Claude Code prompts. Three parts:
 
 1. **What you've learned** — 3-4 tight bullets summarizing the chapter's load-bearing ideas.
 2. **Where it lives in the system** — a callout on the persistent architecture diagram showing this chapter's concept lit up in context.
 3. **The bridge to next chapter** — one sentence connecting forward.
 
-This compounds across chapters. By Ch 8 the recap shows 8 lit regions on one diagram. Ch 9 then animates real request paths through those same regions, exercising every concept in concert. The recap pattern is the daily payoff for the persistent-diagram design choice — each chapter's concept doesn't live in isolation, it accretes onto a shared visual the learner has been building.
+This compounds across chapters. By Ch 6 the recap shows the full single-region accreted system; Ch 7 then animates real request paths through those same regions, exercising every concept in concert (including the gate-bypassing concurrency-failure scenario that ties Ch 6 into the synthesis). The recap pattern is the daily payoff for the persistent-diagram design choice — each chapter's concept doesn't live in isolation, it accretes onto a shared visual the learner has been building.
 
 ## Threading Claude Code prompts throughout
 
-Originally the entire "how to use Claude Code" content was concentrated in Ch 8 / Ch 9. We rejected that — it forces the learner through seven chapters of theory before switching modes.
+Originally the entire "how to use Claude Code" content was concentrated in the final chapter. We rejected that — it forces the learner through nine chapters of theory before switching modes.
 
-Instead: **two Claude Code prompts at the end of every chapter**, scoped to that chapter's concept. The learner is asked to try the prompt against their own codebase. By Ch 9 they've already used the agent 16 times in context — the final chapter is integration, not introduction.
+Instead: **two Claude Code prompts at the end of every chapter**, scoped to that chapter's concept. The learner is asked to try the prompt against their own codebase. By Ch 10 they've already used the agent eighteen times in context — the final chapter is integration, not introduction.
 
 Examples:
-- Ch 2 (State): "What's stored in the database in this codebase vs. what's only in memory?"
-- Ch 5 (Concurrency): "Does this codebase use any database transactions? Show me where and why."
-- Ch 7 (Code Lifecycle): "What tests does this codebase have, where are they, and how do I run them locally?"
+- Ch 4 (State): "What's stored in the database in this codebase vs. what's only in memory?"
+- Ch 6 (Concurrency): "Does this codebase use any database transactions? Show me where and why."
+- Ch 8 (Code Lifecycle): "What tests does this codebase have, where are they, and how do I run them locally?"
 
 ## Don't teach syntax, ever
 
@@ -190,7 +190,7 @@ Worked example — the CDN slide:
 - Tension: a long arrow between origin server and the user pulses, dramatizing the round-trip cost
 - Solution: a CDN box fades in at the edge of the diagram, between the user and everything else
 - Names: "Cloudflare / Fastly / Akamai / AWS CloudFront" appears as small tech-tag labels under the CDN
-- Bridge: the Cache box (from Chapter 2) gets a soft secondary highlight as the bridge sentence references it
+- Bridge: the Cache box (from Chapter 4) gets a soft secondary highlight as the bridge sentence references it
 
 This is the killer feature of the persistent diagram. Without it, the diagram is just a chart that happens to be there. With it, each slide is a coordinated audiovisual moment.
 
@@ -202,7 +202,7 @@ The MVP scaffold attaches one `diagramFocus` per slide. The richer version suppo
 
 Every slide ends with a bridge. Bridges go in either direction:
 
-- **Backward bridge** (default): tie the new concept to a prior one the learner already has. Reinforces the spine. *"This is the cache-vs-freshness tradeoff from Chapter 2, applied at the network layer."*
+- **Backward bridge** (default): tie the new concept to a prior one the learner already has. Reinforces the spine. *"This is the cache-vs-freshness tradeoff from Chapter 4, applied at the network layer."*
 - **Forward bridge**: set up the next slide's tension. Used when the next slide naturally builds on this one. *"But what happens when those edge servers themselves go down? Next: ..."*
 
 A slide can do both, especially the recap slide at the end of a chapter, which bridges back to the chapter's start AND forward to the next chapter.

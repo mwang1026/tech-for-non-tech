@@ -21,7 +21,7 @@ Cloudflare
   CDN, DNS, edge-compute, and security platform. Sits at the network edge,
   caching static content close to users and providing a Web Application
   Firewall in front of origins.
-  Mentioned in: Ch 1 (DNS), Ch 6 (CDN, edge), Ch 8 (WAF, edge compute).
+  Mentioned in: Ch 1 (DNS), Ch 5 (CDN, edge), Ch 9 (WAF, edge compute).
   Level: 201
 ```
 
@@ -39,26 +39,26 @@ Most live at 201 / 301. A few foundational ones live at 101.
 
 ### Examples by chapter
 
-**Ch 2 (State) — 201**
-> The agent added a query that runs on every page load. Ask: "Should this be cached? What's the freshness requirement?"
-
-**Ch 3 (Identity) — 201**
+**Ch 2 (Identity) — 201**
 > The agent's new endpoint takes `userId` as a request parameter. Ask: "Should `userId` come from the request, or from the auth token? What stops me from passing someone else's ID?"
 
-**Ch 4 (Auth) — 201**
+**Ch 3 (Validation & Authorization) — 201**
 > The agent hid a button on the front-end based on a permission check. Ask: "Where is the back-end check that prevents calling this endpoint directly?"
 
-**Ch 5 (Concurrency) — 301**
-> The agent's plan reads a counter, modifies it, and writes it back. Ask: "What if two requests run this at the same time? Does this need a transaction or atomic increment?"
+**Ch 4 (State) — 201**
+> The agent added a query that runs on every page load. Ask: "Should this be cached? What's the freshness requirement?"
 
-**Ch 6 (Architecture) — 201**
+**Ch 5 (Architecture) — 201**
 > The agent suggested the front-end poll an endpoint every 5 seconds. Ask: "Could this be a webhook or WebSocket instead? What's the cost of polling at that rate at scale?"
 
-**Ch 7 (Code Lifecycle) — 201**
+**Ch 6 (Concurrency) — 101 / 301**
+> The agent's plan reads a counter, modifies it, and writes it back. Ask: "What if two requests run this at the same time? Does this need a transaction or atomic increment?" (101 surfaces this as a red flag named in Ch 10 Phase 4; 301 covers the lock-and-isolation-level mechanics.)
+
+**Ch 8 (Code Lifecycle) — 201**
 > The agent's PR has no test for the new behavior. Ask: "What's the smallest unit test that would have caught this if I broke it later?"
 
-**Ch 8 (Deployment) — 301**
-> The agent's migration adds a NOT NULL column to a large table. Ask: "Is this a backward-compatible migration? What happens to old code during the deploy window?"
+**Ch 9 (Deployment) — 101 / 301**
+> The agent's migration adds a NOT NULL column to a large table. Ask: "Is this a backward-compatible migration? What happens to old code during the deploy window?" (101 names this as a deploy-smell red flag in Ch 10 Phase 4; 301 covers the two-step deploy / backfill mechanics.)
 
 ### Composition
 
@@ -71,7 +71,7 @@ Each smell test is:
 
 Smell tests appear in two places:
 - Inline at the end of relevant slides ("If you saw this in agent output, ask...")
-- Aggregated in the Ch 9 (Working with Claude Code) chapter as the full bank, filterable by chapter and level
+- Aggregated in Ch 10 (Working with Claude Code), Phase 4 ("When the plan doesn't fit") as the full bank of red flags mapped back to chapters, with the corresponding pushback question for each
 
 ## Authoring discipline
 

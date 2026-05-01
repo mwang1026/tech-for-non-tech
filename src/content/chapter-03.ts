@@ -79,10 +79,9 @@ const whatTokenIs: Block[] = [
 
 const slicingTheDb: Block[] = [
   p(_('Now we know how the request says "this is from user 123." But that’s only useful if the back-end actually does something with it.')),
-  p(_('Picture the back-end’s data as one giant room with everyone’s stuff in it — every user’s notes, orders, messages, photos. Each item is tagged with the ID of its owner: a stamp on the side that says, in effect, "this belongs to user 123." (Ch 4 covers in detail how data is structured; for now the stamp metaphor is enough.)')),
-  p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123). It then asks the data layer: "give me everything tagged user 123." The data layer returns those items and only those items. User 456’s notes are physically next to user 123’s, but the query never asks for them, so the back-end never sees them, so the requesting user never sees them.')),
+  p(_('Picture the back-end’s data as one giant room with everyone’s stuff in it — every user’s notes, orders, messages, photos. Each item carries a small stamp: this one belongs to user 123, this one to user 456, and so on.')),
+  p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123), then asks for everything stamped 123. Items stamped 456 are sitting right there next to them, but they were never asked for, so they never come back. The requesting user only ever sees their own.')),
   p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a shared back-end into something that feels, to each user, like their own private space. Every safe multi-user system in the world works this way.')),
-  p(_('What can go wrong here is its own subject — Chapter 3 is about the gates that catch every kind of "oops, you forgot to check" bug.')),
 ]
 
 /* --------------------------- Recap --------------------------- */

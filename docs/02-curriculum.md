@@ -5,15 +5,20 @@ The ten chapters with full 101 / 201 / 301 breakdowns and named technologies. Ea
 ## Chapter list
 
 1. The Request-Response Cycle
-2. State
-3. Identity
-4. Validation & Authorization
-5. Concurrency
-6. Architecture & Communication Patterns
-7. Code Lifecycle
-8. Deployment & Operations
-9. Putting It Together — Request Flows End-to-End
+2. Identity
+3. Validation & Authorization
+4. State
+5. Architecture & Communication Patterns
+6. Concurrency
+7. Putting It Together — Request Flows End-to-End
+8. Code Lifecycle
+9. Deployment & Operations
 10. Working with Claude Code
+
+The arc has three acts:
+- **Act I — Anatomy of a request** (Ch 1–7): the runtime story. Build up the request loop, then the gates that govern it (identity, authorization, validation), then where data lives, then how the system scales (architecture, concurrency), then synthesize end-to-end in Putting It Together.
+- **Act II — How code becomes the running system** (Ch 8–9): code lifecycle (git, PR, CI) → deployment & operations (containers, environments, observability).
+- **Act III — Working with the agent** (Ch 10): the payoff — direct an AI coding agent against a real codebase using everything the prior chapters built.
 
 ---
 
@@ -53,7 +58,7 @@ The ten chapters with full 101 / 201 / 301 breakdowns and named technologies. Ea
 
 ---
 
-## Chapter 2 — State
+## Chapter 4 — State
 
 **Job:** Keep track of what's true about the system right now, in the right place for the right cost.
 **Why:** Every architectural argument is downstream of "where does this data live and how fresh does it need to be." This is the single biggest tradeoff lever in software.
@@ -91,7 +96,7 @@ The ten chapters with full 101 / 201 / 301 breakdowns and named technologies. Ea
 
 ---
 
-## Chapter 3 — Identity
+## Chapter 2 — Identity
 
 **Job:** Attach a verifiable identity to every request, so the system can serve the right slice of state to the right person.
 **Why:** The instant you have more than one user, identity is what separates them. It's the foundation of multi-tenancy, security, personalization.
@@ -128,7 +133,7 @@ First worked example. User can write and save notes on their dashboard. Isolatio
 
 ---
 
-## Chapter 4 — Validation & Authorization
+## Chapter 3 — Validation & Authorization
 
 **Job:** Before any meaningful action, prove three things: the request is from a real user (auth), that user is allowed to do this specific thing (authz), and the data they sent is well-formed (validation).
 **Why:** Identity tells you *who*. This chapter is about *whether they can*. Every security model in every system is some version of this gate.
@@ -169,14 +174,14 @@ Cascading permissions. Can I comment? Only if I can see the note.
 
 ---
 
-## Chapter 5 — Concurrency
+## Chapter 6 — Concurrency
 
 **Job:** Let many requests run at the same time without corrupting shared data.
 **Why:** A real system never serves one user at a time. The moment two requests touch the same row, you have a correctness problem that's invisible at low load and catastrophic at scale.
 **When wrong:** Double-charged credit cards. Selling the last item twice. Counters that drift.
 **When right:** Thousands of overlapping requests produce results indistinguishable from a single-threaded execution.
 
-> Note: this chapter explicitly distinguishes itself from Ch 3's identity-as-isolation. Identity isolates *users* from each other (logical/security). Concurrency isolation prevents *simultaneous requests* from corrupting shared state (runtime/correctness). Different problems, sometimes confused.
+> Note: this chapter explicitly distinguishes itself from Ch 2's identity-as-isolation. Identity isolates *users* from each other (logical/security). Concurrency isolation prevents *simultaneous requests* from corrupting shared state (runtime/correctness). Different problems, sometimes confused.
 
 ### 101
 - When two requests want the same thing at the same time, things break.
@@ -192,7 +197,7 @@ Cascading permissions. Can I comment? Only if I can see the note.
 **Tech named at 201:** PostgreSQL transactions, Redis distributed locks; Kafka, RabbitMQ, AWS SQS, GCP Pub/Sub, Redis Streams, NATS; Sidekiq (Ruby), Celery (Python), BullMQ (Node), Resque, Hangfire (.NET); ZooKeeper, etcd, Consul.
 
 ### 301 (additions)
-- Database isolation levels (deeper than Ch 2 mentions).
+- Database isolation levels (deeper than Ch 4 mentions).
 - Distributed locks and their failure modes.
 - CAP theorem in practice.
 - Saga pattern for distributed transactions.
@@ -205,7 +210,7 @@ Cascading permissions. Can I comment? Only if I can see the note.
 
 ---
 
-## Chapter 6 — Architecture & Communication Patterns
+## Chapter 5 — Architecture & Communication Patterns
 
 **Job:** Decide how the pieces of a system are split up and how they talk to each other.
 **Why:** These decisions shape what the team can build for the next three years. Wrong split = constant friction. Right split = invisible.
@@ -245,7 +250,7 @@ Push vs. pull. WebSocket transport. Demonstrates: same data, different transport
 
 ---
 
-## Chapter 7 — Code Lifecycle
+## Chapter 8 — Code Lifecycle
 
 **Job:** Manage code changes safely as a team — propose, review, verify, and roll back without losing history or stepping on each other.
 **Why:** Every change to a running system starts as a change to a file. Without version control, two developers overwrite each other and history is lost. Without review and tests, bad code reaches production unfiltered.
@@ -281,7 +286,7 @@ Push vs. pull. WebSocket transport. Demonstrates: same data, different transport
 
 ---
 
-## Chapter 8 — Deployment & Operations
+## Chapter 9 — Deployment & Operations
 
 **Job:** Ship new code to a system serving live users without breaking it for them, and know what's happening once it's there.
 **Why:** Software is never finished. The cost of deployment is the rate at which the team can improve the product. Slow deployments = slow company.
@@ -314,9 +319,9 @@ Push vs. pull. WebSocket transport. Demonstrates: same data, different transport
 - Blue/green for stateful services (the genuinely hard case).
 
 ### The reframe
-- Containers = Ch 5's isolation, applied to environments.
-- CI/CD gates = Ch 4's validation, applied to code changes.
-- Blue/green = Ch 6's load balancing, applied to versions.
+- Containers = Ch 6's concurrency-isolation, applied to environments.
+- CI/CD gates = Ch 3's validation, applied to code changes.
+- Blue/green = Ch 5's load balancing, applied to versions.
 Same concepts, different layer.
 
 ### Claude Code prompts
@@ -325,31 +330,32 @@ Same concepts, different layer.
 
 ---
 
-## Chapter 9 — Putting It Together — Request Flows End-to-End
+## Chapter 7 — Putting It Together — Request Flows End-to-End
 
-**Job:** Synthesize everything from Ch 1-8 by tracing real request scenarios through the fully-built system, showing where each gate, store, and service participates.
+**Job:** Synthesize everything from Ch 1-6 by tracing real request scenarios through the fully-built system, showing where each gate, store, and service participates.
 **Why:** The persistent diagram has been accreting for eight chapters. It's never been exercised end-to-end. This chapter turns the diagram into a **playground** — pick a scenario, watch the request animate its path, see what happens at each layer.
 **When wrong:** Without this synthesis, the learner has nine separate concepts and no mental model for how they cooperate during one actual user action.
 **When right:** The learner can predict, for any feature in any codebase, the path a request will take and where it might be rejected, slow, or wrong.
 
 ### Format
 
-The diagram does not add new elements. It is fully accreted from Ch 1-8. Each slide picks one scenario; the diagram lights up the request's path step by step, with rejection arrows at the gate where a failure occurs.
+The diagram does not add new elements. It is fully accreted from Ch 1-6 (Act I single-region system). Each slide picks one scenario; the diagram lights up the request's path step by step, with rejection arrows at the gate where a failure occurs.
 
 ### Scenario list (one slide per scenario)
 
 | # | Scenario | What it exercises |
 |---|---|---|
-| 1 | Happy path — authenticated user reads their own data | Ch 1, 3, 4 (all gates green) |
-| 2 | Auth failure — no token / expired token | Ch 3, caught at gateway → 401 |
-| 3 | Authz failure — user requests another user's data | Ch 3, 4, caught at back-end → 403 |
-| 4 | Validation failure — malformed payload | Ch 4, caught at validation layer → 400 |
-| 5 | Cache hit — served from Redis, never hits Postgres | Ch 2 |
-| 6 | Cache miss — falls through to DB, populates cache | Ch 2 |
-| 7 | Race condition averted — two concurrent writes; transaction serializes them | Ch 5 |
-| 8 | Webhook in — Stripe POSTs to our webhook URL; signature-validated; triggers background job | Ch 4, 5, 6 |
-| 9 | Background job + WebSocket push — queued work completes; pushes update via WebSocket | Ch 5, 6 |
-| 10 | Cascading failure — third-party 500s; retry with backoff; circuit breaker opens; degraded response | Ch 6, 8 |
+| 1 | Happy path — authenticated user reads their own data | Ch 1, 2, 3 (all gates green) |
+| 2 | Auth failure — no token / expired token | Ch 2, caught at back-end → 401 |
+| 3 | Authz failure — user requests another user's data | Ch 2, 3, caught at back-end → 403 |
+| 4 | Validation failure — malformed payload | Ch 3, caught at validation layer → 400 |
+| 5 | Race condition — two concurrent writes both pass every gate, second silently overwrites first | Ch 6 (the failure mode that gate-thinking can't catch) |
+| 6 | Cache hit — served from Redis, never hits Postgres | Ch 4 |
+| 7 | Cache miss — falls through to DB, populates cache | Ch 4 |
+| 8 | Race condition averted — same scenario as #5, but with the transaction + lock that fixes it | Ch 6 |
+| 9 | Webhook in — Stripe POSTs to our webhook URL; signature-validated; triggers background job | Ch 3, 5, 6 |
+| 10 | Background job + WebSocket push — queued work completes; pushes update via WebSocket | Ch 5, 6 |
+| 11 | Cascading failure — third-party 500s; retry with backoff; circuit breaker opens; degraded response | Ch 5, 9 |
 
 ### Diagram interactions specific to Ch 9
 
@@ -362,10 +368,10 @@ The diagram does not add new elements. It is fully accreted from Ch 1-8. Each sl
 - "For [feature in your codebase], walk me through the full request path from browser to database and back. Tell me every gate it passes and what would cause each gate to reject."
 - "Where in this codebase would a cascading failure most likely happen? What's the current circuit breaker / retry behavior?"
 
-### Levels at Ch 9
-- **101:** scenarios 1, 2, 3, 4 (the core success / failure paths)
-- **201:** adds 5, 6, 8 (cache + webhook)
-- **301:** adds 7, 9, 10 (concurrency + async + cascading failure)
+### Levels at Ch 7
+- **101:** scenarios 1, 2, 3, 4, 5 (happy path + the four failure modes — including concurrency, which bypasses every gate)
+- **201:** adds 6, 7, 9 (cache hit/miss + webhook)
+- **301:** adds 8, 10, 11 (transactions/locks + async + cascading failure)
 
 ---
 
@@ -395,11 +401,12 @@ The diagram does not add new elements. It is fully accreted from Ch 1-8. Each sl
 - When to roll your own agent vs. use Claude Code.
 - The smell-test catalog (every chapter's worth, gathered).
 
-### Four phases of working in a codebase
+### Five phases of working in a codebase
 1. **Get the map** — orientation prompts.
 2. **Learn on demand** — ask about anything unfamiliar in context.
-3. **Understand the design** — identity, state, security as practiced here.
-4. **Build a feature** — the nine-question template every time.
+3. **Run the feature template** — the nine-question framework before any code.
+4. **Push back when the plan doesn't fit** — catalog of red flags mapped back to chapters (authn smell → Ch 3, durability smell → Ch 4, staleness smell → Ch 4, read-modify-write smell → Ch 6, security-by-front-end smell → Ch 3, deploy-breaking-migration smell → Ch 9). The move: name the concern in the system's vocabulary, propose the alternative the chapter taught you. Cheapest place to redirect — before code is written.
+5. **Read the diff** — the last gate, where plan-vs-code drift gets caught.
 
 ### Claude Code prompts
 - "Use the nine-question feature template to plan [feature] in this codebase. Don't write code yet."
@@ -409,10 +416,10 @@ The diagram does not add new elements. It is fully accreted from Ch 1-8. Each sl
 
 ## Per-chapter recap pattern
 
-Every chapter (Ch 1-8) ends with a recap slide before its Claude Code prompts. Three parts:
+Every chapter ends with a recap slide before its Claude Code prompts. Three parts:
 
 1. **What you've learned** — 3-4 tight bullets summarizing the chapter's load-bearing ideas.
 2. **Where it lives in the system** — a callout on the persistent architecture diagram showing the chapter's concept lit up in context.
 3. **The bridge to next chapter** — one sentence connecting forward.
 
-This compounds across chapters. By Ch 8 the recap shows 8 lit regions on one diagram. Ch 9 then animates request paths through those same regions.
+This compounds across chapters. By Ch 6 the recap shows the full single-region accreted system; Ch 7 then animates request paths through those same regions, including the gate-bypassing concurrency-failure scenario.

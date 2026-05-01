@@ -7,7 +7,7 @@ This is the design choice that distinguishes this primer from existing curricula
 ## Design intent
 
 - One spatial layout that the learner internalizes early and keeps using.
-- Elements appear at consistent positions across chapters — when the load balancer is added in Ch 6, it appears in front of where the server has always been; the database doesn't move.
+- Elements appear at consistent positions across chapters — when the load balancer is added in Ch 5, it appears in front of where the server has always been; the database doesn't move.
 - Density is managed by **level** (101 / 201 / 301) and by **manual zoom**, not by re-laying-out the diagram.
 - The diagram is **interactive**: pan, zoom, and click-to-explore. Programmatic zoom on slide change; manual exploration takes over when the user wants it.
 
@@ -16,14 +16,14 @@ This is the design choice that distinguishes this primer from existing curricula
 | Chapter | What's added to the diagram |
 |---|---|
 | 1 — Request-Response Cycle | Browser → Server → Database (the seed) |
-| 2 — State | RAM badge on Server, Cache box, "durable" tag on DB |
-| 3 — Identity | Token traveling on the request arrow, user_id extraction, highlighted user-slice of DB |
-| 4 — Validation & Authorization | Three gates at server boundary (auth → authz → data validation), rejection arrows |
-| 5 — Concurrency | Zoom into DB row: two concurrent request arrows, lock symbol, transaction outcome |
-| 6 — Architecture & Communication | Server multiplies to N behind Load Balancer; LB morphs into API Gateway with auth/rate-limit/routing badges; CDN at edge; webhook arrow from external service |
-| 7 — Code Lifecycle | Zoom out: branches converge through PRs into main; CI gates; merged main becomes input to deployment |
-| 8 — Deployment & Operations | Servers wrapped in container boundaries; CI/CD pipeline above; blue/green pair; observability lane |
-| 9 — Putting It Together | No new elements added — diagram is fully accreted. Becomes a **playground** for animated request scenarios (see below) |
+| 2 — Identity | Token traveling on the request arrow, user_id extraction, highlighted user-slice of DB |
+| 3 — Validation & Authorization | Three gates at server boundary (auth → authz → data validation), rejection arrows |
+| 4 — State | RAM badge on Server, Cache box, "durable" tag on DB |
+| 5 — Architecture & Communication | Server multiplies to N behind Load Balancer; LB morphs into API Gateway with auth/rate-limit/routing badges; CDN at edge; webhook arrow from external service |
+| 6 — Concurrency | Zoom into DB row: two concurrent request arrows, lock symbol, transaction outcome |
+| 7 — Putting It Together | No new elements added — diagram is fully accreted. Becomes a **playground** for animated request scenarios (see below) |
+| 8 — Code Lifecycle | Zoom out: branches converge through PRs into main; CI gates; merged main becomes input to deployment |
+| 9 — Deployment & Operations | Servers wrapped in container boundaries; CI/CD pipeline above; blue/green pair; observability lane |
 | 10 — Working with Claude Code | Full picture; Claude Code shown as side participant pointing at parts of the diagram |
 
 ## Per-level density
@@ -42,7 +42,7 @@ Same layout at all three levels. Detail layers fade in/out per level.
 
 ## Density management — the hard problem
 
-At Ch 8 + 301, the diagram has dozens of elements. It will not all fit at once in the diagram pane. Density is managed by:
+At Ch 9 + 301, the diagram has dozens of elements. It will not all fit at once in the diagram pane. Density is managed by:
 
 1. **Level filtering** — 101 view shows ~10 boxes. 201 adds ~12 more (named tech, gateway sub-badges, queue, auth service). 301 adds ~10 more (replicas, observability lane, regions, secrets, flags, WAF).
 2. **Manual zoom & pan** — the user can drag and wheel-zoom into any region for detail. Wheel inside the diagram pane is captured (does not scroll the page).
@@ -51,24 +51,25 @@ At Ch 8 + 301, the diagram has dozens of elements. It will not all fit at once i
 
 If at 201 a planned element won't fit cleanly at the diagram's max dimensions (600×480 desktop), that is a signal to push the element to 301-only — not to enlarge the diagram.
 
-## Chapter 9 — diagram-as-playground
+## Chapter 7 — diagram-as-playground
 
-In Ch 9 the diagram is not extended — it's exercised. Each Ch 9 slide is one request scenario animated through the fully-accreted diagram:
+In Ch 7 the diagram is not extended — it's exercised. Each Ch 7 slide is one request scenario animated through the fully-accreted single-region (Act I) diagram:
 
 - Happy path: request lights up gates green, returns successfully
-- Auth/authz failures: request highlighted up to the rejecting gate, then a rejection arrow back
+- Auth/authz/validation failures: request highlighted up to the rejecting gate, then a rejection arrow back
+- Race condition (gate-bypass): two concurrent paths pass every gate but corrupt each other at the DB seam — the failure mode that gate-thinking can't catch (added at 101 to close the synthesis on Ch 6)
 - Cache hit / miss: shows path through cache vs. fall-through to DB
-- Race-condition averted: two concurrent paths converge on a row, lock visualizes serialization
+- Race condition averted: same two-buyers scenario as the gate-bypass, but with the transaction + lock that fixes it (301)
 - Webhook in / WebSocket push: external arrows into and out of the system
 - Cascading failure: retry/backoff/circuit-breaker behavior visualized
 
 Each scenario has a "Play" control. Rejected scenarios use the vermillion accent on the rejection arrow. Successful scenarios annotate timings ("12ms cache" vs. "180ms DB") on the path.
 
-This is where the persistent-diagram design choice pays off most clearly: eight chapters of accretion become the substrate for end-to-end synthesis. See `02-curriculum.md` Chapter 9 for the full scenario list.
+This is where the persistent-diagram design choice pays off most clearly: six chapters of Act I accretion become the substrate for end-to-end synthesis. See `02-curriculum.md` Chapter 7 for the full scenario list.
 
 ## Per-chapter recap callouts
 
-Every chapter ends with a recap slide that lights up its concept's region on the persistent diagram. By Ch 8 the recap shows eight lit regions on one diagram — the system as the learner has built it in their head. Ch 9 then animates request paths through those same regions.
+Every chapter ends with a recap slide that lights up its concept's region on the persistent diagram. By Ch 6 the recap shows the full Act I single-region system — every box and seam the learner has built in their head. Ch 7 then animates request paths through those same regions.
 
 ## Orientation — top-to-bottom
 
@@ -77,7 +78,7 @@ The diagram flows **top-to-bottom**, not left-to-right. Decision rationale:
 - The diagram pane is portrait-shaped (~488×580 desktop, more so on tablet). Vertical flow uses available space naturally.
 - Each chapter's accretion adds a *layer* (gateway, LB, app tier, data tier). Layers stack vertically more gracefully than they extend horizontally.
 - Sequence diagrams (the inline supplemental kind that agents output) are top-to-bottom; the persistent diagram matching that convention reduces cognitive switching.
-- At Ch 8 + 301, the observability lane sits alongside as a side rail rather than stealing horizontal real estate from the request path.
+- At Ch 9 + 301, the observability lane sits alongside as a side rail rather than stealing horizontal real estate from the request path.
 
 Standard top-to-bottom layout (request flow):
 ```
@@ -113,7 +114,7 @@ Hand-authored editorial SVG (not Mermaid). The Mock 1 reference (`mocks/mock1-ed
 In the React build, the diagram is **one component** reading from data:
 
 ```
-<Diagram chapter={6} level={201} highlight="gateway" />
+<Diagram chapter={5} level={201} highlight="gateway" />
 ```
 
 Element visibility is data-driven. The diagram component does not have nine versions; it has one component reading state. Each diagram element knows which chapter it appears in and which level. Same source of truth feeds the auto-react on scroll, the level filter, and the highlight prop.

@@ -25,8 +25,8 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — One server isn't enough --------------------------- */
 
 const oneServerEnough: Block[] = [
-  p(_('Up until now, we’ve drawn the back-end as a single server. One box that handles every request from every user.')),
-  p(_('That works fine — until it doesn’t. A single server can only do so much computation at once, hold so much data in memory, and move so much in and out of the network at any moment. Push enough simultaneous users at it and it slows down for everyone, then starts dropping requests, then crashes.')),
+  p(_('Up until now, we’ve drawn the back-end as a single server — with a cache and a database next to it. That picture handles the *kinds* of questions earlier chapters cared about: who’s asking, what they’re allowed to do, where data lives. The moment we ask how it scales, every box has to multiply.')),
+  p(_('That single server works fine — until it doesn’t. A single machine can only do so much computation at once, hold so much data in memory, and move so much in and out of the network at any moment. Push enough simultaneous users at it and it slows down for everyone, then starts dropping requests, then crashes.')),
   p(_('You also can’t take it down for an update without taking the whole product down. And if the machine itself fails — bad disk, network glitch, power blip — every user is offline until you fix it.')),
   p(_('What needs to happen: more than one server, sharing the work. If five servers each handle a fifth of the traffic, no one server is overloaded. If one of them dies, the other four keep going.')),
   p(_('Which raises the question: when a request arrives, which server should it go to?')),
