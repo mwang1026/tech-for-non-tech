@@ -41,7 +41,7 @@ const twoBuyers: Block[] = [
   steps(
     step(
       [_('Both requests arrive at the back-end almost simultaneously. The load balancer hands them to two different back-end servers, both of which begin processing in parallel.')],
-      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+      { highlight: ['be-1', 'be-3'], status: 'neutral', focus: 'app' },
     ),
     step(
       [_('Both back-ends read the inventory count from the database. Both read "1." (Neither has written anything yet — they\'re looking at the same starting state.)')],
@@ -49,7 +49,7 @@ const twoBuyers: Block[] = [
     ),
     step(
       [_('Both back-ends check: is the count greater than zero? Both see "yes, 1 > 0, the book is in stock." Both decide to proceed with the sale.')],
-      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+      { highlight: ['be-1', 'be-3'], status: 'neutral', focus: 'app' },
     ),
     step(
       [_('Both back-ends subtract 1 from the count and write the new value back. Both write "0." The second write silently overwrites the first as if nothing went wrong.')],

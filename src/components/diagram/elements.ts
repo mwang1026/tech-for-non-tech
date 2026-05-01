@@ -8,7 +8,7 @@ export type ElementId =
   | 'waf'
   | 'gateway' | 'gateway-auth' | 'gateway-rate' | 'gateway-route'
   | 'lb'
-  | 'fe-pool' | 'fe-1' | 'fe-2' | 'fe-3'
+  | 'fe-pool' | 'fe-1' | 'fe-2'
   | 'be-pool' | 'be-1' | 'be-2' | 'be-3'
   | 'auth-svc' | 'cache' | 'queue'
   | 'db-primary' | 'db-replica-1' | 'db-replica-2' | 'object-store'
@@ -47,14 +47,13 @@ export const elements: Record<ElementId, DiagramElement> = {
   lb:             { id: 'lb',      fromChapter: 5, fromLevel: 101, region: 'lb' },
 
   'fe-pool':      { id: 'fe-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
-  'fe-1':         { id: 'fe-1',    fromChapter: 5, fromLevel: 201, region: 'app' },
-  'fe-2':         { id: 'fe-2',    fromChapter: 5, fromLevel: 201, region: 'app' },
-  'fe-3':         { id: 'fe-3',    fromChapter: 5, fromLevel: 201, region: 'app' },
+  'fe-1':         { id: 'fe-1',    fromChapter: 5, fromLevel: 101, region: 'app' },
+  'fe-2':         { id: 'fe-2',    fromChapter: 5, fromLevel: 101, region: 'app' },
 
   'be-pool':      { id: 'be-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
-  'be-1':         { id: 'be-1',    fromChapter: 5, fromLevel: 201, region: 'app' },
-  'be-2':         { id: 'be-2',    fromChapter: 5, fromLevel: 201, region: 'app' },
-  'be-3':         { id: 'be-3',    fromChapter: 5, fromLevel: 201, region: 'app' },
+  'be-1':         { id: 'be-1',    fromChapter: 5, fromLevel: 101, region: 'app' },
+  'be-2':         { id: 'be-2',    fromChapter: 5, fromLevel: 101, region: 'app' },
+  'be-3':         { id: 'be-3',    fromChapter: 5, fromLevel: 101, region: 'app' },
 
   'auth-svc':     { id: 'auth-svc', fromChapter: 2, fromLevel: 201 },
   cache:          { id: 'cache',   fromChapter: 4, fromLevel: 101 },

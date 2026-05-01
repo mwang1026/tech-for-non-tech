@@ -50,11 +50,11 @@ const happyPath: Block[] = [
     ),
     step(
       [_('Load balancer picks an available front-end server and forwards the request. The front-end passes it on to a back-end server.')],
-      { highlight: ['fe-pool', 'be-pool'], status: 'pass', focus: 'app' },
+      { highlight: ['fe-1', 'be-2'], status: 'pass', focus: 'app' },
     ),
     step(
       [_('Back-end runs the three gates: authentication (token valid ✓), authorization (user is reading their own data ✓), validation (request shape fine ✓).')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+      { highlight: ['be-2'], status: 'pass', focus: 'app' },
     ),
     step(
       [_('Back-end checks the cache. On a hit, the answer comes back in ~12ms. On a miss, the back-end queries the database (~180ms) and stores the answer in the cache for next time.')],
@@ -75,11 +75,11 @@ const authFailure: Block[] = [
   steps(
     step(
       [_('Request travels through CDN, load balancer, front-end, back-end. Same path as the happy case so far — the CDN doesn’t check tokens; that’s the back-end’s job.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Back-end’s first check is authentication: is the token here, and does it verify? It’s missing or expired. The back-end immediately returns '), t('401 Unauthorized', '401'), _('.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+      { highlight: ['be-2'], status: 'reject', focus: 'app' },
     ),
     step(
       [_('No database query. No cache lookup. Nothing is read; nothing is changed. The 401 travels back the way the request came in.')],
@@ -100,15 +100,15 @@ const authzFailure: Block[] = [
   steps(
     step(
       [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Authentication: token is valid. User 47 is who they say they are. ✓')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+      { highlight: ['be-2'], status: 'pass', focus: 'app' },
     ),
     step(
       [_('Authorization: the back-end looks up order 12345, sees it belongs to user 92, compares against user 47 (from the token). Mismatch. Returns '), t('403 Forbidden', '403'), _('.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+      { highlight: ['be-2'], status: 'reject', focus: 'app' },
     ),
     step(
       [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response, even if the UI hid it.')],
@@ -129,15 +129,15 @@ const validationFailure: Block[] = [
   steps(
     step(
       [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-pool'], status: 'pass', focus: 'full' },
+      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Authentication ✓. Authorization ✓ (user 47 is editing user 47’s profile).')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+      { highlight: ['be-2'], status: 'pass', focus: 'app' },
     ),
     step(
       [_('Validation: back-end checks the request body. Email missing? Required field error. Email malformed? Format error. Either way, back-end returns '), t('400 Bad Request', '400'), _(' with a message describing what was wrong.')],
-      { highlight: ['be-pool'], status: 'reject', focus: 'app' },
+      { highlight: ['be-2'], status: 'reject', focus: 'app' },
     ),
     step(
       [_('Nothing is written to the database. The user’s real profile is unchanged.')],
@@ -159,11 +159,11 @@ const concurrencyFailure: Block[] = [
   steps(
     step(
       [_('Both requests hit the load balancer. It hands them to two different back-end servers, both of which begin processing in parallel.')],
-      { highlight: ['lb', 'be-pool'], status: 'neutral', focus: 'lb' },
+      { highlight: ['lb', 'be-1', 'be-3'], status: 'neutral', focus: 'lb' },
     ),
     step(
       [_('Both back-ends run the three gates: authentication ✓ (both users are logged in), authorization ✓ (both are allowed to buy), validation ✓ (both requests are well-formed). The gates pass *both* requests.')],
-      { highlight: ['be-pool'], status: 'pass', focus: 'app' },
+      { highlight: ['be-1', 'be-3'], status: 'pass', focus: 'app' },
     ),
     step(
       [_('Both back-ends read the inventory: count = 1. Both see "yes, in stock." Neither has written anything yet — they’re looking at the same starting state.')],

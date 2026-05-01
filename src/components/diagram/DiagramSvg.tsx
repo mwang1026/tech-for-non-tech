@@ -251,16 +251,15 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         <Box id="lb" x={170} y={320} w={260} h={56} label="Load Balancer" product="Nginx" highlighted={isHi('lb')} status={status} />
       )}
 
-      {/* Front-end pool — 3 instances */}
+      {/* Front-end pool — 2 instances (asymmetric vs. back-end on purpose) */}
       {v('fe-pool') && (
         <g>
           <rect x={50} y={406} width={500} height={70} fill="none" stroke={hairline} strokeDasharray="3 3" />
           <text x={56} y={400} fontSize="8" fontWeight={500} letterSpacing="1.2" fill={muted} fontFamily="var(--font-ui)">
             FRONT-END POOL · NEXT.JS · CONTAINERIZED
           </text>
-          {v('fe-1') && <Box id="fe-1" x={70}  y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-1') || isHi('fe-pool')} status={status} />}
-          {v('fe-2') && <Box id="fe-2" x={230} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-2') || isHi('fe-pool')} status={status} />}
-          {v('fe-3') && <Box id="fe-3" x={390} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-3') || isHi('fe-pool')} status={status} />}
+          {v('fe-1') && <Box id="fe-1" x={120} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-1') || isHi('fe-pool')} status={status} />}
+          {v('fe-2') && <Box id="fe-2" x={340} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-2') || isHi('fe-pool')} status={status} />}
           {!v('fe-1') && <Box id="fe-pool" x={230} y={418} w={140} h={48} label="Front-end Server" highlighted={isHi('fe-pool')} status={status} />}
         </g>
       )}
@@ -341,16 +340,71 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         {/* Gateway → LB */}
         {v('gateway') && v('lb') && <Arrow x1={300} y1={288} x2={300} y2={320} />}
 
-        {/* LB → fe-pool */}
-        {v('lb') && <Arrow x1={300} y1={376} x2={300} y2={406} />}
+        {/* LB → FE: fan out to each individual front-end when they're visible (Ch 5+),
+            otherwise a single arrow into the fe-pool placeholder (Ch 1-4). */}
+        {v('lb') && v('fe-1') && (
+          <>
+            <Arrow x1={300} y1={376} x2={190} y2={406} />
+            <Arrow x1={300} y1={376} x2={410} y2={406} />
+          </>
+        )}
+        {v('lb') && !v('fe-1') && <Arrow x1={300} y1={376} x2={300} y2={406} />}
 
-        {/* fe-pool → be-pool (always — both are Ch 1 / 101) */}
-        <Arrow x1={300} y1={466} x2={300} y2={496} />
+        {/* FE → BE: when individual servers are visible, every FE can talk to every BE
+            (the FEs do their own load-balancing across the BE fleet). Rendered subtle
+            so the 6 lines read as a fan, not a tangle. */}
+        {v('fe-1') ? (
+          <g opacity={0.55}>
+            {/* fe-1 (center 190) → be-1/2/3 (centers 140/300/460) */}
+            <line x1={190} y1={466} x2={140} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            <line x1={190} y1={466} x2={300} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            <line x1={190} y1={466} x2={460} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            {/* fe-2 (center 410) → be-1/2/3 */}
+            <line x1={410} y1={466} x2={140} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            <line x1={410} y1={466} x2={300} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            <line x1={410} y1={466} x2={460} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+          </g>
+        ) : (
+          <Arrow x1={300} y1={466} x2={300} y2={496} />
+        )}
 
-        {/* be-pool → aux services (sync calls out to cache, queue, auth-svc when those are visible) */}
-        {v('cache')      && <Arrow x1={290} y1={556} x2={280} y2={588} />}
-        {v('queue')      && <Arrow x1={310} y1={556} x2={440} y2={588} />}
-        {v('auth-svc')   && <Arrow x1={270} y1={556} x2={120} y2={588} />}
+        {/* be-pool → aux services. When individual BEs are visible, every BE fans to each aux
+            service (every back-end uses the cache/queue/auth-svc, not just be-2). Subtle styling
+            so 3 fans of 3 lines don't visually overwhelm. Fallback to single arrow when only the
+            be-pool placeholder is visible (chapters 1-4). */}
+        {v('cache') && (
+          v('be-1') ? (
+            <g opacity={0.55}>
+              <line x1={140} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            </g>
+          ) : (
+            <Arrow x1={290} y1={556} x2={280} y2={588} />
+          )
+        )}
+        {v('queue') && (
+          v('be-1') ? (
+            <g opacity={0.55}>
+              <line x1={140} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            </g>
+          ) : (
+            <Arrow x1={310} y1={556} x2={440} y2={588} />
+          )
+        )}
+        {v('auth-svc') && (
+          v('be-1') ? (
+            <g opacity={0.55}>
+              <line x1={140} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+            </g>
+          ) : (
+            <Arrow x1={270} y1={556} x2={120} y2={588} />
+          )
+        )}
 
         {/* Cache → DB (cache passes through to db when present) */}
         {v('cache')        && v('db-primary') && <Arrow x1={280} y1={630} x2={180} y2={652} />}
