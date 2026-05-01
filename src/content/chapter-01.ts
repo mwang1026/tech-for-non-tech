@@ -29,40 +29,45 @@ const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 /* --------------------------- Slide 1 — The basic loop --------------------------- */
 
 const basicLoop: Block[] = [
-  p(_('You click a button on a web page. A second later, something appears — your dashboard, a confirmation message, a list of search results. That second is the entire subject of this chapter. Press → to walk through it.')),
+  p(_('You click a button in your bank’s app — *Transfer $100 from Checking to Savings* — and a second later, the screen shows new balances. That second is the entire subject of this chapter. Press → to walk through it.')),
   steps(
     step(
       [
         _('You click. Your '), t('browser', 'browser'),
-        _(' (Chrome, Safari, Firefox — the program you’re using to view the page) packages your action into a message called a "request."'),
+        _(' (Chrome, Safari, Firefox — the program you’re using to view the page) packages the action into a message called a "request" — *transfer $100, checking → savings*.'),
       ],
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
     step(
       [
-        _('The request travels across the internet to a '), t('server', 'server'),
-        _(' — a computer somewhere on the internet that the company owns or rents, which holds the code for the application.'),
+        _('The request travels across the internet to the bank’s '), t('server', 'server'),
+        _(' — a computer somewhere on the internet that the bank owns or rents, which holds the code for the application.'),
       ],
       { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
     ),
     step(
       [
-        _('The server figures out what you’re asking for. If it needs to look something up or save something, it talks to a '),
+        _('The server starts working through the transfer. First it reads from the '),
         t('database', 'database'),
-        _(' — a specialized program that stores the application’s permanent data (your account, your messages, your files).'),
+        _(' — a specialized program that stores the bank’s permanent data — to look up your two account balances.'),
       ],
       { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
     ),
     step(
-      [_('The database returns what was asked for. The server packages a "response" and sends it back across the internet to your browser.')],
-      { highlight: ['be-pool', 'db-primary'], status: 'neutral', focus: 'app' },
+      [_('The server is now holding both balances in its memory — the numbers it just read a moment ago in step 3. It uses those numbers to do a quick check: is there at least $100 in checking? Yes, there is. It decides the transfer can proceed. No new database trip in this step; the server is just doing the math with the data it already has.')],
+      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
     ),
     step(
-      [_('Your browser receives the response and updates the screen. You see the dashboard, the confirmation, the list of results.')],
+      [_('Now the writes — three of them, back to the database: subtract $100 from checking, add $100 to savings, append a row to your transaction history.')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('With every write committed, the server packages a response — *Transfer complete* — and sends it back. Your browser receives it and updates the screen; you see the new balances.')],
       { highlight: ['browser'], status: 'pass', focus: 'full' },
     ),
   ),
-  p(_('That whole round-trip — click → request → server → database → response → screen update — is what people mean by "the request-response cycle." Every interaction with every web product, no matter how complex it looks, is some variation of this loop.')),
+  p(_('That whole round-trip — click → request → server → database → response → screen update — is what people mean by "the request-response cycle." One click on the outside; on the inside, the server made one read, one decision, and three writes against the database before it responded.')),
+  p(_('Most real requests look like that: a chain of small steps, not a single transaction. Every interaction with every web product, no matter how complex it looks, is some variation of this loop.')),
 ]
 
 /* --------------------------- Slide 2 — HTTP, the shared language --------------------------- */
