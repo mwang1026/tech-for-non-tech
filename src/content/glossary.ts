@@ -184,7 +184,7 @@ export const glossary: GlossaryEntry[] = [
   },
 
   /* ====================================================================
-   * Chapter 2 — State
+   * Chapter 4 — State
    * ==================================================================== */
   {
     id: 'state',
@@ -193,7 +193,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'The user’s name, their cart, whether they’re logged in, how many items are in inventory, which notifications they haven’t opened — all of it is state. The question of where each piece of state lives (memory, database, cache) is one of the biggest decisions in software design.',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['memory', 'database', 'cache', 'source-of-truth'],
   },
@@ -205,7 +205,7 @@ export const glossary: GlossaryEntry[] = [
       'Reading and writing memory takes nanoseconds. The catch: when the server restarts (a deploy, a crash, routine maintenance), everything in memory is gone.',
       'Use memory for data you’re actively computing with right now, or for data that’s OK to lose (an in-progress search query, a "loading…" indicator).',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['database', 'cache'],
   },
@@ -216,7 +216,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Mature, feature-rich, the default choice for most modern web back-ends. Strong support for transactions and complex queries.',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['database', 'mysql'],
   },
@@ -227,7 +227,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Older than Postgres in popular use, still extremely common — especially in older codebases and in PHP/WordPress ecosystems. Owned by Oracle. MariaDB is a community-driven fork.',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['database', 'postgresql'],
   },
@@ -239,7 +239,7 @@ export const glossary: GlossaryEntry[] = [
       'When the back-end needs data, it checks the cache first. Hit → answer comes back in milliseconds, no database touch. Miss → it queries the database and stores the answer in the cache for next time.',
       'The tradeoff is freshness: a cached copy can be out of date if the database changed since the cache was filled. Caches are great for data that’s expensive to compute and tolerable to be a few seconds stale; bad for data that has to be exactly current (account balances).',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['redis', 'database', 'source-of-truth'],
   },
@@ -250,7 +250,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Redis sits between the back-end and the database, holding fast copies of recent answers. It’s also commonly used for session storage, rate-limit counters, and lightweight queues.',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['cache'],
   },
@@ -262,13 +262,13 @@ export const glossary: GlossaryEntry[] = [
       'Once data lives in multiple places (database, cache, the user’s browser), they can disagree. The source of truth is whichever one wins by rule — usually the database. Caches are allowed to be stale and catch up later.',
       'Source-of-truth thinking heads off "I updated it but it’s not showing up" bugs across synced contacts, multi-device settings, inventory across stores, and anywhere else data is replicated.',
     ],
-    chapter: 2,
+    chapter: 4,
     category: 'state-data',
     related: ['database', 'cache'],
   },
 
   /* ====================================================================
-   * Chapter 3 — Identity
+   * Chapter 2 — Identity
    * ==================================================================== */
   {
     id: 'token',
@@ -278,7 +278,7 @@ export const glossary: GlossaryEntry[] = [
       'After the user proves their password once at login, the server hands back a token. The browser stores it and includes it in a header on every subsequent request. The server checks the token, knows which user this is, and the password never has to cross the wire again.',
       'Tokens have expiration dates and can be revoked. Session tokens are easy to invalidate — just delete them from the server’s session store. JWTs are harder, since the "I am valid" lives inside the token itself; you typically maintain a deny-list or wait for expiration.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['session', 'jwt', 'authentication'],
   },
@@ -290,7 +290,7 @@ export const glossary: GlossaryEntry[] = [
       'On every request, the server takes the token from the request, looks it up in its session store (often Redis), and finds the user. To revoke a session, just delete the row.',
       'Trade-off vs. JWT: requires a lookup on every request, but invalidating a session is trivially easy.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['token', 'jwt'],
   },
@@ -302,7 +302,7 @@ export const glossary: GlossaryEntry[] = [
       'A JWT (JSON Web Token) contains the user ID plus a cryptographic signature the server made when issuing it. On a subsequent request, the server verifies the signature is its own — if it is, the embedded user ID is trustworthy. No database lookup needed.',
       'Trade-off vs. sessions: faster to verify (no lookup), but harder to invalidate before expiry — you typically have to maintain a deny-list or wait for the expiration.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['token', 'session'],
   },
@@ -313,7 +313,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Most teams don’t build authentication from scratch. They use a service like Auth0, plug it into their app, and trust the service to get the cryptography and edge cases right.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['clerk', 'okta', 'token'],
   },
@@ -324,7 +324,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Newer than Auth0 and Okta; bundles login UI components, social logins, and session management.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['auth0', 'okta'],
   },
@@ -335,13 +335,13 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Common in big companies that need single sign-on across many internal apps — log in once, get access to everything.',
     ],
-    chapter: 3,
+    chapter: 2,
     category: 'identity-auth',
     related: ['auth0', 'clerk'],
   },
 
   /* ====================================================================
-   * Chapter 4 — Validation & Authorization
+   * Chapter 3 — Validation & Authorization
    * ==================================================================== */
   {
     id: 'authentication',
@@ -351,7 +351,7 @@ export const glossary: GlossaryEntry[] = [
       'Authentication answers the identity question. A valid token gets you in; missing, expired, or tampered tokens are rejected with 401.',
       'Note the naming: HTTP’s "401 Unauthorized" actually means unauthenticated. Authorization (the next gate) is a separate question.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['authorization', 'token', '401'],
   },
@@ -363,7 +363,7 @@ export const glossary: GlossaryEntry[] = [
       'Authentication says you’re user 47. Authorization says whether user 47 is allowed to read this particular order, edit this particular profile, delete this particular comment. It runs on every endpoint, on every request.',
       'A common mistake: an endpoint that accepts `userId` from the request body and returns whatever was asked for. The fix is to derive the user ID from the verified token, not from anything the caller controls.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['authentication', 'token', '403'],
   },
@@ -375,7 +375,7 @@ export const glossary: GlossaryEntry[] = [
       'After authn and authz pass, validation checks the data itself: required fields present, numbers in range, strings under max length, emails shaped like emails. Bad input → 400, nothing is written.',
       'Validation also defends against actively hostile inputs — SQL injection, XSS — by rejecting (or sanitizing) anything that looks like code where data was expected.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['400', 'sql-injection', 'xss'],
   },
@@ -387,7 +387,7 @@ export const glossary: GlossaryEntry[] = [
       'Returned when the request has no token, an expired token, or a tampered token. The fix is usually for the user to log in again.',
       'Despite the name, 401 actually means "unauthenticated" — confusingly different from 403 (Forbidden), which is the real "unauthorized."',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['403', '400', 'authentication', 'status-code'],
   },
@@ -399,7 +399,7 @@ export const glossary: GlossaryEntry[] = [
       'Authentication passed; authorization failed. The user is logged in but isn’t allowed to perform this specific action on this specific resource.',
       'Critical detail: a 403 must mean the data was never sent. Returning the data and then "hiding" it in the UI is the bug behind most "user A read user B’s data" headlines.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['401', '400', 'authorization', 'status-code'],
   },
@@ -410,7 +410,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Returned when validation fails: required field missing, value out of range, malformed JSON, etc. Nothing in the database changes.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['401', '403', 'validation', 'status-code'],
   },
@@ -422,7 +422,7 @@ export const glossary: GlossaryEntry[] = [
       'An attacker types fragments of database language into a form field — instead of a name they type something that means "delete the entire users table" — and tricks the system into running it.',
       'Modern frameworks defend against this by using parameterized queries, but only when developers use them correctly. Hand-built SQL with string concatenation is the classic vulnerability.',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['validation', 'xss'],
   },
@@ -434,13 +434,13 @@ export const glossary: GlossaryEntry[] = [
       'An attacker hides little bits of code in their post or profile; when another user views it, the code runs in that user’s browser — stealing session tokens, redirecting them, defacing the page.',
       'Modern frameworks escape user content by default, but only when developers use them correctly. The danger zone is anywhere code says "render this raw" or "insert this HTML."',
     ],
-    chapter: 4,
+    chapter: 3,
     category: 'identity-auth',
     related: ['validation', 'sql-injection'],
   },
 
   /* ====================================================================
-   * Chapter 5 — Concurrency
+   * Chapter 6 — Concurrency
    * ==================================================================== */
   {
     id: 'race-condition',
@@ -450,7 +450,7 @@ export const glossary: GlossaryEntry[] = [
       'Classic example: two buyers click "buy" on the last item at the same instant. Both reads see "1 in stock"; both writes set it to "0"; both customers get a confirmation. The store sold the same item twice.',
       'Race conditions almost always pass tests, never reproduce locally, and only show up in production when traffic is high enough that two requests really do land in the same instant.',
     ],
-    chapter: 5,
+    chapter: 6,
     category: 'concurrency',
     related: ['transaction', 'lock', 'read-modify-write'],
   },
@@ -462,7 +462,7 @@ export const glossary: GlossaryEntry[] = [
       'A transaction is atomic (all or nothing — either every operation succeeds and commits, or any failure rolls everything back).',
       'A common misconception: just wrapping reads and writes in a transaction is *not* enough to prevent race conditions on its own. Under most databases’ default settings, two transactions can both read the same value before either has written. To prevent that, you also have to ask for a lock on the rows (`SELECT ... FOR UPDATE`), or raise the isolation level, or express the read-and-write as a single atomic statement.',
     ],
-    chapter: 5,
+    chapter: 6,
     category: 'concurrency',
     related: ['atomic', 'lock', 'race-condition'],
   },
@@ -473,7 +473,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'There’s no halfway state where some changes stuck and others didn’t. If the second write in a 5-step transaction crashes, the first write is undone as if it never happened.',
     ],
-    chapter: 5,
+    chapter: 6,
     category: 'concurrency',
     related: ['transaction'],
   },
@@ -485,7 +485,7 @@ export const glossary: GlossaryEntry[] = [
       'A lock is the actual mechanism that prevents two transactions from racing on the same row. The transaction asks the database for the lock (`SELECT ... FOR UPDATE` is the standard form), the database grants it, and any other transaction that wants the same row queues up until the first one commits or rolls back.',
       'Critically, locks are not automatic in most databases — you have to ask. A bare transaction without a lock request will not stop two simultaneous reads from seeing the same stale value.',
     ],
-    chapter: 5,
+    chapter: 6,
     category: 'concurrency',
     related: ['transaction', 'atomic'],
   },
@@ -497,13 +497,13 @@ export const glossary: GlossaryEntry[] = [
       'Decrement inventory, increment a counter, update an account balance, check whether a username is taken, move an order from "pending" to "paid" — all read-modify-write.',
       'Any time you see this shape on shared data, ask whether two of those operations could happen at the same time on the same row. If yes, they need to be inside a transaction.',
     ],
-    chapter: 5,
+    chapter: 6,
     category: 'concurrency',
     related: ['race-condition', 'transaction'],
   },
 
   /* ====================================================================
-   * Chapter 6 — Architecture & Communication Patterns
+   * Chapter 5 — Architecture & Communication Patterns
    * ==================================================================== */
   {
     id: 'load-balancer',
@@ -513,7 +513,7 @@ export const glossary: GlossaryEntry[] = [
       'Every incoming request hits the load balancer first; it picks an available server and forwards the request there. Strategies range from round-robin to least-loaded to "send the same user to the same server."',
       'Load balancers also watch their servers. If one stops responding to health checks, the load balancer takes it out of rotation. This is also the piece that makes blue/green and canary deployments possible.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['nginx', 'haproxy', 'aws-elb', 'cloudflare-lb', 'blue-green-deployment'],
   },
@@ -524,7 +524,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Runs on a server you operate. Often used both as a load balancer in front of a fleet and as a static-file server in its own right.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['load-balancer', 'haproxy'],
   },
@@ -535,7 +535,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Often chosen when you need to push enormous amounts of traffic through one machine, or when you want sophisticated routing rules at the load-balancer layer.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['load-balancer', 'nginx'],
   },
@@ -546,7 +546,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'You configure it through AWS, and AWS handles the underlying machines. The default choice for anything else running on AWS.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['load-balancer', 'aws'],
   },
@@ -557,7 +557,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Often paired with Cloudflare’s CDN. Routes users to the nearest healthy origin server, and can fail over across regions automatically.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['load-balancer', 'cloudflare', 'cdn'],
   },
@@ -568,7 +568,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'When a user in Tokyo asks for your logo, the request hits the closest edge server (in or near Tokyo) instead of crossing the planet to your origin in Virginia. Latency drops from hundreds of milliseconds to tens.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cdn', 'cloudflare'],
   },
@@ -580,7 +580,7 @@ export const glossary: GlossaryEntry[] = [
       'Most of what a web page actually delivers — images, JavaScript, fonts, stylesheets — is identical for every user. CDNs hold local copies of those files in dozens of cities so users don’t pay the round-trip cost across the planet.',
       'The tradeoff is staleness: the CDN serves what it cached, not what’s live. Updating a file may take time to propagate, or you can manually purge the cache to force a refresh.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cloudflare', 'fastly', 'akamai', 'cloudfront', 'edge-server'],
   },
@@ -591,7 +591,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Also offers DNS, DDoS protection, edge compute (Cloudflare Workers), load balancing, and more. Often the first piece of infrastructure a small team puts in front of their site.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cdn', 'cloudflare-lb'],
   },
@@ -602,7 +602,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'When you need to invalidate cached content within seconds (a breaking news update, a stale product price), Fastly’s purge speed is its claim to fame.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cdn'],
   },
@@ -613,7 +613,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Powers a huge fraction of the world’s media and large-enterprise traffic. Less commonly chosen by startups but still ubiquitous in big-company stacks.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cdn'],
   },
@@ -624,7 +624,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Often the path of least resistance when your servers are already on AWS.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['cdn', 'aws'],
   },
@@ -636,7 +636,7 @@ export const glossary: GlossaryEntry[] = [
       'Simple to build (it’s just regular requests), but most checks return "no" — wasted bandwidth and server time. You’ll never know any faster than your poll interval.',
       'Polling is the right answer when the other system doesn’t support webhooks, or when events are so frequent that the overhead of asking is cheaper than the overhead of receiving.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['webhook'],
   },
@@ -648,7 +648,7 @@ export const glossary: GlossaryEntry[] = [
       'You hand the payment processor a URL ahead of time. The moment a charge confirms, it sends a request to your URL. No polling, instant notification.',
       'The cost: your server has to be reachable from the public internet, and you have to verify each incoming webhook is really from the sender (not someone spoofing) — usually via a signed header.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['polling'],
   },
@@ -660,7 +660,7 @@ export const glossary: GlossaryEntry[] = [
       'Most modern open-source code lives on GitHub, as does much of the world’s commercial code. Owned by Microsoft.',
       'In the deployment world, GitHub also sends webhooks (e.g. "a commit was just pushed to this branch") that trigger CI runs and deploys.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'code-lifecycle',
     related: ['gitlab', 'pull-request', 'github-actions', 'webhook'],
   },
@@ -671,7 +671,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'A deploy can be as simple as overwriting files on a server, or as elaborate as a multi-stage canary rollout across hundreds of machines. Either way, it’s the moment new code becomes the running system.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'deployment-ops',
     related: ['blue-green-deployment', 'canary-release', 'rolling-deployment'],
   },
@@ -683,7 +683,7 @@ export const glossary: GlossaryEntry[] = [
       'Simple to reason about — everything is in one place. Simple to deploy — one command pushes everything. The cost: every team shares it, so changes ripple, and the more code lives in one bundle, the slower the test suite and the riskier each deploy.',
       'GitHub, Shopify, and Basecamp run famously large monoliths and ship fine. The "monoliths don’t scale" claim is a myth — what doesn’t scale is many teams sharing one without discipline.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['microservices'],
   },
@@ -695,13 +695,13 @@ export const glossary: GlossaryEntry[] = [
       'One team’s broken service doesn’t take down everyone else’s. One team can ship ten times a day without coordinating. The cost: complexity moves outward — services have to discover each other, the network between them can fail, and debugging crosses service boundaries.',
       'Most companies start as monoliths and split when scale forces it. Netflix, Amazon, and Uber are the famous microservices stories.',
     ],
-    chapter: 6,
+    chapter: 5,
     category: 'architecture',
     related: ['monolith'],
   },
 
   /* ====================================================================
-   * Chapter 7 — Code Lifecycle
+   * Chapter 8 — Code Lifecycle
    * ==================================================================== */
   {
     id: 'git',
@@ -711,7 +711,7 @@ export const glossary: GlossaryEntry[] = [
       'Git lives in your project folder and treats the whole codebase as a sequence of snapshots over time. Every change is a commit; parallel work happens on branches; branches merge back together.',
       'Essentially every modern team uses git. Other systems exist (Mercurial, Perforce, SVN) but git is the default.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['commit', 'branch', 'merge', 'github', 'gitlab'],
   },
@@ -722,7 +722,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Every commit has an author, a timestamp, and a unique ID. You can travel back to any commit. "I broke X yesterday afternoon" → find the commit that broke it, look at exactly what changed.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['git', 'branch'],
   },
@@ -733,7 +733,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'The main timeline is usually called `main` (or sometimes `master`). When you want to work on a feature, you create a branch off of it, make commits there, and main stays untouched until you merge.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['git', 'commit', 'merge'],
   },
@@ -744,7 +744,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Sometimes git can do this automatically; sometimes it can’t. When two branches changed the same lines of the same file, git asks a human to resolve it — that’s a merge conflict.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['git', 'branch', 'merge-conflict'],
   },
@@ -755,7 +755,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Git doesn’t know which version should win, so it asks a human. The person merging looks at both versions, picks (or combines) the right answer, and saves the resolution. Common, not scary, just tedious.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['merge', 'branch'],
   },
@@ -766,7 +766,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Where GitHub uses the term "pull request," GitLab uses "merge request" (MR) — same concept, different name.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['github', 'pull-request', 'gitlab-ci'],
   },
@@ -778,7 +778,7 @@ export const glossary: GlossaryEntry[] = [
       'The PR shows the exact lines added, removed, and changed, alongside discussion threads where reviewers can comment on specific lines. Most teams require at least one approval before merging.',
       'Opening a PR also triggers CI to run the test suite against your branch. Reading the PR diff is the last chance to catch mistakes before they ship — never skip it.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['diff', 'ci', 'github', 'gitlab'],
   },
@@ -789,7 +789,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Diffs are how engineers read changes. Removed lines are usually red; added lines are usually green; unchanged context is plain. Reading a diff is a learnable skill — and the foundation of effective code review.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['pull-request', 'commit'],
   },
@@ -801,7 +801,7 @@ export const glossary: GlossaryEntry[] = [
       'Unit tests check one function in isolation. Integration tests stand up parts of the system together. End-to-end tests drive a fake browser through the full app.',
       'Tests catch regressions: when you change one thing, the test suite tells you whether you accidentally broke something else.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci', 'green-build', 'red-build'],
   },
@@ -813,7 +813,7 @@ export const glossary: GlossaryEntry[] = [
       'When a PR opens, CI runs every test, lints the code style, type-checks, sometimes runs security scans. Pass → green build, ready to merge. Fail → red build, blocked.',
       'The team’s rule is usually simple: red PRs do not get merged.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['tests', 'green-build', 'red-build', 'github-actions', 'circleci', 'gitlab-ci', 'buildkite'],
   },
@@ -824,7 +824,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Most CI dashboards literally use a green icon. When engineers say "the build is green," they mean CI is passing.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci', 'red-build'],
   },
@@ -835,7 +835,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Common causes: a test failed, a lint rule was violated, a type error was introduced, a security scan flagged something. The fix is to read the CI output, address the failure, and push another commit.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci', 'green-build'],
   },
@@ -846,7 +846,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'The default CI choice for most projects on GitHub. Workflows can run on every push, every PR, on a schedule, or in response to many other events.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci', 'github'],
   },
@@ -857,7 +857,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Common in larger orgs and in pipelines that predate GitHub Actions, but still actively chosen for new projects in some shops.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci'],
   },
@@ -868,7 +868,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'The default CI choice when your code is hosted on GitLab.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci', 'gitlab'],
   },
@@ -879,13 +879,13 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Common in larger orgs that want CI control without operating the whole pipeline themselves.',
     ],
-    chapter: 7,
+    chapter: 8,
     category: 'code-lifecycle',
     related: ['ci'],
   },
 
   /* ====================================================================
-   * Chapter 8 — Deployment & Operations
+   * Chapter 9 — Deployment & Operations
    * ==================================================================== */
   {
     id: 'container',
@@ -895,7 +895,7 @@ export const glossary: GlossaryEntry[] = [
       'Containers solve "it works on my machine." The developer runs the same container locally that production runs in the cloud. If it works on the laptop, it works in production, because they’re running the literal same package.',
       'Containers are also an isolation mechanism: one app can’t mess with another sharing the same machine, because each lives in its own sealed bundle.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['docker', 'vercel', 'aws'],
   },
@@ -906,7 +906,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'When an engineer says "we run on Docker," they mean the back-end is packaged as Docker containers. Most modern hosting platforms accept Docker containers as the unit they deploy.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['container'],
   },
@@ -917,7 +917,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Push code to GitHub, Vercel builds and deploys it automatically. Handles the load balancer, the CDN, preview deploys per pull request, and rolling out new versions — you never touch the underlying servers or containers.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['netlify', 'aws'],
   },
@@ -928,7 +928,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'The original "git push to deploy" platform. Popular for marketing sites and front-end-heavy web apps.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['vercel'],
   },
@@ -939,7 +939,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'A vast catalog of services: EC2 (virtual servers), S3 (file storage), RDS (managed databases), Lambda (serverless functions), and hundreds more. Most large web products run on AWS or one of its competitors.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['gcp', 'aws-elb', 'cloudfront'],
   },
@@ -950,7 +950,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Strong in data analytics and machine learning. Also runs much of the consumer Google footprint.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['aws'],
   },
@@ -961,7 +961,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'No real users are on it. This is where the engineer writes the code and tries it out before sending it any further.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['staging-environment', 'production-environment'],
   },
@@ -972,7 +972,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Same servers, same configuration, same shape — except no real users. New code goes here first, so the team can poke at it, run end-to-end tests, and catch problems that only show up "in something that looks like prod."',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['dev-environment', 'production-environment'],
   },
@@ -983,7 +983,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Code only reaches production after passing through dev and staging, with reviewers signing off along the way. The closer to real users, the higher the bar.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['dev-environment', 'staging-environment'],
   },
@@ -995,7 +995,7 @@ export const glossary: GlossaryEntry[] = [
       '"Blue" is currently serving users. Deploy new code to "green," let it warm up, run final checks. Flip the load balancer so all new traffic goes to green. If green turns out to be broken, flip back to blue — instant rollback.',
       'Costs twice the hardware while both are up; pays for itself when a deploy goes wrong.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['canary-release', 'rolling-deployment', 'deploy', 'load-balancer'],
   },
@@ -1007,7 +1007,7 @@ export const glossary: GlossaryEntry[] = [
       'Start at 1%, then 5%, then 25%, then 100%. If something’s wrong, only the small slice was affected. Named after canaries in coal mines: the small slice is the early warning.',
       'The canonical pattern when a bad deploy could affect millions of users.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['blue-green-deployment', 'rolling-deployment', 'deploy'],
   },
@@ -1018,7 +1018,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'While server 1 is being replaced, servers 2–10 are still serving. When server 1 comes back healthy, server 2 is taken offline for its turn, and so on. Slower than blue/green, simpler to operate, no extra hardware.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['blue-green-deployment', 'canary-release', 'deploy'],
   },
@@ -1030,7 +1030,7 @@ export const glossary: GlossaryEntry[] = [
       'Every time the code runs an interesting line ("user logged in", "payment failed", "request took 4 seconds"), it writes a line to the log. When something breaks at 3 a.m., logs are how you reconstruct what happened.',
       'Logs answer "what did the program do, in order?" — a different question from metrics ("is the system healthy right now?") and errors ("what specifically crashed?").',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['sentry', 'datadog'],
   },
@@ -1042,7 +1042,7 @@ export const glossary: GlossaryEntry[] = [
       'You watch dashboards of metrics, and set alerts so you’re paged when something crosses a threshold (e.g. error rate above 1%).',
       'Metrics answer "is the system healthy right now, and how is it trending?" — a different question from logs ("what did the program do?") and errors ("what specifically crashed?").',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['logs', 'errors', 'datadog'],
   },
@@ -1054,7 +1054,7 @@ export const glossary: GlossaryEntry[] = [
       'When the code crashes, an error tracker captures it with a record of exactly where the crash happened. You see which errors are new, which ones are spiking, and which users they affected.',
       'Errors answer "what specifically is broken, and how often?" Sentry is the most common standalone tool; Datadog and similar platforms also include error tracking.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['logs', 'metrics', 'sentry'],
   },
@@ -1065,7 +1065,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'When the code crashes, Sentry captures it with a record of exactly where the crash happened and the conditions that led to it. You see which errors are happening most often, which ones are new, and which users they affected.',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['logs', 'datadog'],
   },
@@ -1076,7 +1076,7 @@ export const glossary: GlossaryEntry[] = [
     body: [
       'Watch dashboards of requests-per-second, response times, error rates, memory usage. Set alerts so you’re paged when something crosses a threshold (e.g. error rate above 1%).',
     ],
-    chapter: 8,
+    chapter: 9,
     category: 'deployment-ops',
     related: ['logs', 'sentry'],
   },

@@ -74,7 +74,7 @@ const phase3: Block[] = [
     [_('**Diagram** — show me the data flow before writing code.')],
   ),
   p(_('Close with: *"Don’t write any code yet — just explain the plan."*')),
-  p(_('Each question maps to a chapter you’ve already done. State → Ch 2. Identity → Ch 3. Authorization & validation → Ch 4. Concurrency → Ch 5. Architecture & performance → Ch 6. Failure modes → Ch 6 (where things can break across the network) and Ch 8 (how you find out when they do). The template is this primer applied.')),
+  p(_('Each question maps to a chapter you’ve already done. Identity → Ch 2. Authorization & validation → Ch 3. State → Ch 4. Architecture & performance → Ch 5. Concurrency → Ch 6. Failure modes → Ch 5 (where things can break across the network) and Ch 9 (how you find out when they do). The template is this primer applied.')),
   p(_('What you’re reading the answers for: hand-waves. "It’ll be cached" without saying where, or what the staleness window is, is a hand-wave. "It’s authenticated" without saying where the check happens is a hand-wave. Each hand-wave is a place to push back. Better to push back now, in plain English, than after the agent has written 800 lines of code.')),
 ]
 
@@ -90,7 +90,7 @@ const phase4: Block[] = [
     [_('Each transaction the plan called for — is it actually wrapped in a transaction in the code, or is it a sequence of separate writes?')],
     [_('Cache reads and writes — is invalidation happening correctly, or will the cache hold stale data forever?')],
     [_('Inputs from the request — are they validated, or trusted because "the front-end checks it"?')],
-    [_('Database queries — are user inputs being passed as proper parameters, or pasted into the query string? (Pasted = SQL injection risk, from Ch 4.)')],
+    [_('Database queries — are user inputs being passed as proper parameters, or pasted into the query string? (Pasted = SQL injection risk, from Ch 3.)')],
   ),
   p(_('Skipping the diff is how race conditions and missing authz checks ship to production with everyone’s blessing. Reading it is the last gate, and you are the only thing that can stand at it.')),
 ]
@@ -126,10 +126,6 @@ export const chapter10: Chapter = {
         ],
         bridge: [
           _('There is no next chapter. From here, the work is iteration: take a real codebase, run the feature template on a real change, read the diff, ship it, learn from what surprises you. Come back to specific chapters when something needs refreshing. The glossary is always one click away. The literacy compounds with every feature you direct.'),
-        ],
-        prompts: [
-          'Use the nine-question feature template to plan adding [a real feature you actually want] to this codebase. Walk through every question. Don’t write any code — just explain the plan.',
-          'I’m about to merge this PR. Before I do, walk me through what could go wrong: race conditions, missing validation, unauthorized data access, performance regressions, deployment risks. What would you push back on if you were reviewing this?',
         ],
       },
     },

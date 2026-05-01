@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, useAnimation } from 'framer-motion'
 import { DiagramSvg } from './DiagramSvg'
 import { FULL_VIEWBOX, REGION_VIEWBOX, elements } from './elements'
-import type { Level } from '../../content/types'
+import type { Level, StepStatus } from '../../content/types'
 import styles from './Diagram.module.css'
 
 type ViewBox = { x: number; y: number; w: number; h: number }
@@ -10,8 +10,12 @@ type ViewBox = { x: number; y: number; w: number; h: number }
 type Props = {
   chapter: number
   level: Level
-  /** Element / region id the slide wants in focus. */
+  /** Element / region id the slide wants in focus. Drives viewBox pan/zoom. */
   focus?: string
+  /** Element IDs to highlight on the diagram (set by the active step). */
+  highlight?: string[]
+  /** Tints highlighted elements green (pass), red (reject), or accent (neutral). */
+  highlightStatus?: StepStatus
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -50,7 +54,9 @@ function regionForFocus(focus?: string): ViewBox {
   return FULL_VIEWBOX
 }
 
-export function Diagram({ chapter, level, focus }: Props) {
+export function Diagram({ chapter, level, focus, highlight, highlightStatus }: Props) {
+  /** When no explicit highlight list is given, default to the focused element (preserves legacy slide behavior). */
+  const effectiveHighlight = highlight ?? (focus ? [focus] : [])
   const [vb, setVb] = useState<ViewBox>(FULL_VIEWBOX)
   const [manual, setManual] = useState(false)
   const dragging = useRef<{ x: number; y: number; vb: ViewBox } | null>(null)
@@ -177,7 +183,7 @@ export function Diagram({ chapter, level, focus }: Props) {
           onClick={onSvgClick}
         >
           <motion.g animate={controls}>
-            <DiagramSvg chapter={chapter} level={level} highlight={focus} />
+            <DiagramSvg chapter={chapter} level={level} highlight={effectiveHighlight} highlightStatus={highlightStatus} />
           </motion.g>
         </svg>
 

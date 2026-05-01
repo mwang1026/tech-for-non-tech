@@ -7,20 +7,30 @@ type Props = {
   chapterTitle: string
   slideIndex: number
   totalSlides: number
+  onGoToIntro?: () => void
+  isIntro?: boolean
   levelToggle?: ReactNode
 }
 
-export function TopBar({ chapterNumber, chapterTitle, slideIndex, totalSlides, levelToggle }: Props) {
+export function TopBar({ chapterNumber, chapterTitle, slideIndex, totalSlides, onGoToIntro, isIntro, levelToggle }: Props) {
   const { open } = useGlossary()
   return (
     <header className={styles.bar}>
       <div className={styles.left}>
-        <div className={styles.brand}>
+        <button
+          type="button"
+          className={styles.brand}
+          onClick={onGoToIntro}
+          aria-label={onGoToIntro ? 'Return to intro' : undefined}
+          disabled={!onGoToIntro}
+        >
           <span className={styles.mark} />
           <span className={styles.brandText}>Reading the Stack</span>
-        </div>
+        </button>
         <div className={styles.crumb}>
-          Ch {chapterNumber} · <strong>{chapterTitle}</strong> · {slideIndex + 1} of {totalSlides}
+          {isIntro
+            ? <><strong>Introduction</strong> · A Field Guide</>
+            : <>Ch {chapterNumber} · <strong>{chapterTitle}</strong> · {slideIndex + 1} of {totalSlides}</>}
         </div>
       </div>
       <div className={styles.right}>

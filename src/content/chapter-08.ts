@@ -8,7 +8,7 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 8 — Deployment & Operations (101)
+ * Chapter 9 — Deployment & Operations (101)
  *
  * Slide arc:
  *   1. It works on my machine        (containers)
@@ -66,7 +66,7 @@ const noDowntime: Block[] = [
     [t('canary', 'canary-release'), _(' — You deploy the new code to a small slice of your servers (or a small percentage of users — say 1%, then 5%, then 25%). You watch error rates and performance. If something’s wrong, only that small slice was affected. If everything looks healthy, you gradually expand until 100% of traffic is on the new version. Named after canaries in coal mines: the small slice is the early warning.')],
     [t('rolling deployment', 'rolling-deployment'), _(' — Update the servers one at a time. While server 1 is being replaced, servers 2 through 10 are still serving traffic. When server 1 comes back healthy, server 2 is taken offline for its turn, and so on. Slower than blue/green, simpler to operate, and uses no extra hardware.')],
   ),
-  p(_('All three patterns rely on the load balancer from Chapter 6 — that’s the piece that decides who sees the old version vs. the new version. Releasing a new version of your code is structurally the same problem as routing traffic across many servers; you’re just routing across many *versions* now too.')),
+  p(_('All three patterns rely on the load balancer from Chapter 5 — that’s the piece that decides who sees the old version vs. the new version. Releasing a new version of your code is structurally the same problem as routing traffic across many servers; you’re just routing across many *versions* now too.')),
 ]
 
 /* --------------------------- Slide 4 — How you find out it broke --------------------------- */
@@ -87,11 +87,11 @@ const observability: Block[] = [
   p(_('Without these, you discover problems when users tweet about them. With these, you discover problems before users notice — and you have the evidence to fix them.')),
 ]
 
-/* --------------------------- Chapter 8 export --------------------------- */
+/* --------------------------- Chapter 9 export --------------------------- */
 
 export const chapter08: Chapter = {
-  id: 'ch8',
-  number: 8,
+  id: 'ch9',
+  number: 9,
   title: 'Deployment & Operations',
   subtitle: 'Changing a running system without breaking it',
   slides: [
@@ -118,11 +118,7 @@ export const chapter08: Chapter = {
           _(' to route traffic across versions; logs and metrics flow out of every server in the system to a separate observability tool.'),
         ],
         bridge: [
-          _('Notice the pattern: containers are isolation applied to environments. CI gates from the last chapter are validation (Chapter 4) for code. Blue/green is load balancing (Chapter 6) applied to versions. Same concepts, different layer. Coming up — Chapter 9: Putting It Together. We now have the whole system in front of us. Next we walk real request scenarios end-to-end through it: the happy path, the auth failure, the validation rejection — to see how every layer cooperates on one actual user action.'),
-        ],
-        prompts: [
-          'How does code get deployed in this repo? Show me the CI/CD config and walk me through what happens between merging to main and the change being live.',
-          'If I add a new column to a database table, what\'s the safe deployment order so old code doesn\'t crash during the rollout?',
+          _('Notice the pattern: containers are isolation applied to environments. CI gates from the last chapter are validation (Chapter 3) for code. Blue/green is load balancing (Chapter 5) applied to versions. Same concepts, different layer. Coming up — Chapter 10: Working with Claude Code. You now have the full picture: how the system runs at runtime (Act I) AND how the code that runs it gets there (Act II). The final chapter is the payoff — how to direct an AI coding agent against a real codebase using the literacy you’ve built.'),
         ],
       },
     },

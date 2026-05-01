@@ -1,0 +1,171 @@
+/* IntroPage lives inside Layout's content column. The column itself is
+   overflow:hidden — only the inner .scroll element ever scrolls, exactly
+   like Slide.module.css does for chapter slides. No full-page wrapper,
+   no nested scroll. */
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.main {
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(var(--space-l), 6vh, 80px) clamp(var(--space-l), 6vw, 96px) var(--space-xl);
+  display: grid;
+  gap: var(--space-l);
+}
+
+/* Hero headline */
+.headline {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(40px, 5.4vw, 76px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+  max-width: 18ch;
+}
+.headline em {
+  display: block;
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+}
+
+/* Thesis paragraph — constrained for readability even on wide content area. */
+.thesis {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0;
+  max-width: 64ch;
+}
+.thesis em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* Two-column section: small caps label + body */
+.section {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 64ch);
+  gap: var(--space-xl);
+  align-items: start;
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-m);
+}
+
+.sectionLabel {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding-top: 4px;
+}
+
+/* Audience list */
+.audienceList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+.audienceList li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.audienceList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* CTA block */
+.cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-l);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-l);
+  flex-wrap: wrap;
+}
+
+.beginBtn {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--paper);
+  background: var(--accent);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--r-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+  box-shadow: 0 1px 0 rgba(26, 24, 21, 0.08);
+}
+.beginBtn:hover {
+  transform: translateY(-1px);
+  background: #9c2f1a;
+  box-shadow: 0 12px 28px -10px rgba(182, 55, 31, 0.45);
+}
+.beginBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.beginArrow {
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-weight: 300;
+  font-size: 20px;
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.beginBtn:hover .beginArrow {
+  transform: translateX(5px);
+}
+
+.beginCaption {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.beginCaption strong {
+  color: var(--ink);
+  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+@media (max-width: 720px) {
+  .section {
+    grid-template-columns: 1fr;
+    gap: var(--space-s);
+  }
+}

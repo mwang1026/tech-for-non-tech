@@ -6,6 +6,8 @@ type Props = {
   chapter: Chapter
   visibleSlides: SlideType[]
   currentIndex: number
+  /** Active step index when the slide has a `steps` block; otherwise null. */
+  activeStepIndex: number | null
   onPrev?: () => void
   onNext?: () => void
 }
@@ -21,6 +23,7 @@ export function SlideStream({
   chapter,
   visibleSlides,
   currentIndex,
+  activeStepIndex,
   onPrev,
   onNext,
 }: Props) {
@@ -43,6 +46,7 @@ export function SlideStream({
             chapterNumber={chapter.number}
             index={currentIndex}
             total={visibleSlides.length}
+            activeStepIndex={activeStepIndex}
             onPrev={onPrev}
             onNext={onNext}
           />

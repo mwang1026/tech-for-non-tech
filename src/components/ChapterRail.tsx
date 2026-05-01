@@ -10,12 +10,21 @@ type Props = {
   onSelectSlide: (index: number) => void
 }
 
+const INTRO_ID = 'ch0'
+
 export function ChapterRail({
   currentChapterId, currentSlideIndex, visibleSlides, onSelectChapter, onSelectSlide,
 }: Props) {
+  const isIntroCurrent = currentChapterId === INTRO_ID
   return (
     <nav className={styles.rail} aria-label="Chapters">
       <span className={styles.title}>Contents</span>
+      <div className={`${styles.chapter} ${isIntroCurrent ? styles.current : ''}`}>
+        <button className={styles.chapterButton} onClick={() => onSelectChapter(INTRO_ID)}>
+          <span className={styles.num}>00</span>
+          <span className={styles.label}>Introduction</span>
+        </button>
+      </div>
       {chapters.map(ch => (
         <ChapterRow
           key={ch.id}

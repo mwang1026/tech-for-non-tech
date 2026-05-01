@@ -1,4 +1,4 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
+import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
@@ -6,6 +6,11 @@ const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text,
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 // const h = (text: string): Block => ({ kind: 'h', text })  // available; rarely needed
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+const step = (
+  content: Inline,
+  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
+): StepItem => ({ content, ...opts })
+const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 
 /* ============================================================================
  * Chapter 1 — The Request-Response Cycle (101)
@@ -24,18 +29,39 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — The basic loop --------------------------- */
 
 const basicLoop: Block[] = [
-  p(_('You click a button on a web page. A second later, something appears — your dashboard, a confirmation message, a list of search results. That second is the entire subject of this chapter.')),
-  p(
-    _('When you click, your '), t('browser', 'browser'),
-    _(' (the program you’re using to view the page — Chrome, Safari, Firefox) packages up your action into a message called a "request" and sends it across the internet.'),
+  p(_('You click a button on a web page. A second later, something appears — your dashboard, a confirmation message, a list of search results. That second is the entire subject of this chapter. Press → to walk through it.')),
+  steps(
+    step(
+      [
+        _('You click. Your '), t('browser', 'browser'),
+        _(' (Chrome, Safari, Firefox — the program you’re using to view the page) packages your action into a message called a "request."'),
+      ],
+      { highlight: ['browser'], status: 'neutral', focus: 'full' },
+    ),
+    step(
+      [
+        _('The request travels across the internet to a '), t('server', 'server'),
+        _(' — a computer somewhere on the internet that the company owns or rents, which holds the code for the application.'),
+      ],
+      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+    ),
+    step(
+      [
+        _('The server figures out what you’re asking for. If it needs to look something up or save something, it talks to a '),
+        t('database', 'database'),
+        _(' — a specialized program that stores the application’s permanent data (your account, your messages, your files).'),
+      ],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('The database returns what was asked for. The server packages a "response" and sends it back across the internet to your browser.')],
+      { highlight: ['be-pool', 'db-primary'], status: 'neutral', focus: 'app' },
+    ),
+    step(
+      [_('Your browser receives the response and updates the screen. You see the dashboard, the confirmation, the list of results.')],
+      { highlight: ['browser'], status: 'pass', focus: 'full' },
+    ),
   ),
-  p(
-    _('That request arrives at a '), t('server', 'server'),
-    _(' — a computer somewhere on the internet that the company owns or rents, which holds the code for the application. The server figures out what you’re asking for. If it needs to look something up or save something, it talks to a '),
-    t('database', 'database'),
-    _(' — a specialized program that stores the application’s permanent data (your account, your messages, your files).'),
-  ),
-  p(_('The database returns what was asked for. The server packages a "response" and sends it back to your browser. The browser updates the screen.')),
   p(_('That whole round-trip — click → request → server → database → response → screen update — is what people mean by "the request-response cycle." Every interaction with every web product, no matter how complex it looks, is some variation of this loop.')),
 ]
 
@@ -127,11 +153,7 @@ export const chapter01: Chapter = {
           _(' for permanent data and sends a response back. Every other concept in this primer attaches to some piece of this loop.'),
         ],
         bridge: [
-          _('Coming up — Chapter 2: State. We\'ve mentioned "the database" as where data lives. The next chapter is about all the *places* data can live (memory, cache, database) and the tradeoffs between them — how fast, how durable, how fresh.'),
-        ],
-        prompts: [
-          'Walk me through what happens, step by step, when a user logs into this app — from the moment they click "Sign in" to when their dashboard appears.',
-          'Where in this codebase is the boundary between front-end and back-end? Show me the folders or files where each one lives.',
+          _('That\'s the whole loop, named. The rest of Act I (Ch 2–6) answers the questions a real system has to answer to handle a request: **who** is asking (Ch 2), **what they\'re allowed to do** (Ch 3), **where the data they want lives** (Ch 4), **how to route it through many servers without slowing down** (Ch 5), and **what to do when many requests want the same data at the same instant** (Ch 6). Then Ch 7 walks real requests through the whole machine. Coming up next — Chapter 2: Identity.'),
         ],
       },
     },

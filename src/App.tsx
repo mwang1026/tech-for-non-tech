@@ -9,6 +9,19 @@ import { ChapterRail } from './components/ChapterRail'
 import { Diagram } from './components/diagram/Diagram'
 import { SlideStream } from './components/SlideStream'
 import { GlossaryPanel } from './components/GlossaryPanel'
+import { IntroPage } from './components/IntroPage'
+import type { Slide as SlideType, StepItem } from './content/types'
+
+const INTRO_ID = 'ch0'
+
+/** Find the first 'steps' block in a slide's prose body, if any. */
+function findStepsBlock(slide: SlideType | undefined): StepItem[] | null {
+  if (!slide || slide.body.kind !== 'prose') return null
+  for (const block of slide.body.blocks) {
+    if (block.kind === 'steps') return block.items
+  }
+  return null
+}
 
 function Inner() {
   const url = useUrlState()
@@ -17,46 +30,86 @@ function Inner() {
 
   const [chapterId, setChapterId] = useState<string>(url.chapterId)
   const [slideIndex, setSlideIndex] = useState<number>(url.slideIndex)
+  const [stepIndex, setStepIndex] = useState<number>(0)
 
+  const isIntro = chapterId === INTRO_ID
   const chapter = chapterById(chapterId)
   const visibleSlides = useMemo(() => filter(chapter.slides), [chapter, filter])
   const safeIndex = Math.min(slideIndex, Math.max(0, visibleSlides.length - 1))
   const currentSlide = visibleSlides[safeIndex]
 
+  const stepsBlock = useMemo(() => findStepsBlock(currentSlide), [currentSlide])
+  const totalSteps = stepsBlock?.length ?? 0
+  const safeStepIndex = stepsBlock ? Math.min(stepIndex, totalSteps - 1) : 0
+  const activeStep = stepsBlock ? stepsBlock[safeStepIndex] : null
+
   const nextChapter = chapters.find(c => c.number === chapter.number + 1)
   const prevChapter = chapters.find(c => c.number === chapter.number - 1)
 
-  // Keep URL in sync with state
+  // Keep URL in sync with state. On the intro, write the sentinel id directly
+  // rather than the chapter fallback that chapterById() returns.
   useEffect(() => {
-    url.writeUrl(chapter.id, safeIndex, level)
-  }, [chapter.id, safeIndex, level, url])
+    url.writeUrl(isIntro ? INTRO_ID : chapter.id, isIntro ? 0 : safeIndex, level)
+  }, [isIntro, chapter.id, safeIndex, level, url])
+
+  /** Reset step state whenever we land on a new slide or chapter. */
+  useEffect(() => {
+    setStepIndex(0)
+  }, [chapterId, safeIndex])
 
   const goToChapter = useCallback((id: string) => {
     setChapterId(id)
     setSlideIndex(0)
+    setStepIndex(0)
   }, [])
 
-  /** Jump to the LAST slide of the previous chapter (used when ← is pressed on slide 0). */
+  /** Jump to the LAST slide of the previous chapter (used when ← is pressed on slide 0).
+   *  Lands on the LAST step of that slide if it has interactive steps. */
   const goToPrevChapterEnd = useCallback(() => {
     if (!prevChapter) return
     const prevVisible = filter(prevChapter.slides)
+    const lastSlide = prevVisible[prevVisible.length - 1]
+    const prevSteps = findStepsBlock(lastSlide)
     setChapterId(prevChapter.id)
     setSlideIndex(Math.max(0, prevVisible.length - 1))
+    setStepIndex(prevSteps ? prevSteps.length - 1 : 0)
   }, [prevChapter, filter])
 
-  /** Unified prev/next that chains across chapter boundaries. */
+  /** Move to the previous slide WITHIN the current chapter, landing on its last step if interactive. */
+  const goToPrevSlideEnd = useCallback(() => {
+    const target = visibleSlides[safeIndex - 1]
+    const targetSteps = findStepsBlock(target)
+    setSlideIndex(safeIndex - 1)
+    setStepIndex(targetSteps ? targetSteps.length - 1 : 0)
+  }, [visibleSlides, safeIndex])
+
+  /** Unified prev/next that chains: step → slide → chapter. */
   const onPrev = useCallback(() => {
-    if (safeIndex > 0) setSlideIndex(safeIndex - 1)
-    else goToPrevChapterEnd()
-  }, [safeIndex, goToPrevChapterEnd])
+    if (stepsBlock && safeStepIndex > 0) {
+      setStepIndex(safeStepIndex - 1)
+    } else if (safeIndex > 0) {
+      goToPrevSlideEnd()
+    } else {
+      goToPrevChapterEnd()
+    }
+  }, [stepsBlock, safeStepIndex, safeIndex, goToPrevSlideEnd, goToPrevChapterEnd])
 
   const onNext = useCallback(() => {
-    if (safeIndex < visibleSlides.length - 1) setSlideIndex(safeIndex + 1)
-    else if (nextChapter) goToChapter(nextChapter.id)
-  }, [safeIndex, visibleSlides.length, nextChapter, goToChapter])
+    if (stepsBlock && safeStepIndex < totalSteps - 1) {
+      setStepIndex(safeStepIndex + 1)
+    } else if (safeIndex < visibleSlides.length - 1) {
+      setSlideIndex(safeIndex + 1)
+    } else if (nextChapter) {
+      goToChapter(nextChapter.id)
+    }
+  }, [stepsBlock, safeStepIndex, totalSteps, safeIndex, visibleSlides.length, nextChapter, goToChapter])
 
-  const canGoPrev = safeIndex > 0 || prevChapter !== undefined
-  const canGoNext = safeIndex < visibleSlides.length - 1 || nextChapter !== undefined
+  const canGoPrev =
+    (stepsBlock && safeStepIndex > 0) || safeIndex > 0 || prevChapter !== undefined
+  const canGoNext =
+    (stepsBlock && safeStepIndex < totalSteps - 1) ||
+    safeIndex < visibleSlides.length - 1 ||
+    nextChapter !== undefined
 
   /** Scroll the active slide's body content. Only one slide is in the DOM at a time. */
   const scrollActiveSlideBody = useCallback((delta: number): boolean => {
@@ -79,6 +132,17 @@ function Inner() {
       const tag = (e.target as HTMLElement | null)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
 
+      // 1-9 jumps to chapter N — works from the intro too, as a quick-skip.
+      if (/^[1-9]$/.test(e.key)) {
+        e.preventDefault()
+        const target = chapters.find(c => c.number === parseInt(e.key, 10))
+        if (target) goToChapter(target.id)
+        return
+      }
+
+      // Arrow-key slide nav is meaningless on the intro.
+      if (isIntro) return
+
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault()
@@ -97,20 +161,45 @@ function Inner() {
           scrollActiveSlideBody(-80)
           break
         // 'L' (level cycle) disabled in 101-only phase.
-        default:
-          if (/^[1-9]$/.test(e.key)) {
-            e.preventDefault()
-            const target = chapters.find(c => c.number === parseInt(e.key, 10))
-            if (target) goToChapter(target.id)
-          }
-          // 'z' / 'Escape' — handled in Diagram.tsx.
+        // 'z' / 'Escape' — handled in Diagram.tsx.
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [canGoNext, canGoPrev, onNext, onPrev, goToChapter, scrollActiveSlideBody])
+  }, [isIntro, canGoNext, canGoPrev, onNext, onPrev, goToChapter, scrollActiveSlideBody])
 
-  const focus = currentSlide?.diagramFocus
+  /** Effective diagram coordinates: the active step's focus/highlight overrides the slide-level focus. */
+  const diagramFocus = activeStep?.focus ?? currentSlide?.diagramFocus
+  const diagramHighlight = activeStep?.highlight
+  const diagramStatus = activeStep?.status
+
+  if (isIntro) {
+    return (
+      <Layout
+        topBar={
+          <TopBar
+            chapterNumber={0}
+            chapterTitle="Introduction"
+            slideIndex={0}
+            totalSlides={0}
+            isIntro
+            levelToggle={null}
+          />
+        }
+        rail={
+          <ChapterRail
+            currentChapterId={INTRO_ID}
+            currentSlideIndex={0}
+            visibleSlides={[]}
+            onSelectChapter={goToChapter}
+            onSelectSlide={() => {}}
+          />
+        }
+        content={<IntroPage onBegin={() => goToChapter(chapters[0].id)} />}
+        overlay={<GlossaryPanel />}
+      />
+    )
+  }
 
   return (
     <Layout
@@ -120,6 +209,7 @@ function Inner() {
           chapterTitle={chapter.title}
           slideIndex={safeIndex}
           totalSlides={visibleSlides.length}
+          onGoToIntro={() => goToChapter(INTRO_ID)}
           /* Glossary button placeholder — wires up in next pass.
              Level toggle removed for the 101-only phase. */
           levelToggle={null}
@@ -134,7 +224,15 @@ function Inner() {
           onSelectSlide={setSlideIndex}
         />
       }
-      diagram={<Diagram chapter={chapter.number} level={level} focus={focus} />}
+      diagram={
+        <Diagram
+          chapter={chapter.number}
+          level={level}
+          focus={diagramFocus}
+          highlight={diagramHighlight}
+          highlightStatus={diagramStatus}
+        />
+      }
       content={
         visibleSlides.length === 0
           ? <EmptyChapter chapterTitle={chapter.title} />
@@ -142,6 +240,7 @@ function Inner() {
               chapter={chapter}
               visibleSlides={visibleSlides}
               currentIndex={safeIndex}
+              activeStepIndex={stepsBlock ? safeStepIndex : null}
               onPrev={canGoPrev ? onPrev : undefined}
               onNext={canGoNext ? onNext : undefined}
             />

@@ -11,6 +11,12 @@
   --accent: #B6371F;
   --accent-soft: rgba(182, 55, 31, 0.12);
 
+  /* Step-walkthrough status (used in interactive Ch1/Ch2/Ch5/Ch9 walkthroughs). */
+  --status-pass: #1F7A3A;
+  --status-pass-soft: rgba(31, 122, 58, 0.12);
+  --status-reject: #B6371F;                       /* same as accent — vermillion already reads as warning */
+  --status-reject-soft: rgba(182, 55, 31, 0.12);
+
   /* Spacing — 4px grid */
   --space-xs: 4px;
   --space-s: 8px;

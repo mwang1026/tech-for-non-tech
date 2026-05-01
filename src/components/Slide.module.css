@@ -102,11 +102,11 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .bulletList li {
   position: relative;
-  padding-left: 18px;
+  padding-left: 22px;
   font-size: 16px;
   line-height: 1.55;
   color: var(--ink);
@@ -114,16 +114,145 @@
 .bulletList li::before {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 0.7em;
+  left: 6px;
+  top: 0.6em;
   width: 6px;
-  height: 1px;
-  background: var(--ink-muted);
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 .bulletList li a {
   font-weight: 600;
   color: var(--ink);
   border-bottom: 1px solid var(--hairline-strong);
+}
+
+/* Numbered list — for genuinely sequential steps. Counters in a tabular-figure style with the accent color. */
+.numberedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: stepCounter;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.numberedList li {
+  counter-increment: stepCounter;
+  position: relative;
+  padding-left: 32px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.numberedList li::before {
+  content: counter(stepCounter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-feature-settings: 'tnum';
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 50%;
+  line-height: 1;
+}
+.numberedList li a {
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+/* Steps list — interactive walkthrough. Mirrors .numberedList structurally but
+   per-item state (active / past / future) is set by Slide.tsx, and the badge
+   color follows the active step's status (pass / reject / neutral). */
+.stepsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: stepCounter;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stepItem {
+  counter-increment: stepCounter;
+  position: relative;
+  padding-left: 32px;
+  font-size: 16px;
+  line-height: 1.55;
+  transition: color var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+.stepItem::before {
+  content: counter(stepCounter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-feature-settings: 'tnum';
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 50%;
+  line-height: 1;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.stepItem a {
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+/* --- per-item state --- */
+
+/* Active step — full color; badge fills with accent (or status color). */
+.stepItemActive {
+  color: var(--ink);
+  font-weight: 500;
+}
+.stepItemActive::before {
+  background: var(--accent);
+  color: var(--paper);
+}
+/* Status overrides for the active step badge. */
+.stepItemPass::before {
+  background: var(--status-pass);
+  color: var(--paper);
+}
+.stepItemReject::before {
+  background: var(--status-reject);
+  color: var(--paper);
+}
+
+/* Past steps — muted text, soft accent badge. */
+.stepItemPast {
+  color: var(--ink-muted);
+}
+.stepItemPast::before {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Future steps — even more muted, badge as outline only. */
+.stepItemFuture {
+  color: var(--ink-muted);
+  opacity: 0.6;
+}
+.stepItemFuture::before {
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--hairline-strong);
 }
 
 .body a {
@@ -180,20 +309,3 @@
   font-style: italic;
 }
 
-.promptList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.promptCard {
-  background: var(--paper);
-  border: 1px solid var(--hairline-strong);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--r-sm);
-  padding: 12px 14px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink);
-  font-style: italic;
-}

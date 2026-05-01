@@ -19,6 +19,12 @@
   min-height: 0;
 }
 
+.bodyNoDiagram {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
 .rail {
   border-right: 1px solid var(--hairline);
   overflow-y: auto;
@@ -44,5 +50,8 @@
 @media (max-width: 1199px) {
   .body {
     grid-template-columns: var(--rail-w-collapsed) minmax(0, 45fr) minmax(0, 55fr);
+  }
+  .bodyNoDiagram {
+    grid-template-columns: var(--rail-w-collapsed) minmax(0, 1fr);
   }
 }

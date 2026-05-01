@@ -8,6 +8,8 @@ type Props = {
   chapterNumber: number
   index: number
   total: number
+  /** Active step within an interactive `steps` block; null when the slide has none. */
+  activeStepIndex: number | null
   onPrev?: () => void
   onNext?: () => void
 }
@@ -40,7 +42,7 @@ function ParagraphRender({ p }: { p: Paragraph }) {
   return <p><InlineRender nodes={p} /></p>
 }
 
-function BlockRender({ block }: { block: Block }) {
+function BlockRender({ block, activeStepIndex }: { block: Block; activeStepIndex: number | null }) {
   switch (block.kind) {
     case 'p':
       return <p><InlineRender nodes={block.nodes} /></p>
@@ -54,10 +56,44 @@ function BlockRender({ block }: { block: Block }) {
           ))}
         </ul>
       )
+    case 'ol':
+      return (
+        <ol className={styles.numberedList}>
+          {block.items.map((item, i) => (
+            <li key={i}><InlineRender nodes={item} /></li>
+          ))}
+        </ol>
+      )
+    case 'steps': {
+      const active = activeStepIndex ?? 0
+      return (
+        <ol className={styles.stepsList}>
+          {block.items.map((item, i) => {
+            const cls =
+              i === active ? styles.stepItemActive
+              : i < active ? styles.stepItemPast
+              : styles.stepItemFuture
+            const statusCls =
+              item.status === 'pass' ? styles.stepItemPass
+              : item.status === 'reject' ? styles.stepItemReject
+              : ''
+            return (
+              <li
+                key={i}
+                className={`${styles.stepItem} ${cls} ${i === active ? statusCls : ''}`}
+                aria-current={i === active ? 'step' : undefined}
+              >
+                <InlineRender nodes={item.content} />
+              </li>
+            )
+          })}
+        </ol>
+      )
+    }
   }
 }
 
-export function Slide({ slide, chapterNumber, index, total, onPrev, onNext }: Props) {
+export function Slide({ slide, chapterNumber, index, total, activeStepIndex, onPrev, onNext }: Props) {
   return (
     <article className={styles.slide} data-slide-id={slide.id}>
       <div className={styles.inner}>
@@ -77,7 +113,7 @@ export function Slide({ slide, chapterNumber, index, total, onPrev, onNext }: Pr
 
         <div className={styles.body} data-slide-body>
           {slide.body.kind === 'prose' && slide.body.blocks.map((block, i) => (
-            <BlockRender key={i} block={block} />
+            <BlockRender key={i} block={block} activeStepIndex={activeStepIndex} />
           ))}
 
           {slide.body.kind === 'recap' && (
@@ -97,16 +133,6 @@ export function Slide({ slide, chapterNumber, index, total, onPrev, onNext }: Pr
               <div className={styles.bridge}>
                 <ParagraphRender p={slide.body.bridge} />
               </div>
-              {slide.body.prompts && slide.body.prompts.length > 0 && (
-                <div>
-                  <div className={styles.recapHeading}>Try this in your codebase</div>
-                  <div className={styles.promptList}>
-                    {slide.body.prompts.map((pr, i) => (
-                      <div key={i} className={styles.promptCard}><InlineMd>{pr}</InlineMd></div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>

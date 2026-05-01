@@ -4,8 +4,9 @@ import type { Level } from '../content/types'
 /** Parse `#ch6/3` and `?level=201` from the current URL. */
 function parse(): { chapterId: string; slideIndex: number; level: Level } {
   const hash = window.location.hash.replace(/^#/, '')
-  const [chapterId = 'ch6', slideIndexStr = '0'] = hash.split('/')
-  const slideIndex = Math.max(0, parseInt(slideIndexStr, 10) || 0)
+  const parts = hash.split('/')
+  const chapterId = parts[0] || 'ch0'
+  const slideIndex = Math.max(0, parseInt(parts[1] ?? '0', 10) || 0)
 
   const search = new URLSearchParams(window.location.search)
   const lvRaw = parseInt(search.get('level') || '201', 10)

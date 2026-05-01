@@ -8,7 +8,7 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 6 — Architecture & Communication Patterns (101)
+ * Chapter 5 — Architecture & Communication Patterns (101)
  *
  * Diagram visible by end of this chapter at 101:
  *   Browser → CDN → Load Balancer → Front-end → Back-end → Cache + DB
@@ -75,7 +75,7 @@ const cdn: Block[] = [
     [t('Akamai', 'akamai'), _(' — The enterprise incumbent. Largest network; oldest in the space.')],
     [t('AWS CloudFront', 'cloudfront'), _(' — The AWS-native option, integrated with the rest of AWS.')],
   ),
-  p(_('The tradeoff is staleness — the CDN serves what it cached, not what’s live. Updating a file may take time to reach every edge server, or you can manually "purge" the cache to force a refresh. This is the same speed-vs-freshness tradeoff from Chapter 2 (Cache vs. Database), now applied at the network layer.')),
+  p(_('The tradeoff is staleness — the CDN serves what it cached, not what’s live. Updating a file may take time to reach every edge server, or you can manually "purge" the cache to force a refresh. This is the same speed-vs-freshness tradeoff from Chapter 4 (Cache vs. Database), now applied at the network layer.')),
 ]
 
 /* --------------------------- Slide 4 — Ask vs. be told --------------------------- */
@@ -107,11 +107,11 @@ const monolith: Block[] = [
   p(_('Most companies start as monoliths and split when scale forces it. Netflix, Amazon, and Uber are famous microservices stories — they grew past what one codebase could handle. GitHub, Shopify, and Basecamp run famously large monoliths and ship fine. The right answer is whichever lets your specific team ship safely — monolith vs. microservices is as much a team decision as a technical one.')),
 ]
 
-/* --------------------------- Chapter 6 export --------------------------- */
+/* --------------------------- Chapter 5 export --------------------------- */
 
 export const chapter06: Chapter = {
-  id: 'ch6',
-  number: 6,
+  id: 'ch5',
+  number: 5,
   title: 'Architecture & Communication Patterns',
   subtitle: 'How pieces of a system are split up, and how they talk',
   slides: [
@@ -140,11 +140,7 @@ export const chapter06: Chapter = {
           _(' sits even further out at the network edge, serving static files from cache servers near each user.'),
         ],
         bridge: [
-          _('Coming up — Chapter 7: Code Lifecycle. We\'ve talked about how code runs in production. Next: how it gets there. Git, branches, pull requests, tests, and the gates that catch bad code before it ships to real users.'),
-        ],
-        prompts: [
-          'Is this codebase a monolith or split into services? If it\'s split, what\'s the boundary between them — and what does each service own?',
-          'Are we polling anything that could be a webhook instead? Show me the polling code and explain what we\'d gain by switching.',
+          _('Coming up — Chapter 6: Concurrency. Now that we have many servers, the next problem appears: what happens when many requests want to read and write the same row at the same instant — and one of them silently overwrites the other.'),
         ],
       },
     },

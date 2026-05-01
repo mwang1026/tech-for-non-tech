@@ -7,7 +7,7 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 7 — Code Lifecycle (101)
+ * Chapter 8 — Code Lifecycle (101)
  *
  * No new diagram boxes at 101 — code lifecycle is process, not architecture.
  *
@@ -22,7 +22,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — Save isn't enough --------------------------- */
 
 const saveNotEnough: Block[] = [
-  p(_('Coming out of Chapter 6, we have a system that runs in production — many servers, a CDN, a load balancer, a database. The next question: how does the code that runs on those servers get there in the first place?')),
+  p(_('Act I done — coming out of Chapter 7, you have the full mental model of how a request flows through the running system. Act II is the orthogonal story: how the code that runs all this gets there in the first place. Starting with the very first problem: editing files.')),
   p(_('Imagine for a moment a team of ten engineers, all editing the same codebase by just saving files to a shared folder. The problems start immediately:')),
   ul(
     [_('Two engineers edit the same file at the same time. One save overwrites the other. Hours of work, gone.')],
@@ -106,11 +106,11 @@ const testsAndCI: Block[] = [
   ),
 ]
 
-/* --------------------------- Chapter 7 export --------------------------- */
+/* --------------------------- Chapter 8 export --------------------------- */
 
 export const chapter07: Chapter = {
-  id: 'ch7',
-  number: 7,
+  id: 'ch8',
+  number: 8,
   title: 'Code Lifecycle',
   subtitle: 'How code becomes the running system',
   slides: [
@@ -139,11 +139,7 @@ export const chapter07: Chapter = {
           _(', and pass through CI before the new version ever reaches the production servers we drew in earlier chapters.'),
         ],
         bridge: [
-          _('Coming up — Chapter 8: Deployment & Operations. Once a pull request passes CI and gets merged into main, the code still has to actually reach production safely — without breaking the live system for users in the middle of a session.'),
-        ],
-        prompts: [
-          'What tests does this codebase have? Where do they live, and how do I run them locally before opening a PR?',
-          'Walk me through what happens between a developer pushing code to a PR and that code being live for users — every step, every check, every gate.',
+          _('Coming up — Chapter 9: Deployment & Operations. Once a pull request passes CI and gets merged into main, the code still has to actually reach production safely — without breaking the live system for users in the middle of a session.'),
         ],
       },
     },

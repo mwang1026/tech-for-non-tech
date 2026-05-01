@@ -8,7 +8,7 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 3 — Identity (101)
+ * Chapter 2 — Identity (101)
  *
  * Diagram visible by end of this chapter at 101:
  *   Browser → Front-end → Back-end → Cache + DB
@@ -26,10 +26,9 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — The multi-user problem --------------------------- */
 
 const multiUserProblem: Block[] = [
-  p(_('Coming out of Chapter 2, we know data lives in a database, sometimes cached for speed, and the back-end is the thing that reads from and writes to it.')),
-  p(_('But here’s the situation we’ve been ignoring: real products serve hundreds, thousands, sometimes millions of users at once, all hitting the same back-end servers and reading from the same database. Every one of those users wants to see *their* data — their orders, their messages, their account balance — and definitely not anyone else’s.')),
-  p(_('Imagine the back-end ignored this question entirely. Two people log into the same banking app at the same time. Both make a request: "show me my account." The server reads the database. Which account does it return? Without something attached to the request that says "this is from user 123," the server has no way to know — and either every request gets the same data, or none of them do.')),
-  p(_('What needs to happen: every single request the server receives has to carry, somehow, a verifiable answer to the question "who is this from?" That answer is what we call identity.')),
+  p(_('Coming out of Chapter 1, we have the request-response loop: browser asks, back-end answers. But here’s the situation we’ve been ignoring: real products serve hundreds, thousands, sometimes millions of users at once, all hitting the same back-end. Every one of those users wants to see *their* data — their orders, their messages, their account balance — and definitely not anyone else’s.')),
+  p(_('Imagine the back-end ignored this question entirely. Two people log into the same banking app at the same time. Both make a request: "show me my account." The back-end reads its records. Which account does it return? Without something attached to the request that says "this is from user 123," the back-end has no way to know — and either every request gets the same data, or none of them do.')),
+  p(_('What needs to happen: every single request the back-end receives has to carry, somehow, a verifiable answer to the question "who is this from?" That answer is what we call identity. It’s the very first thing the system needs to know about every request — before it can decide what to do, it has to know who’s asking.')),
 ]
 
 /* --------------------------- Slide 2 — Logging in once, proving it many times --------------------------- */
@@ -80,17 +79,17 @@ const whatTokenIs: Block[] = [
 
 const slicingTheDb: Block[] = [
   p(_('Now we know how the request says "this is from user 123." But that’s only useful if the back-end actually does something with it.')),
-  p(_('Picture the database as one giant room. Every user’s notes, orders, messages, photos — all sitting on shelves in this single room. The shelves themselves don’t know whose stuff is on them; that information lives as a column on each row, something like `owner_user_id: 123`.')),
-  p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123). It then asks the database: "give me every row from the notes table where `owner_user_id = 123`." The database returns those rows and only those rows. User 456’s notes are physically in the same table on the same disk, but the query never asks for them, so the back-end never sees them, so the requesting user never sees them.')),
-  p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a giant shared database into something that feels, to each user, like their own private space. Every safe multi-user system in the world works this way.')),
-  p(_('What can go wrong here is its own subject — Chapter 4 is about the gates that catch every kind of "oops, you forgot to check" bug.')),
+  p(_('Picture the back-end’s data as one giant room with everyone’s stuff in it — every user’s notes, orders, messages, photos. Each item is tagged with the ID of its owner: a stamp on the side that says, in effect, "this belongs to user 123." (Ch 4 covers in detail how data is structured; for now the stamp metaphor is enough.)')),
+  p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123). It then asks the data layer: "give me everything tagged user 123." The data layer returns those items and only those items. User 456’s notes are physically next to user 123’s, but the query never asks for them, so the back-end never sees them, so the requesting user never sees them.')),
+  p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a shared back-end into something that feels, to each user, like their own private space. Every safe multi-user system in the world works this way.')),
+  p(_('What can go wrong here is its own subject — Chapter 3 is about the gates that catch every kind of "oops, you forgot to check" bug.')),
 ]
 
 /* --------------------------- Recap --------------------------- */
 
 export const chapter03: Chapter = {
-  id: 'ch3',
-  number: 3,
+  id: 'ch2',
+  number: 2,
   title: 'Identity',
   subtitle: 'How the system knows whose data to show',
   slides: [
@@ -117,11 +116,7 @@ export const chapter03: Chapter = {
           _(' travels from the browser to the back-end on every request. The back-end verifies it, extracts the user ID, and uses that ID to filter what gets read from or written to the database. Same boxes; smarter conversations.'),
         ],
         bridge: [
-          _('Coming up — Chapter 4: Validation & Authorization. Knowing *who* the user is (this chapter) is one thing. Knowing whether they’re *allowed* to do this specific thing — read this record, change this setting, delete this account — is another. Identity says "this is user 123." Authorization says "and yes, user 123 is permitted to do what they’re asking."'),
-        ],
-        prompts: [
-          'How does this codebase identify users? After login, what does the server hand back to the browser, and where in the request does that identifier travel on subsequent requests?',
-          'Show me the place in this codebase where the user ID is extracted from the request. Is it pulled from the verified token, or from the request body / URL? If the latter, what stops me from sending someone else\'s ID?',
+          _('Coming up — Chapter 3: Validation & Authorization. Knowing *who* the user is (this chapter) is one thing. Knowing whether they’re *allowed* to do this specific thing — read this record, change this setting, delete this account — is another. Identity says "this is user 123." Authorization says "and yes, user 123 is permitted to do what they’re asking."'),
         ],
       },
     },

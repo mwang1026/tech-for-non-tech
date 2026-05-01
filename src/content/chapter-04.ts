@@ -7,9 +7,9 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 4 — Validation & Authorization (101)
+ * Chapter 3 — Validation & Authorization (101)
  *
- * Diagram visible: same as Ch 3 (no new boxes; gates are conceptual overlay).
+ * Diagram visible: same as Ch 2 (no new boxes; gates are conceptual overlay).
  *
  * Slide arc:
  *   1. Why every operation needs gates
@@ -22,7 +22,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — Why gates --------------------------- */
 
 const whyGates: Block[] = [
-  p(_('Coming out of Chapter 3, we know how the back-end identifies who’s asking. But knowing who someone is doesn’t tell you what they’re allowed to do — or whether what they sent is even something the system should accept.')),
+  p(_('Coming out of Chapter 2, we know how the back-end identifies who’s asking. But knowing who someone is doesn’t tell you what they’re allowed to do — or whether what they sent is even something the system should accept.')),
   p(_('Imagine a back-end URL that updates a user’s profile, with no checks at all on it. What could go wrong?')),
   ul(
     [_('Someone could call it without logging in — and the system has no way to refuse.')],
@@ -37,7 +37,7 @@ const whyGates: Block[] = [
 const authnVsAuthz: Block[] = [
   p(_('The first two gates sound similar but answer very different questions. Engineers shorten them to "authn" and "authz" — and it’s worth getting straight which is which.')),
   ul(
-    [t('Authentication', 'authentication'), _(' (authn) — Are you who you say you are? This is the gate that checks the token from Chapter 3. Valid token → you’re in. No token, expired token, or tampered token → request is rejected with status code '), t('401 Unauthorized', '401'), _(' (which despite the name actually means "unauthenticated").')],
+    [t('Authentication', 'authentication'), _(' (authn) — Are you who you say you are? This is the gate that checks the token from Chapter 2. Valid token → you’re in. No token, expired token, or tampered token → request is rejected with status code '), t('401 Unauthorized', '401'), _(' (which despite the name actually means "unauthenticated").')],
     [t('Authorization', 'authorization'), _(' (authz) — OK, you’re really you. But are you allowed to do *this specific thing*? Read this particular order? Edit this particular profile? Delete this comment? Authorization is the per-action check. Failure here returns '), t('403 Forbidden', '403'), _('.')],
   ),
   p(_('Here’s the trap: a successful login (authentication) doesn’t mean you can do anything. A logged-in user can still try to read someone else’s data, and authorization is what stops them. The auth checks happen on every single request, every single endpoint — not just at the login screen.')),
@@ -76,11 +76,11 @@ const frontendNotSecurity: Block[] = [
   p(_('When directing an agent to add a feature, ask explicitly: where is this validated on the back-end? Where is permission checked on the back-end?')),
 ]
 
-/* --------------------------- Chapter 4 export --------------------------- */
+/* --------------------------- Chapter 3 export --------------------------- */
 
 export const chapter04: Chapter = {
-  id: 'ch4',
-  number: 4,
+  id: 'ch3',
+  number: 3,
   title: 'Validation & Authorization',
   subtitle: 'Three gates every request passes through',
   slides: [
@@ -102,16 +102,12 @@ export const chapter04: Chapter = {
           'Authorization mistakes (like trusting a userId from the request body) are one of the most common sources of "user A read user B’s data" bugs',
         ],
         whereInSystem: [
-          _('The three gates live in the back-end, between the request arriving and any data being read or written. Identity from Chapter 3 (the '),
+          _('The three gates live in the back-end, between the request arriving and any data being read or written. Identity from Chapter 2 (the '),
           t('token', 'token'),
           _(') flows in with the request and is what the authentication and authorization gates evaluate.'),
         ],
         bridge: [
-          _('Coming up — Chapter 5: Concurrency. The gates handle one request at a time. The next problem is what happens when many requests show up at the same moment, all wanting to change the same data — and one of them ends up overwriting the other.'),
-        ],
-        prompts: [
-          'Find three places in this codebase where the back-end checks whether the user is allowed to do something. Show me each one and explain what it’s checking.',
-          'If I removed the front-end check on this form, would the back-end still reject bad input? Walk through the actual back-end code that validates it.',
+          _('Coming up — Chapter 4: State. We now know who’s asking and what they\'re allowed to do. The next question is *where the data they\'re asking for actually lives* — memory, database, cache — and the tradeoffs between them.'),
         ],
       },
     },

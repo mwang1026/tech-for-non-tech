@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion'
 import type { ElementId } from './elements'
 import { visibleElements } from './elements'
-import type { Level } from '../../content/types'
+import type { Level, StepStatus } from '../../content/types'
 import { diagramReveal, staggerChildren } from '../../motion/variants'
 
 type Props = {
   chapter: number
   level: Level
-  highlight?: ElementId | string  // glossary id or element id; we resolve via region
+  /** Element IDs to highlight on the diagram. Slide step or focus drives this. */
+  highlight?: string[]
+  /** Tints the highlighted boxes green (pass), red (reject), or accent (neutral). */
+  highlightStatus?: StepStatus
 }
 
 /**
@@ -29,9 +32,18 @@ const muted = 'var(--ink-muted)'
 const paper = 'var(--paper)'
 const hairline = 'var(--hairline-strong)'
 const accent = 'var(--accent)'
+const statusPass = 'var(--status-pass)'
+const statusReject = 'var(--status-reject)'
+
+/** Stroke color when a box is highlighted, by status. Falls back to accent for 'neutral' / undefined. */
+function strokeForStatus(status: StepStatus | undefined): string {
+  if (status === 'pass') return statusPass
+  if (status === 'reject') return statusReject
+  return accent
+}
 
 function Box({
-  id, x, y, w, h, label, product, attrs, dashed, faded, highlighted, onClick,
+  id, x, y, w, h, label, product, attrs, dashed, faded, highlighted, status, onClick,
 }: {
   id: string
   x: number; y: number; w: number; h: number
@@ -41,6 +53,7 @@ function Box({
   dashed?: boolean
   faded?: boolean
   highlighted?: boolean
+  status?: StepStatus
   onClick?: () => void
 }) {
   const opacity = faded ? 0.55 : 1
@@ -49,6 +62,9 @@ function Box({
   const labelY = hasAttrs ? y + (h - 14) / 2 : y + h / 2 + 4
   const attrsY = y + h - 7
   const dividerY = y + h - 16
+  const stroke = highlighted ? strokeForStatus(status) : ink
+  const strokeWidth = highlighted ? 1.8 : 1
+  const showStatusBadge = highlighted && (status === 'pass' || status === 'reject')
 
   return (
     <motion.g
@@ -78,8 +94,8 @@ function Box({
       <rect
         x={x} y={y} width={w} height={h}
         fill={paper}
-        stroke={highlighted ? accent : ink}
-        strokeWidth={highlighted ? 1.5 : 1}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
         strokeDasharray={dashed ? '3 3' : undefined}
       />
 
@@ -121,6 +137,24 @@ function Box({
           </text>
         </>
       )}
+
+      {/* Status badge — small ✓ or ✗ in the top-right corner of a highlighted box. */}
+      {showStatusBadge && (
+        <>
+          <circle cx={x + w - 8} cy={y + 8} r={7} fill={stroke} />
+          <text
+            x={x + w - 8}
+            y={y + 11}
+            textAnchor="middle"
+            fontSize="10"
+            fontWeight={700}
+            fill={paper}
+            fontFamily="var(--font-ui)"
+          >
+            {status === 'pass' ? '✓' : '✗'}
+          </text>
+        </>
+      )}
     </motion.g>
   )
 }
@@ -136,17 +170,19 @@ function Arrow({ x1, y1, x2, y2, dashed }: { x1: number; y1: number; x2: number;
   )
 }
 
-export function DiagramSvg({ chapter, level, highlight }: Props) {
+export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props) {
   const visible = visibleElements(chapter, level)
   const v = (id: ElementId) => visible.has(id)
 
-  const highlightId =
-    highlight === 'cdn' ? 'cdn'
-    : highlight === 'gateway' || highlight === 'api-gateway' ? 'gateway'
-    : highlight === 'load-balancer' ? 'lb'
-    : highlight ?? null
-
-  const isHi = (id: string) => highlightId === id
+  /** Resolve glossary-style aliases (e.g. 'api-gateway' → 'gateway') so authors can use either name. */
+  const resolveAlias = (id: string): string => {
+    if (id === 'api-gateway') return 'gateway'
+    if (id === 'load-balancer') return 'lb'
+    return id
+  }
+  const highlightSet = new Set((highlight ?? []).map(resolveAlias))
+  const isHi = (id: string) => highlightSet.has(id)
+  const status = highlightStatus ?? 'neutral'
 
   return (
     <motion.g variants={staggerChildren} initial="hidden" animate="shown">
@@ -172,18 +208,18 @@ export function DiagramSvg({ chapter, level, highlight }: Props) {
 
       {/* CLIENTS */}
       {v('browser') && (
-        <Box id="browser" x={150} y={50} w={120} h={48} label="Browser" />
+        <Box id="browser" x={150} y={50} w={120} h={48} label="Browser" highlighted={isHi('browser')} status={status} />
       )}
       {v('mobile') && (
-        <Box id="mobile" x={310} y={50} w={120} h={48} label="Mobile App" />
+        <Box id="mobile" x={310} y={50} w={120} h={48} label="Mobile App" highlighted={isHi('mobile')} status={status} />
       )}
 
       {/* Edge: CDN + WAF */}
       {v('cdn') && (
-        <Box id="cdn" x={170} y={130} w={260} h={56} label="CDN" product="Cloudflare" highlighted={isHi('cdn')} />
+        <Box id="cdn" x={170} y={130} w={260} h={56} label="CDN" product="Cloudflare" highlighted={isHi('cdn')} status={status} />
       )}
       {v('waf') && (
-        <Box id="waf" x={440} y={130} w={140} h={56} label="WAF" product="Cloudflare" dashed faded />
+        <Box id="waf" x={440} y={130} w={140} h={56} label="WAF" product="Cloudflare" dashed faded highlighted={isHi('waf')} status={status} />
       )}
 
       {/* API Gateway with sub-attrs */}
@@ -198,20 +234,21 @@ export function DiagramSvg({ chapter, level, highlight }: Props) {
           product="Kong"
           attrs={['Auth', 'Rate Limit', 'Route']}
           highlighted={isHi('gateway')}
+          status={status}
         />
       )}
 
       {/* Stripe webhook */}
       {v('webhook-stripe') && (
         <g>
-          <Box id="webhook-stripe" x={490} y={230} w={90} h={40} label="Stripe" product="webhook" faded />
+          <Box id="webhook-stripe" x={490} y={230} w={90} h={40} label="Stripe" product="webhook" faded highlighted={isHi('webhook-stripe')} status={status} />
           <Arrow x1={490} y1={250} x2={482} y2={250} />
         </g>
       )}
 
       {/* Load Balancer */}
       {v('lb') && (
-        <Box id="lb" x={170} y={320} w={260} h={56} label="Load Balancer" product="Nginx" highlighted={isHi('lb')} />
+        <Box id="lb" x={170} y={320} w={260} h={56} label="Load Balancer" product="Nginx" highlighted={isHi('lb')} status={status} />
       )}
 
       {/* Front-end pool — 3 instances */}
@@ -221,10 +258,10 @@ export function DiagramSvg({ chapter, level, highlight }: Props) {
           <text x={56} y={400} fontSize="8" fontWeight={500} letterSpacing="1.2" fill={muted} fontFamily="var(--font-ui)">
             FRONT-END POOL · NEXT.JS · CONTAINERIZED
           </text>
-          {v('fe-1') && <Box id="fe-1" x={70}  y={418} w={140} h={48} label="Front-end" />}
-          {v('fe-2') && <Box id="fe-2" x={230} y={418} w={140} h={48} label="Front-end" />}
-          {v('fe-3') && <Box id="fe-3" x={390} y={418} w={140} h={48} label="Front-end" />}
-          {!v('fe-1') && <Box id="fe-pool" x={230} y={418} w={140} h={48} label="Front-end Server" />}
+          {v('fe-1') && <Box id="fe-1" x={70}  y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-1') || isHi('fe-pool')} status={status} />}
+          {v('fe-2') && <Box id="fe-2" x={230} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-2') || isHi('fe-pool')} status={status} />}
+          {v('fe-3') && <Box id="fe-3" x={390} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-3') || isHi('fe-pool')} status={status} />}
+          {!v('fe-1') && <Box id="fe-pool" x={230} y={418} w={140} h={48} label="Front-end Server" highlighted={isHi('fe-pool')} status={status} />}
         </g>
       )}
 
@@ -235,30 +272,30 @@ export function DiagramSvg({ chapter, level, highlight }: Props) {
           <text x={56} y={490} fontSize="8" fontWeight={500} letterSpacing="1.2" fill={muted} fontFamily="var(--font-ui)">
             BACK-END POOL · EXPRESS · CONTAINERIZED
           </text>
-          {v('be-1') && <Box id="be-1" x={70}  y={508} w={140} h={48} label="Back-end" />}
-          {v('be-2') && <Box id="be-2" x={230} y={508} w={140} h={48} label="Back-end" />}
-          {v('be-3') && <Box id="be-3" x={390} y={508} w={140} h={48} label="Back-end" />}
-          {!v('be-1') && <Box id="be-pool" x={230} y={508} w={140} h={48} label="Back-end Server" />}
+          {v('be-1') && <Box id="be-1" x={70}  y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-1') || isHi('be-pool')} status={status} />}
+          {v('be-2') && <Box id="be-2" x={230} y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-2') || isHi('be-pool')} status={status} />}
+          {v('be-3') && <Box id="be-3" x={390} y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-3') || isHi('be-pool')} status={status} />}
+          {!v('be-1') && <Box id="be-pool" x={230} y={508} w={140} h={48} label="Back-end Server" highlighted={isHi('be-pool')} status={status} />}
         </g>
       )}
 
       {/* Auxiliary services row */}
       <g>
-        {v('auth-svc') && <Box id="auth-svc" x={50}  y={588} w={140} h={42} label="Auth Service" product="Auth0" />}
-        {v('cache')    && <Box id="cache"    x={210} y={588} w={140} h={42} label="Cache" product="Redis" />}
-        {v('queue')    && <Box id="queue"    x={370} y={588} w={140} h={42} label="Queue" product="Kafka" />}
+        {v('auth-svc') && <Box id="auth-svc" x={50}  y={588} w={140} h={42} label="Auth Service" product="Auth0" highlighted={isHi('auth-svc')} status={status} />}
+        {v('cache')    && <Box id="cache"    x={210} y={588} w={140} h={42} label="Cache" product="Redis" highlighted={isHi('cache')} status={status} />}
+        {v('queue')    && <Box id="queue"    x={370} y={588} w={140} h={42} label="Queue" product="Kafka" highlighted={isHi('queue')} status={status} />}
       </g>
 
       {/* Data tier */}
       <g>
-        {v('db-primary')   && <Box id="db-primary"   x={50}  y={652} w={180} h={48} label="Primary DB" product="PostgreSQL" />}
-        {v('db-replica-1') && <Box id="db-replica-1" x={250} y={652} w={120} h={48} label="Replica" product="read" dashed faded />}
+        {v('db-primary')   && <Box id="db-primary"   x={50}  y={652} w={180} h={48} label="Primary DB" product="PostgreSQL" highlighted={isHi('db-primary')} status={status} />}
+        {v('db-replica-1') && <Box id="db-replica-1" x={250} y={652} w={120} h={48} label="Replica" product="read" dashed faded highlighted={isHi('db-replica-1')} status={status} />}
         {v('db-replica-2') && (
           <text x={310} y={644} fontSize="8" fill={muted} fontFamily="var(--font-ui)" textAnchor="middle">
             replication lag ~10ms
           </text>
         )}
-        {v('object-store') && <Box id="object-store" x={390} y={652} w={120} h={48} label="Object Store" product="S3" />}
+        {v('object-store') && <Box id="object-store" x={390} y={652} w={120} h={48} label="Object Store" product="S3" highlighted={isHi('object-store')} status={status} />}
       </g>
 
       {/* 301 — Vault & Flags lane */}

@@ -7,7 +7,7 @@ const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 
 /* ============================================================================
- * Chapter 2 — State (101)
+ * Chapter 4 — State (101)
  *
  * Diagram visible by end of chapter at 101: browser, fe-pool, be-pool,
  * db-primary, + cache (new this chapter)
@@ -23,7 +23,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — What state means --------------------------- */
 
 const whatIsState: Block[] = [
-  p(_('Coming out of Chapter 1, we have a request-response loop. The browser asks; the back-end answers; data comes back. But where is that data actually being kept between requests?')),
+  p(_('Coming out of Chapter 3, we know how the back-end identifies users (Ch 2) and gates their requests (Ch 3). The next question: when a request arrives that asks "show me X," where does X actually live?')),
   p(_('Everything the system "knows" about the world lives somewhere. The user’s name. Their shopping cart. Whether they’re logged in. How many items are left in inventory. Which notifications they haven’t opened. All of it has to be held somewhere between requests, so the next one can find it.')),
   p(
     _('All of that — every fact the system holds about the world right now — is called '),
@@ -76,14 +76,14 @@ const sourceOfTruth: Block[] = [
   ),
   p(_('In almost every system, the database is the source of truth for durable data. The cache is allowed to be stale (a copy that hasn’t caught up yet); when you need to be sure, you read from the database. This is why you’ll often hear engineers say "let me hit the database directly to confirm" — they’re bypassing the cache to get the real answer.')),
   p(_('Source-of-truth thinking matters for any feature that involves data living in multiple places. Synced contacts, inventory across stores, a user’s settings on web and mobile — every one of these has a source of truth, and copies that catch up to it. Knowing which is which prevents a whole class of "I updated it but it’s not showing up" bugs.')),
-  p(_('Next chapter: now that we know data lives somewhere, the next question is whose data it is.')),
+  p(_('Next chapter: we’ve been treating "the back-end" as one server. Real systems have many — and the way they\'re arranged, and how requests are routed across them, is its own subject.')),
 ]
 
-/* --------------------------- Chapter 2 export --------------------------- */
+/* --------------------------- Chapter 4 export --------------------------- */
 
 export const chapter02: Chapter = {
-  id: 'ch2',
-  number: 2,
+  id: 'ch4',
+  number: 4,
   title: 'State',
   subtitle: 'Where data lives, and why that matters',
   slides: [
@@ -112,11 +112,7 @@ export const chapter02: Chapter = {
           _(' (Redis) sits between the back-end and the database, holding fast copies of recent answers so the database doesn’t get hit for the same question over and over.'),
         ],
         bridge: [
-          _('Coming up — Chapter 3: Identity. Now that data lives somewhere, the next question is whose data the system should hand back when a request comes in. Without identity, every user would see every other user’s data — or nobody’s.'),
-        ],
-        prompts: [
-          'What gets stored in the database in this codebase, and what stays only in memory? Show me a few examples of each and tell me why they’re in different places.',
-          'Is anything cached in this codebase? If so, what’s the staleness tolerance — how out-of-date can the cached value be before that’s a bug?',
+          _('Coming up — Chapter 5: Architecture & Communication Patterns. We\'ve been drawing the back-end as one server. Real systems have many — and the way they\'re arranged (load balancers, CDNs, monolith vs. services) is the next layer of the picture.'),
         ],
       },
     },

@@ -1,4 +1,4 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
+import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
@@ -6,9 +6,14 @@ const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text,
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 // const h = (text: string): Block => ({ kind: 'h', text })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+const step = (
+  content: Inline,
+  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
+): StepItem => ({ content, ...opts })
+const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 
 /* ============================================================================
- * Chapter 5 — Concurrency (101)
+ * Chapter 6 — Concurrency (101)
  *
  * Diagram visible at this chapter / 101: browser → fe-pool → be-pool → cache + db-primary.
  * No new boxes — concurrency is conceptual at the data tier. Most slides focus on 'data'.
@@ -24,7 +29,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* --------------------------- Slide 1 — When requests collide --------------------------- */
 
 const collide: Block[] = [
-  p(_('Up to now we’ve thought about each request on its own. Token verified, permission checked, data validated — the gates from Chapter 4 do their job and the request flows through cleanly.')),
+  p(_('Up to now we’ve thought about each request on its own. Token verified, permission checked, data validated — the gates from Chapter 3 do their job and the request flows through cleanly.')),
   p(_('But the back-end isn’t serving one request at a time. A real system might have thousands of requests in flight at any given moment. Most of them touch different data and never interact. But every so often, two requests touch the same piece of data at the same instant — and a whole new class of problem appears. The gates pass both of them. The validation says yes to both. But because they overlap in time, they corrupt each other’s work.')),
   p(_('The canonical example: the inventory problem. Two buyers, one item.')),
 ]
@@ -32,15 +37,29 @@ const collide: Block[] = [
 /* --------------------------- Slide 2 — Two buyers, one item --------------------------- */
 
 const twoBuyers: Block[] = [
-  p(_('Imagine we run an online store. There’s one item left in stock — let’s call it the last copy of a popular book. Two users, on opposite sides of the country, both decide to buy it at almost the exact same moment. Within 50 milliseconds of each other, both browsers send a "buy this book" request to our back-end.')),
-  p(_('Here’s what each request does, step by step:')),
-  ul(
-    [_('Step 1 — Read the inventory count for this book from the database. Both requests do this. Both read "1."')],
-    [_('Step 2 — Check whether the count is greater than zero. Both requests do this. Both see "yes, 1 > 0, the book is in stock."')],
-    [_('Step 3 — Subtract 1 from the count and write the new value back. Both requests do this. Both write "0."')],
-    [_('Step 4 — Confirm the sale to the user. Both requests do this. Both customers get a confirmation email.')],
+  p(_('Imagine we run an online store. There’s one item left in stock — the last copy of a popular book. Two users, on opposite sides of the country, both decide to buy it at almost the exact same moment. Within 50 milliseconds of each other, both browsers send a "buy this book" request to our back-end. Press → to walk through what happens.')),
+  steps(
+    step(
+      [_('Both requests arrive at the back-end almost simultaneously. The load balancer hands them to two different back-end servers, both of which begin processing in parallel.')],
+      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+    ),
+    step(
+      [_('Both back-ends read the inventory count from the database. Both read "1." (Neither has written anything yet — they\'re looking at the same starting state.)')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('Both back-ends check: is the count greater than zero? Both see "yes, 1 > 0, the book is in stock." Both decide to proceed with the sale.')],
+      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+    ),
+    step(
+      [_('Both back-ends subtract 1 from the count and write the new value back. Both write "0." The second write silently overwrites the first as if nothing went wrong.')],
+      { highlight: ['db-primary'], status: 'reject', focus: 'data' },
+    ),
+    step(
+      [_('Both back-ends confirm the sale. Both customers get a confirmation email. We just sold the same book twice — and one of them is going to be very disappointed when their order doesn’t ship.')],
+      { highlight: ['browser'], status: 'reject', focus: 'full' },
+    ),
   ),
-  p(_('We just sold the same book twice. Both customers think they bought the last copy. One of them is going to be very disappointed when their order doesn’t ship. The numbers don’t add up because both requests read the same "1" before either of them got the chance to write "0."')),
   p(
     _('This is called a '), t('race condition', 'race-condition'),
     _('. Two operations racing against each other, where the outcome depends on which one happens to win — and at low load, you might never see one. It’s the kind of bug that passes every test, never reproduces locally, and only shows up in production when traffic is high enough that two requests really do land in the same instant.'),
@@ -90,11 +109,11 @@ const readModifyWrite: Block[] = [
   p(_('The rule of thumb: any time the back-end reads a value and then writes a new value based on it, ask whether two of those operations could happen at the same time on the same row. If yes, you need a transaction *and* the right kind of lock — the previous slide spelled out which.')),
 ]
 
-/* --------------------------- Chapter 5 export --------------------------- */
+/* --------------------------- Chapter 6 export --------------------------- */
 
 export const chapter05: Chapter = {
-  id: 'ch5',
-  number: 5,
+  id: 'ch6',
+  number: 6,
   title: 'Concurrency',
   subtitle: 'When two requests want the same thing',
   slides: [
@@ -110,7 +129,7 @@ export const chapter05: Chapter = {
       body: {
         kind: 'recap',
         learned: [
-          'Concurrency is what happens when many requests run at the same time on shared data — a correctness problem, distinct from the per-user data separation in Chapter 3',
+          'Concurrency is what happens when many requests run at the same time on shared data — a correctness problem, distinct from the per-user data separation in Chapter 2',
           'Race conditions are the failure mode: two requests read the same value, both decide to act on it, both write back — and the second write silently overwrites the first',
           'Database transactions plus an explicit row lock (the standard form is `SELECT ... FOR UPDATE`) are the fix — wrapping a read-then-write in a bare transaction is not enough on its own',
           'The shape to look for in code is "read a value, then write a new value based on it" (read-modify-write); on shared data, that\'s the cue to ask whether a transaction is needed',
@@ -123,11 +142,7 @@ export const chapter05: Chapter = {
           _('. Many back-end requests can ask the database for the same row at the same instant; transactions are the database\'s built-in tool for serializing those requests so they don\'t corrupt each other.'),
         ],
         bridge: [
-          _('Coming up — Chapter 6: Architecture & Communication Patterns. We\'ve now covered everything that happens for a request — and for many simultaneous requests — through one back-end server. Next: what changes when there are many servers, and how the system reaches across the public internet to talk to other systems.'),
-        ],
-        prompts: [
-          'Where in this codebase do we have read-then-write patterns on shared data — counters, balances, inventory, status transitions? Are they wrapped in transactions, or could two simultaneous requests collide?',
-          'Pick the most contention-prone operation in this codebase. Walk me through what would happen if two of those ran at the exact same instant, with no coordination. Does the current code prevent it?',
+          _('Coming up — Chapter 7: Putting It Together. We\'ve now built every piece of the system Act I covers — identity, authorization, validation, state, architecture, concurrency. The next chapter walks real requests through that whole machine, watching where each one stops, succeeds, or gets rejected.'),
         ],
       },
     },
