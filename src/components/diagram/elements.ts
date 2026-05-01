@@ -1,0 +1,96 @@
+import type { Level } from '../../content/types'
+
+/* ---------- Element type definitions ---------- */
+
+export type ElementId =
+  | 'browser' | 'mobile'
+  | 'cdn'
+  | 'waf'
+  | 'gateway' | 'gateway-auth' | 'gateway-rate' | 'gateway-route'
+  | 'lb'
+  | 'fe-pool' | 'fe-1' | 'fe-2' | 'fe-3'
+  | 'be-pool' | 'be-1' | 'be-2' | 'be-3'
+  | 'auth-svc' | 'cache' | 'queue'
+  | 'db-primary' | 'db-replica-1' | 'db-replica-2' | 'object-store'
+  | 'webhook-stripe'
+  | 'obs-lane' | 'obs-logs' | 'obs-metrics' | 'obs-traces'
+  | 'vault' | 'flags'
+  | 'region-band'
+
+export type DiagramElement = {
+  id: ElementId
+  /** Lowest chapter at which this element appears. */
+  fromChapter: number
+  /** Lowest level at which this element appears. */
+  fromLevel: Level
+  /** Optional grouping for region focus. */
+  region?: 'edge' | 'gateway' | 'lb' | 'app' | 'data' | 'obs'
+}
+
+/** Registry — single source of truth for what's on the diagram. */
+export const elements: Record<ElementId, DiagramElement> = {
+  browser:        { id: 'browser', fromChapter: 1, fromLevel: 101 },
+  mobile:         { id: 'mobile',  fromChapter: 1, fromLevel: 201 },
+
+  cdn:            { id: 'cdn',     fromChapter: 6, fromLevel: 101, region: 'edge' },
+  waf:            { id: 'waf',     fromChapter: 6, fromLevel: 301, region: 'edge' },
+
+  gateway:        { id: 'gateway',       fromChapter: 6, fromLevel: 201, region: 'gateway' },
+  'gateway-auth': { id: 'gateway-auth',  fromChapter: 6, fromLevel: 201, region: 'gateway' },
+  'gateway-rate': { id: 'gateway-rate',  fromChapter: 6, fromLevel: 201, region: 'gateway' },
+  'gateway-route':{ id: 'gateway-route', fromChapter: 6, fromLevel: 201, region: 'gateway' },
+
+  lb:             { id: 'lb',      fromChapter: 6, fromLevel: 101, region: 'lb' },
+
+  'fe-pool':      { id: 'fe-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
+  'fe-1':         { id: 'fe-1',    fromChapter: 6, fromLevel: 201, region: 'app' },
+  'fe-2':         { id: 'fe-2',    fromChapter: 6, fromLevel: 201, region: 'app' },
+  'fe-3':         { id: 'fe-3',    fromChapter: 6, fromLevel: 201, region: 'app' },
+
+  'be-pool':      { id: 'be-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
+  'be-1':         { id: 'be-1',    fromChapter: 6, fromLevel: 201, region: 'app' },
+  'be-2':         { id: 'be-2',    fromChapter: 6, fromLevel: 201, region: 'app' },
+  'be-3':         { id: 'be-3',    fromChapter: 6, fromLevel: 201, region: 'app' },
+
+  'auth-svc':     { id: 'auth-svc', fromChapter: 3, fromLevel: 201 },
+  cache:          { id: 'cache',   fromChapter: 2, fromLevel: 101 },
+  queue:          { id: 'queue',   fromChapter: 5, fromLevel: 201 },
+
+  'db-primary':   { id: 'db-primary',   fromChapter: 1, fromLevel: 101, region: 'data' },
+  'db-replica-1': { id: 'db-replica-1', fromChapter: 8, fromLevel: 301, region: 'data' },
+  'db-replica-2': { id: 'db-replica-2', fromChapter: 8, fromLevel: 301, region: 'data' },
+  'object-store': { id: 'object-store', fromChapter: 6, fromLevel: 201, region: 'data' },
+
+  'webhook-stripe':{ id: 'webhook-stripe', fromChapter: 6, fromLevel: 201 },
+
+  'obs-lane':     { id: 'obs-lane',    fromChapter: 8, fromLevel: 301, region: 'obs' },
+  'obs-logs':     { id: 'obs-logs',    fromChapter: 8, fromLevel: 301, region: 'obs' },
+  'obs-metrics':  { id: 'obs-metrics', fromChapter: 8, fromLevel: 301, region: 'obs' },
+  'obs-traces':   { id: 'obs-traces',  fromChapter: 8, fromLevel: 301, region: 'obs' },
+
+  vault:          { id: 'vault', fromChapter: 8, fromLevel: 301 },
+  flags:          { id: 'flags', fromChapter: 8, fromLevel: 301 },
+
+  'region-band':  { id: 'region-band', fromChapter: 8, fromLevel: 301 },
+}
+
+/** What's visible at this chapter+level? */
+export function visibleElements(chapter: number, level: Level): Set<ElementId> {
+  const out = new Set<ElementId>()
+  for (const el of Object.values(elements)) {
+    if (el.fromChapter <= chapter && el.fromLevel <= level) out.add(el.id)
+  }
+  return out
+}
+
+/** ViewBox per region for programmatic zoom. Coordinates match the SVG layout in DiagramSvg.tsx. */
+export const FULL_VIEWBOX = { x: 0, y: 0, w: 600, h: 720 }
+export const REGION_VIEWBOX: Record<string, { x: number; y: number; w: number; h: number }> = {
+  full:    FULL_VIEWBOX,
+  edge:    { x: 80,  y: 80,  w: 440, h: 120 },
+  gateway: { x: 60,  y: 180, w: 480, h: 160 },
+  lb:      { x: 100, y: 290, w: 400, h: 110 },
+  app:     { x: 30,  y: 380, w: 540, h: 180 },
+  data:    { x: 30,  y: 540, w: 540, h: 160 },
+  obs:     { x: 460, y: 160, w: 140, h: 480 },
+}

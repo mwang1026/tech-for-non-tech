@@ -1,0 +1,74 @@
+/* Design tokens — mirror of docs/07-design-system.md.
+   Single source of truth for color, spacing, radii, motion. */
+
+:root {
+  /* Color */
+  --paper: #FAF7F2;
+  --ink: #1A1815;
+  --ink-muted: #6B6660;
+  --hairline: #E5E0D7;
+  --hairline-strong: #C9C2B5;
+  --accent: #B6371F;
+  --accent-soft: rgba(182, 55, 31, 0.12);
+
+  /* Spacing — 4px grid */
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m: 16px;
+  --space-l: 24px;
+  --space-xl: 40px;
+  --space-xxl: 64px;
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* Layout dimensions */
+  --topbar-h: 56px;
+  --rail-w: 220px;
+  --rail-w-collapsed: 56px;
+  --diagram-max-w: 600px;
+  --diagram-max-h: 480px;
+  --content-max-w: 640px;
+
+  /* Motion */
+  --dur-fast: 200ms;
+  --dur-slide: 320ms;
+  --dur-zoom: 480ms;
+  --dur-stagger: 240ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Shadow (use sparingly) */
+  --shadow-modal: 0 24px 48px -16px rgba(26, 24, 21, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline-strong);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+a:hover { border-bottom-color: var(--ink); }

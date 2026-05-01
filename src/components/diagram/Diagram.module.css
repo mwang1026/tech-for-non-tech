@@ -1,0 +1,78 @@
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--paper);
+  border: none;
+  background-image:
+    linear-gradient(to right, rgba(26,24,21,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26,24,21,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.controls {
+  position: absolute;
+  bottom: var(--space-s);
+  right: var(--space-s);
+  display: flex;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  padding: 2px;
+}
+
+.btn {
+  width: 28px;
+  height: 24px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+}
+.btn:hover { background: var(--hairline); color: var(--ink); }
+.btn[data-active="true"] { color: var(--accent); }
+
+.resetText {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.label {
+  position: absolute;
+  top: var(--space-s);
+  left: var(--space-s);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.modeLabel {
+  position: absolute;
+  bottom: var(--space-s);
+  left: var(--space-s);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
