@@ -7,12 +7,12 @@ export const intro = {
     italic: "You still have to read the system.",
   },
   thesis:
-    "AI coding agents will hand you a working diff. Whether it’s the right diff is your call — and that judgment depends on knowing which components a feature touches, and which tradeoffs the agent is silently making on your behalf. This primer is a tour of those components: the parts, the seams, and the questions that decide whether a piece of work is sound.",
+    "Your job isn’t to write the code. It’s to define what good looks like, understand what the agent proposes, and ask the right questions to steer it toward a design that fits your needs. That doesn’t require syntax. It requires reading the system you’re directing — the parts, the seams, and where a change actually lands. The chapters ahead are the groundwork for that.",
   audienceLabel: "This is for you if",
   audience: [
     "You ship product but don’t write production code.",
     "You work with engineers and want to ask sharper questions.",
-    "You’re directing Claude Code, Cursor, or Codex — and want to steer, not just accept.",
+    "You’re directing Claude Code, Cursor, or Codex and want to steer, not just accept.",
   ],
   indexLabel: "What’s in the field guide",
   cta: {

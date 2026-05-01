@@ -1,8 +1,8 @@
-# Reading the Stack
+# Reading the System
 
 *A Field Guide for Working with AI Coding Agents*
 
-(Repo name: `tech-for-non-tech` — kept for the directory; the product name is "Reading the Stack.")
+(Repo name: `tech-for-non-tech` — kept for the directory; the product name is "Reading the System.")
 
 ## What this project is
 

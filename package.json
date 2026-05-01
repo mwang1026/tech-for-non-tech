@@ -1,7 +1,7 @@
 {
-  "name": "reading-the-stack",
+  "name": "reading-the-system",
   "version": "0.1.0",
-  "description": "Reading the Stack — a field guide for working with AI coding agents",
+  "description": "Reading the System — a field guide for working with AI coding agents",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,7 +2,7 @@
 
 ## Title
 
-**Reading the Stack** — A Field Guide for Working with AI Coding Agents
+**Reading the System** — A Field Guide for Working with AI Coding Agents
 
 The title foregrounds the comprehension goal (reading the system, not writing code). "Field guide" sets expectation that it's practical and reference-able. Repo directory name remains `tech-for-non-tech` for path stability.
 

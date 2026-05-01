@@ -25,7 +25,7 @@ export function TopBar({ chapterNumber, chapterTitle, slideIndex, totalSlides, o
           disabled={!onGoToIntro}
         >
           <span className={styles.mark} />
-          <span className={styles.brandText}>Reading the Stack</span>
+          <span className={styles.brandText}>Reading the System</span>
         </button>
         <div className={styles.crumb}>
           {isIntro
