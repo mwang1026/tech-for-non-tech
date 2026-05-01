@@ -271,6 +271,18 @@ export const glossary: GlossaryEntry[] = [
    * Chapter 2 — Identity
    * ==================================================================== */
   {
+    id: 'identity',
+    term: 'Identity',
+    short: 'Who the request is from — the verified user behind the token.',
+    body: [
+      'Identity is the formal name for the user a request is being made on behalf of. The token from Chapter 2 is what proves it; everything downstream — authorization, permission checks, audit logs — runs on the identity the token resolves to.',
+      'In narrative we usually say "the user" or "user 47." Identity is what we mean when the distinction matters: the identity is whatever the verified token says, never whatever the request body says.',
+    ],
+    chapter: 2,
+    category: 'identity-auth',
+    related: ['token', 'authentication', 'authorization', 'resource'],
+  },
+  {
     id: 'token',
     term: 'Token',
     short: 'A long, opaque string the server gives the browser after login, used to prove identity on subsequent requests.',
@@ -344,6 +356,30 @@ export const glossary: GlossaryEntry[] = [
    * Chapter 3 — Validation & Authorization
    * ==================================================================== */
   {
+    id: 'action',
+    term: 'Action',
+    short: 'The verb a request is performing — read, edit, delete, create, list.',
+    body: [
+      'Most requests are "this identity wants to do this action on this resource." Reading, editing, deleting, creating, listing — those verbs are the actions. They show up in URLs (GET vs. POST), in API contracts, and in authorization rules.',
+      'Authorization checks are usually phrased as a question about an action: "Is this identity allowed to perform this action on this resource?" Naming the action explicitly is what makes the question crisp instead of fuzzy.',
+    ],
+    chapter: 3,
+    category: 'identity-auth',
+    related: ['authorization', 'endpoint', 'http-get', 'http-post', 'identity', 'resource'],
+  },
+  {
+    id: 'resource',
+    term: 'Resource',
+    short: 'The thing a request is acting on — a row, a comment, an order, a document.',
+    body: [
+      'Every meaningful request reads or writes a specific thing: this comment, that order, the user’s profile. That thing is the resource. URLs name them (`/orders/42`); database tables hold them; authorization rules decide who can touch which one.',
+      '"Resource" is the load-bearing word for *what’s being acted on*, replacing the looser usage of "data," "record," "object," or "endpoint" that often blurs the question. When pushing back on a feature plan, naming the resource explicitly clarifies who owns what — and what could go wrong.',
+    ],
+    chapter: 3,
+    category: 'identity-auth',
+    related: ['state', 'endpoint', 'database', 'authorization', 'identity', 'action'],
+  },
+  {
     id: 'authentication',
     term: 'Authentication (authn)',
     short: 'Are you who you say you are? — the gate that checks the token.',
@@ -353,19 +389,19 @@ export const glossary: GlossaryEntry[] = [
     ],
     chapter: 3,
     category: 'identity-auth',
-    related: ['authorization', 'token', '401'],
+    related: ['authorization', 'token', '401', 'identity'],
   },
   {
     id: 'authorization',
     term: 'Authorization (authz)',
     short: 'OK, you’re really you — but are you allowed to do this specific thing?',
     body: [
-      'Authentication says you’re user 47. Authorization says whether user 47 is allowed to read this particular order, edit this particular profile, delete this particular comment. It runs on every endpoint, on every request.',
-      'A common mistake: an endpoint that accepts `userId` from the request body and returns whatever was asked for. The fix is to derive the user ID from the verified token, not from anything the caller controls.',
+      'Authentication confirms the identity. Authorization asks the next question: is this identity allowed to perform this action on this resource? Read this particular order? Edit this particular profile? Delete this particular comment? It runs on every endpoint, on every request.',
+      'A common mistake: an endpoint that accepts `userId` from the request body and returns whatever was asked for. The fix is to derive the identity from the verified token, not from anything the caller controls.',
     ],
     chapter: 3,
     category: 'identity-auth',
-    related: ['authentication', 'token', '403'],
+    related: ['authentication', 'token', '403', 'identity', 'action', 'resource'],
   },
   {
     id: 'validation',

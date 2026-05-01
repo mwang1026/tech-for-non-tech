@@ -28,7 +28,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 const multiUserProblem: Block[] = [
   p(_('Coming out of Chapter 1, we have the request-response loop: browser asks, back-end answers. But here’s the situation we’ve been ignoring: real products serve hundreds, thousands, sometimes millions of users at once, all hitting the same back-end. Every one of those users wants to see *their* data — their orders, their messages, their account balance — and definitely not anyone else’s.')),
   p(_('Imagine the back-end ignored this question entirely. Two people log into the same banking app at the same time. Both make a request: "show me my account." The back-end reads its records. Which account does it return? Without something attached to the request that says "this is from user 123," the back-end has no way to know — and either every request gets the same data, or none of them do.')),
-  p(_('What needs to happen: every single request the back-end receives has to carry, somehow, a verifiable answer to the question "who is this from?" That answer is what we call identity. It’s the very first thing the system needs to know about every request — before it can decide what to do, it has to know who’s asking.')),
+  p(_('What needs to happen: every single request the back-end receives has to carry, somehow, a verifiable answer to the question "who is this from?" That answer is what we call '), t('identity', 'identity'), _('. It’s the very first thing the system needs to know about every request — before it can decide what to do, it has to know who’s asking.')),
 ]
 
 /* --------------------------- Slide 2 — Logging in once, proving it many times --------------------------- */

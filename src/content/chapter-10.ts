@@ -98,7 +98,7 @@ const phase4_pushback: Block[] = [
   p(_('You read it for hand-waves and red flags. Each red flag corresponds to something this primer has already covered — naming it in the system\'s vocabulary is what makes pushback land.')),
   p(_('Common red flags, mapped to chapters:')),
   ul(
-    [_('**"The endpoint accepts a userId in the request body."** — Authorization smell (Ch 3). The user ID should come from the verified token, not from anything the caller can change.')],
+    [_('**"The endpoint accepts a userId in the request body."** — Authorization smell (Ch 3). The canonical owner-based authz mistake: the identity has to come from the verified token, not from anything the caller can change. If the resource\'s "is this yours?" check uses input the caller controls, the check is meaningless.')],
     [_('**"We\'ll keep it in memory."** — Durability smell (Ch 4). Anything that should survive a restart belongs in the database. Memory only works for state that\'s OK to lose.')],
     [_('**"We\'ll cache it."** — Staleness smell (Ch 4). What\'s the freshness requirement? When does the cache get invalidated? "Just cache it" without answers ships a stale-data bug.')],
     [_('**"Read the count, then write count − 1."** — Concurrency smell (Ch 6). Two requests will race; one silently overwrites the other. Needs a transaction with the right lock, or a single atomic statement.')],

@@ -32,6 +32,7 @@ const whatIsState: Block[] = [
   ),
   p(_('Quick anchor before we go further: most of this state lives in a database, and a database is structured like a stack of spreadsheets. Each spreadsheet is called a *table* (one for users, one for orders, one for messages); each row is one record (one user, one order); each column is one field (name, email, created_at). When the rest of this primer talks about "rows" and "tables," that’s the picture.')),
   p(_('Tying back to Chapter 2: most rows carry the user ID of their owner as one of those columns. The "stamp" you saw the back-end pull a slice off of — "give me everything stamped 123" — is the database filtering rows by that column on every query. Same idea, now with the structure underneath it.')),
+  p(_('And tying back to Chapter 3: when the authorization gate asks "can this identity act on this '), t('resource', 'resource'), _('?", the resource is something held in state — a row in a table, a record in a cache, a value in memory. State is *where it lives*; resource is *what gets acted on*. This chapter is about the where.')),
   p(_('What needs to happen: every piece of state has to be put somewhere on purpose, with the right tradeoffs for what it is. Three main places it can go.')),
 ]
 

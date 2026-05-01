@@ -30,7 +30,7 @@ const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 
 const collide: Block[] = [
   p(_('Up to now we’ve thought about each request on its own. Token verified, permission checked, data validated — the gates from Chapter 3 do their job and the request flows through cleanly.')),
-  p(_('But the back-end isn’t serving one request at a time. A real system might have thousands of requests in flight at any given moment. Most of them touch different data and never interact. But every so often, two requests touch the same piece of data at the same instant — and a whole new class of problem appears. The gates pass both of them. The validation says yes to both. But because they overlap in time, they corrupt each other’s work.')),
+  p(_('But the back-end isn’t serving one request at a time. A real system might have thousands of requests in flight at any given moment. Most of them touch different data and never interact. But every so often, two requests touch the same '), t('resource', 'resource'), _(' at the same instant — and a whole new class of problem appears. The gates pass both of them. Authorization says yes to both. Validation says yes to both. But because they overlap in time, they corrupt each other’s work.')),
   p(_('The canonical example: the inventory problem. Two buyers, one item.')),
 ]
 
