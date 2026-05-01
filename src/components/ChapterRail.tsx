@@ -36,6 +36,9 @@ export function ChapterRail({
           onSelectSlide={onSelectSlide}
         />
       ))}
+      <div className={styles.copyright}>
+        © {new Date().getFullYear()} Michael Wang
+      </div>
     </nav>
   )
 }

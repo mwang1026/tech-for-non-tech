@@ -1,5 +1,16 @@
 .rail {
   font-family: var(--font-ui);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.copyright {
+  margin-top: auto;
+  padding: var(--space-m) var(--space-l);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
 }
 
 .title {
