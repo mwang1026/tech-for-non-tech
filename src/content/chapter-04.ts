@@ -1,10 +1,16 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
+import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
 const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+const h = (text: string): Block => ({ kind: 'h', text })
+const step = (
+  content: Inline,
+  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
+): StepItem => ({ content, ...opts })
+const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 
 /* ============================================================================
  * Chapter 4 — State (101)
@@ -13,72 +19,93 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
  * db-primary, + cache (new this chapter)
  *
  * Slide arc:
- *   1. What "state" actually means
- *   2. The three places state lives — memory, disk, cache
- *   3. The three questions you ask of every piece of state
- *   4. Source of truth — when copies disagree, which one wins
- *   5. Recap (with prompts)
+ *   1. State is the attributes of an entity — three entities matter
+ *   2. Three entities, three lifetimes, three storage tiers
+ *   3. How state moves through one bank transfer
+ *   4. Source of truth — when copies of an attribute disagree
+ *   5. Recap
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — What state means --------------------------- */
+/* --------------------------- Slide 1 — Attributes of something --------------------------- */
 
 const whatIsState: Block[] = [
-  p(_('Coming out of Chapter 3, we know how the back-end identifies users (Ch 2) and gates their requests (Ch 3). The next question: when a request arrives that asks "show me X," where does X actually live?')),
-  p(_('Everything the system "knows" about the world lives somewhere. The user’s name. Their shopping cart. Whether they’re logged in. How many items are left in inventory. Which notifications they haven’t opened. All of it has to be held somewhere between requests, so the next one can find it.')),
+  p(_('Coming out of Chapter 3, we know the back-end checks identity (Ch 2) and gates the action on a resource (Ch 3). The next question: what does the system *hold* between requests, so the next one can find it?')),
+  p(_('Look back at the bank transfer from Chapter 1. Several different things are involved at once: the user clicking the button, the request flying across the wire, the two accounts whose balances change. Each of these has facts attached to it. The user has a name and an email. The request has an amount and a source. Each account has a balance and an owner.')),
   p(
-    _('All of that — every fact the system holds about the world right now — is called '),
+    _('These facts are *attributes* — each one is the X of some Y. Every piece of data the system holds is an attribute of some thing; there is no free-floating data. Together, all of those attributes are what gets called '),
     t('state', 'state'),
-    _('. It’s a generic word that covers a lot of ground: the contents of the database, the user’s active session, a temporary calculation in progress, a cached copy of yesterday’s analytics.'),
+    _('. State isn\'t a vague cloud of "stuff the system knows." It\'s the attributes of specific things, and the interesting question is *where each thing\'s attributes live*.'),
   ),
-  p(_('Quick anchor before we go further: most of this state lives in a database, and a database is structured like a stack of spreadsheets. Each spreadsheet is called a *table* (one for users, one for orders, one for messages); each row is one record (one user, one order); each column is one field (name, email, created_at). When the rest of this primer talks about "rows" and "tables," that’s the picture.')),
-  p(_('Tying back to Chapter 2: most rows carry the user ID of their owner as one of those columns. The "stamp" you saw the back-end pull a slice off of — "give me everything stamped 123" — is the database filtering rows by that column on every query. Same idea, now with the structure underneath it.')),
-  p(_('And tying back to Chapter 3: when the authorization gate asks "can this identity act on this '), t('resource', 'resource'), _('?", the resource is something held in state — a row in a table, a record in a cache, a value in memory. State is *where it lives*; resource is *what gets acted on*. This chapter is about the where.')),
-  p(_('What needs to happen: every piece of state has to be put somewhere on purpose, with the right tradeoffs for what it is. Three main places it can go.')),
+  p(_('Three things matter — the same three the curriculum has been building toward:')),
+  ul(
+    [_('The '), t('identity', 'identity'), _(' — the user. Has attributes like name, email, the list of accounts they own, and "are they currently logged in." Verified in Chapter 2.')],
+    [_('The **request** — the in-flight transfer itself. Has attributes like amount, source account, target account, where it is in processing.')],
+    [_('The '), t('resource', 'resource'), _(' — the thing the action is being taken on. The bank account. Has attributes like balance, owner, account type. Gated in Chapter 3.')],
+  ),
+  p(_('State is the collected attributes of these three. The rest of this chapter is about *where each one\'s attributes live, and why they live there* — because the answer is different for each.')),
 ]
 
-/* --------------------------- Slide 2 — Three places --------------------------- */
+/* --------------------------- Slide 2 — Three entities, three lifetimes --------------------------- */
 
-const threePlaces: Block[] = [
-  p(_('When you have a piece of data the system needs to hold onto, you have three main options for where to put it. Each one is a tradeoff.')),
+const threeLifetimes: Block[] = [
+  p(_('The three entities have very different lifetimes, and lifetime is what decides where their attributes are stored.')),
   ul(
-    [t('Memory (RAM)', 'memory'), _(' — The server’s working memory. Reading and writing is essentially instant (nanoseconds — a billionth of a second; effectively free). The catch: when the server restarts (a deploy, a crash, a routine maintenance window), everything in memory is gone. Use this for data you’re actively computing with right now, or for data that’s OK to lose (a user’s in-progress search query).')],
-    [t('Database (disk)', 'database'), _(' — A specialized program (like '), t('PostgreSQL', 'postgresql'), _(' or '), t('MySQL', 'mysql'), _(') that writes data to disk in a structured way. Slower than memory (milliseconds — a thousandth of a second; noticeable when you stack thousands of them) but the data survives restarts, crashes, and machine failures. This is where you put anything that has to outlive the next reboot — accounts, orders, posts, settings.')],
-    [t('Cache', 'cache'), _(' — A fast copy of database data, usually held in memory, used to avoid hitting the slow database when the same answer would come back. '), t('Redis', 'redis'), _(' is the most common. The catch: a cached copy can be out of date if the database changed since the cache was filled. Use this for data that’s expensive to compute and tolerable to be a few seconds stale (a leaderboard, a homepage banner, a list of trending posts).')],
+    [_('The **resource** — the bank account — must outlast every restart, every deploy, forever. Its attributes (balance, owner, account type) live on disk, in a '), t('database', 'database'), _(' (typically '), t('PostgreSQL', 'postgresql'), _(' or '), t('MySQL', 'mysql'), _('). A database is structured like a stack of spreadsheets: each spreadsheet is a *table* (one for accounts, one for users, one for transfers); each row is one record (one account); each column is one attribute (`balance`, `owner_id`, `account_type`). When engineers say "the database has the balance," they mean a row in the `accounts` table has a column called `balance` with a value in it. Reading and writing the database takes milliseconds — slower than memory, but it survives anything.')],
+    [_('The **request** — the in-flight transfer — exists only for the second between the click and the response. Its attributes (amount, source, target, current step) live in the server\'s '), t('memory (RAM)', 'memory'), _(' while the request is processing, and disappear when the response is sent. Nothing has to survive a restart, because the request is over by then. Memory is essentially instant to read and write — nanoseconds — so the server can pull data into memory, do the math, and write the result without paying a real cost for any of it.')],
+    [_('The **identity** — the user — splits in two. The durable attributes (name, email, account list) live in the **database** alongside resources. But the question every single request asks — "is this user currently logged in, and which user are they?" — has to be answered fast, on every single hit. That session lookup *can* live in the database (a row per active session), but the more common move is to put it in a '), t('cache', 'cache'), _(' (often '), t('Redis', 'redis'), _(') — fast in-memory storage, sitting outside any one server. On every request, the back-end takes the token, looks it up in the '), t('session', 'session'), _(' store, and finds the user. The cache isn\'t the only option, but the "hot lookup on every request" pattern is exactly what a cache is for, which is why most systems land there.')],
   ),
-  p(_('In our diagram, the cache is the new box that just appeared between the back-end and the database. When the back-end needs data, it checks the cache first; if the answer is there and recent enough, it skips the database entirely. If not, it reads from the database and stores the answer in the cache for next time.')),
-  p(_('Three places, three sets of tradeoffs. Choosing the right place comes down to three questions.')),
+  p(_('Three storage tiers — memory, database, cache — and they aren\'t picked at random. Each one fits the lifetime of one of the three entities\' attributes. The cache is the new box on the diagram this chapter, sitting between the back-end and the database. It\'s where the session lives.')),
 ]
 
-/* --------------------------- Slide 3 — The three questions --------------------------- */
+/* --------------------------- Slide 3 — How state moves through one transfer --------------------------- */
 
-const threeQuestions: Block[] = [
-  p(_('Where a piece of data lives comes down to three questions. Each one maps to a specific choice, and a piece of data often lives in more than one place at once.')),
-  ul(
-    [_('**Does it need to survive a restart?** — A user’s purchase history must. A "thinking…" spinner doesn’t. **No → memory is fine. Yes → it must go in the database.**')],
-    [_('**Does it need to be perfectly current?** — A bank account balance does. A "trending posts" list can be a few seconds stale and nobody notices. **Tolerant of staleness → a cache becomes an option. Must be exact → read straight from the database.**')],
-    [_('**Is the database fast enough on its own?** — Usually yes. When it isn’t (millions of reads of the same answer, or one query that takes seconds to compute), **you put a cache in front of the database as a speed layer.**')],
+const stateInMotion: Block[] = [
+  p(_('To see all three lifetimes side-by-side, walk the bank transfer end-to-end again — the same six steps as Chapter 1, with one question added at each: *which entity\'s attributes are moving, and where to.*')),
+  steps(
+    step(
+      [_('**Click.** The user presses *Transfer*. The browser builds the request — its attributes (amount: 100, source: checking, target: savings) live in the browser\'s memory.')],
+      { highlight: ['browser'], status: 'neutral', focus: 'full' },
+    ),
+    step(
+      [_('**Request travels to the server.** The request attributes are copied across the wire from the browser into the server\'s memory. The server takes the token and looks the identity up wherever sessions live — usually the cache, sometimes the database. Now the server knows which user is asking.')],
+      { highlight: ['be-pool', 'cache'], status: 'neutral', focus: 'full' },
+    ),
+    step(
+      [_('**Server reads the resource.** The server queries the database for the two account rows. The resource attributes (balance: 500 in checking, balance: 200 in savings) are copied from disk into the server\'s memory.')],
+      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('**Server does the math.** The server now holds request attributes and resource attributes side-by-side in memory. It runs the check (is checking ≥ 100?) entirely on the in-memory copies. No new database trip.')],
+      { highlight: ['be-pool'], status: 'neutral', focus: 'app' },
+    ),
+    step(
+      [_('**Server writes.** The server updates the two rows in the database — checking goes to 400, savings to 300. The resource attributes are now durable on disk. If the cache happened to hold a copy of these balances, that copy is now wrong; it has to be invalidated, or it will keep serving the old value.')],
+      { highlight: ['db-primary', 'cache'], status: 'neutral', focus: 'data' },
+    ),
+    step(
+      [_('**Response sent.** The server packages a response and ships it back. Request attributes die — that memory is freed. Identity attributes stay warm in the cache for the next request. Resource attributes persist in the database, ready for the next read.')],
+      { highlight: ['browser'], status: 'pass', focus: 'full' },
+    ),
   ),
-  p(_('Three example pieces of data:')),
-  ul(
-    [_('A user’s order history — must survive restart, must be current → **database only.**')],
-    [_('A homepage "trending posts" list — must survive restart, tolerates staleness, hit on every page load → **database, with a cache in front.**')],
-    [_('A "loading…" indicator on the user’s screen — doesn’t need to survive anything → **memory only.**')],
-  ),
-  p(_('When you direct an AI agent to add a feature that touches data, these are the three questions to ask out loud. The answers narrow down where the data should live. If the agent picks a place without checking these, that’s where to push back.')),
+  p(_('Three lifetimes, visible side-by-side in the same flow. The request was born and died in seconds. The identity is held warm in the cache between requests. The resource is permanent until something writes over it.')),
+  p(_('When you direct an AI agent to add a feature that touches data, the question to ask out loud is: *which entity does this attribute belong to, and how long does it have to last?* The answer to the second question decides where it lives. If the agent picks a place without naming the entity, that\'s where to push back.')),
 ]
 
 /* --------------------------- Slide 4 — Source of truth --------------------------- */
 
 const sourceOfTruth: Block[] = [
-  p(_('Once you have data in multiple places — the database, a cache, sometimes the user’s browser — they can disagree. The cache says the user has 5 unread messages; the database says 7. Which one is correct?')),
+  p(_('In step 5 of the walkthrough, something subtle happened. The same attribute — the checking account\'s balance — existed in three places at once. On disk in the database (the row that just got updated). In the server\'s memory (the value the math ran on, now stale the moment the write completed). And possibly in the cache, if anything had cached that account.')),
+  p(_('When copies of the same attribute exist in multiple places, they can disagree. The cache says balance = 500. The database says balance = 400. Which one is right?')),
   p(
     _('The '),
     t('source of truth', 'source-of-truth'),
-    _(' is the one place that, when in doubt, is treated as authoritative. Every other copy is just that — a copy. Caches, browser-side data, in-memory snapshots: all derived. When they conflict with the source of truth, the source of truth wins.'),
+    _(' is the place that, by rule, wins when copies disagree. Every other copy is just that — a copy, derived from the source of truth, allowed to lag behind. The system needs *some* place that\'s designated as authoritative; otherwise there\'s no way to resolve the disagreement.'),
   ),
-  p(_('In almost every system, the database is the source of truth for durable data. The cache is allowed to be stale (a copy that hasn’t caught up yet); when you need to be sure, you read from the database. This is why you’ll often hear engineers say "let me hit the database directly to confirm" — they’re bypassing the cache to get the real answer.')),
-  p(_('Source-of-truth thinking matters for any feature that involves data living in multiple places. Synced contacts, inventory across stores, a user’s settings on web and mobile — every one of these has a source of truth, and copies that catch up to it. Knowing which is which prevents a whole class of "I updated it but it’s not showing up" bugs.')),
-  p(_('Next chapter: we’ve been treating "the back-end" as one server. Real systems have many — and the way they\'re arranged, and how requests are routed across them, is its own subject.')),
+  p(_('For durable attributes — anything that has to outlive a restart — the source of truth is almost always the database. That\'s really *why* the database is in the picture: it\'s the one place attributes are written to disk and treated as canonical. The in-memory copy on a server is a snapshot from a moment ago. The version in the user\'s browser is whatever was on the screen the last time it loaded. All of those are derivative; the database is the original.')),
+  p(_('This is why engineers will say "let me hit the database directly to confirm" — they\'re stepping past every copy and going to the place that\'s authoritative.')),
+  p(_('Source-of-truth thinking heads off a whole class of bugs: "I updated my settings but my phone still shows the old value," "the inventory system says we have 5 but the floor only has 3," "the user\'s name updated everywhere except the receipt." Every one of these is a copy that hasn\'t caught up with the source of truth — and the question to ask is *which place is authoritative for that attribute, and what\'s blocking the others from syncing.*')),
+  h('Why we put a cache in front'),
+  p(_('Being durable comes at a cost: the database writes to disk, runs careful checks, and is built to never lose data — and all of that makes it slower than memory. Under heavy traffic, the same popular row can get read thousands of times per second, and the database can\'t keep up. That\'s why the '), t('cache', 'cache'), _(' exists. It sits in front of the database and absorbs those repeat reads cheaply, in exchange for being a copy that can be slightly stale. Most reads are happy with that trade — a session lookup, a homepage banner, a leaderboard. The few that aren\'t (a bank balance the user is about to act on) skip the cache and go to the source of truth.')),
 ]
 
 /* --------------------------- Chapter 4 export --------------------------- */
@@ -87,11 +114,11 @@ export const chapter04: Chapter = {
   id: 'ch4',
   number: 4,
   title: 'State',
-  subtitle: 'Where data lives, and why that matters',
+  subtitle: 'Where each thing\'s attributes live, and why',
   slides: [
-    { id: 's1', level: 101, headline: 'What state actually means', body: { kind: 'prose', blocks: whatIsState }, diagramFocus: 'data' },
-    { id: 's2', level: 101, headline: 'Three places state lives', body: { kind: 'prose', blocks: threePlaces }, diagramFocus: 'data' },
-    { id: 's3', level: 101, headline: 'Three questions that decide where data lives', body: { kind: 'prose', blocks: threeQuestions }, diagramFocus: 'data' },
+    { id: 's1', level: 101, headline: 'State is the attributes of something', body: { kind: 'prose', blocks: whatIsState }, diagramFocus: 'data' },
+    { id: 's2', level: 101, headline: 'Three entities, three lifetimes', body: { kind: 'prose', blocks: threeLifetimes }, diagramFocus: 'data' },
+    { id: 's3', level: 101, headline: 'How state moves through one transfer', body: { kind: 'prose', blocks: stateInMotion }, diagramFocus: 'data' },
     { id: 's4', level: 101, headline: 'Source of truth', body: { kind: 'prose', blocks: sourceOfTruth }, diagramFocus: 'data' },
     {
       id: 's5',
@@ -101,17 +128,17 @@ export const chapter04: Chapter = {
       body: {
         kind: 'recap',
         learned: [
-          'State is everything the system "knows" about the world right now — every fact it holds, anywhere',
-          'Three places to put state: memory (instant, lost on restart), database (slower, durable), cache (fast copy that may be stale)',
-          'Three questions decide where each piece of state lives: does it need to survive a restart, does it need to be perfectly current, is the database fast enough on its own',
-          'When copies disagree, the source of truth wins — usually the database; everything else is a copy catching up',
+          'Every piece of state is an attribute of some entity — there is no free-floating data; every fact is "the X of Y"',
+          'Three entities matter in a request flow: identity (the user), request (the in-flight operation), resource (the thing being acted on)',
+          'Each entity\'s lifetime decides where its attributes are stored: request → server memory (seconds), resource and durable identity → database (forever), active session → cache (warm between requests)',
+          'When copies of the same attribute disagree, the source of truth wins — usually the database; everything else is a copy catching up',
         ],
         whereInSystem: [
           _('The '),
           t('database', 'database'),
           _(' (Postgres, MySQL) sits at the bottom of the diagram as the source of truth — durable, slower, the one that everything else syncs against. The '),
           t('cache', 'cache'),
-          _(' (Redis) sits between the back-end and the database, holding fast copies of recent answers so the database doesn’t get hit for the same question over and over.'),
+          _(' (Redis) sits between the back-end and the database, the usual home for the active session lookup and any other attributes that are expensive to recompute on every request.'),
         ],
         bridge: [
           _('Coming up — Chapter 5: Architecture & Communication Patterns. We\'ve been drawing the back-end as one server. Real systems have many — and the way they\'re arranged (load balancers, CDNs, monolith vs. services) is the next layer of the picture.'),
