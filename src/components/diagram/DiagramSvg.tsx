@@ -251,58 +251,46 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         <Box id="lb" x={170} y={320} w={260} h={56} label="Load Balancer" product="Nginx" highlighted={isHi('lb')} status={status} />
       )}
 
-      {/* Front-end pool — 2 instances (asymmetric vs. back-end on purpose) */}
-      {v('fe-pool') && (
+      {/* Server pool — back-end servers. Treated as a single tier; the FE-server tier
+          has been collapsed because no narrative in this primer requires it. */}
+      {v('be-pool') && (
         <g>
           <rect x={50} y={406} width={500} height={70} fill="none" stroke={hairline} strokeDasharray="3 3" />
           <text x={56} y={400} fontSize="8" fontWeight={500} letterSpacing="1.2" fill={muted} fontFamily="var(--font-ui)">
-            FRONT-END POOL · NEXT.JS · CONTAINERIZED
+            SERVER POOL · CONTAINERIZED
           </text>
-          {v('fe-1') && <Box id="fe-1" x={120} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-1') || isHi('fe-pool')} status={status} />}
-          {v('fe-2') && <Box id="fe-2" x={340} y={418} w={140} h={48} label="Front-end" highlighted={isHi('fe-2') || isHi('fe-pool')} status={status} />}
-          {!v('fe-1') && <Box id="fe-pool" x={230} y={418} w={140} h={48} label="Front-end Server" highlighted={isHi('fe-pool')} status={status} />}
+          {v('be-1') && <Box id="be-1" x={70}  y={418} w={140} h={48} label="Server" highlighted={isHi('be-1') || isHi('be-pool')} status={status} />}
+          {v('be-2') && <Box id="be-2" x={230} y={418} w={140} h={48} label="Server" highlighted={isHi('be-2') || isHi('be-pool')} status={status} />}
+          {v('be-3') && <Box id="be-3" x={390} y={418} w={140} h={48} label="Server" highlighted={isHi('be-3') || isHi('be-pool')} status={status} />}
+          {!v('be-1') && <Box id="be-pool" x={230} y={418} w={140} h={48} label="Server" highlighted={isHi('be-pool')} status={status} />}
         </g>
       )}
 
-      {/* Back-end pool */}
-      {v('be-pool') && (
-        <g>
-          <rect x={50} y={496} width={500} height={70} fill="none" stroke={hairline} strokeDasharray="3 3" />
-          <text x={56} y={490} fontSize="8" fontWeight={500} letterSpacing="1.2" fill={muted} fontFamily="var(--font-ui)">
-            BACK-END POOL · EXPRESS · CONTAINERIZED
-          </text>
-          {v('be-1') && <Box id="be-1" x={70}  y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-1') || isHi('be-pool')} status={status} />}
-          {v('be-2') && <Box id="be-2" x={230} y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-2') || isHi('be-pool')} status={status} />}
-          {v('be-3') && <Box id="be-3" x={390} y={508} w={140} h={48} label="Back-end" highlighted={isHi('be-3') || isHi('be-pool')} status={status} />}
-          {!v('be-1') && <Box id="be-pool" x={230} y={508} w={140} h={48} label="Back-end Server" highlighted={isHi('be-pool')} status={status} />}
-        </g>
-      )}
-
-      {/* Auxiliary services row */}
+      {/* Auxiliary services row — shifted up 90px after FE pool removal. */}
       <g>
-        {v('auth-svc') && <Box id="auth-svc" x={50}  y={588} w={140} h={42} label="Auth Service" product="Auth0" highlighted={isHi('auth-svc')} status={status} />}
-        {v('cache')    && <Box id="cache"    x={210} y={588} w={140} h={42} label="Cache" product="Redis" highlighted={isHi('cache')} status={status} />}
-        {v('queue')    && <Box id="queue"    x={370} y={588} w={140} h={42} label="Queue" product="Kafka" highlighted={isHi('queue')} status={status} />}
+        {v('auth-svc') && <Box id="auth-svc" x={50}  y={498} w={140} h={42} label="Auth Service" product="Auth0" highlighted={isHi('auth-svc')} status={status} />}
+        {v('cache')    && <Box id="cache"    x={210} y={498} w={140} h={42} label="Cache" product="Redis" highlighted={isHi('cache')} status={status} />}
+        {v('queue')    && <Box id="queue"    x={370} y={498} w={140} h={42} label="Queue" product="Kafka" highlighted={isHi('queue')} status={status} />}
       </g>
 
       {/* Data tier */}
       <g>
-        {v('db-primary')   && <Box id="db-primary"   x={50}  y={652} w={180} h={48} label="Primary DB" product="PostgreSQL" highlighted={isHi('db-primary')} status={status} />}
-        {v('db-replica-1') && <Box id="db-replica-1" x={250} y={652} w={120} h={48} label="Replica" product="read" dashed faded highlighted={isHi('db-replica-1')} status={status} />}
+        {v('db-primary')   && <Box id="db-primary"   x={50}  y={562} w={180} h={48} label="Primary DB" product="PostgreSQL" highlighted={isHi('db-primary')} status={status} />}
+        {v('db-replica-1') && <Box id="db-replica-1" x={250} y={562} w={120} h={48} label="Replica" product="read" dashed faded highlighted={isHi('db-replica-1')} status={status} />}
         {v('db-replica-2') && (
-          <text x={310} y={644} fontSize="8" fill={muted} fontFamily="var(--font-ui)" textAnchor="middle">
+          <text x={310} y={554} fontSize="8" fill={muted} fontFamily="var(--font-ui)" textAnchor="middle">
             replication lag ~10ms
           </text>
         )}
-        {v('object-store') && <Box id="object-store" x={390} y={652} w={120} h={48} label="Object Store" product="S3" highlighted={isHi('object-store')} status={status} />}
+        {v('object-store') && <Box id="object-store" x={390} y={562} w={120} h={48} label="Object Store" product="S3" highlighted={isHi('object-store')} status={status} />}
       </g>
 
       {/* 301 — Vault & Flags lane */}
       {v('vault') && (
-        <Box id="vault" x={50}  y={710} w={140} h={36} label="Secrets" product="Vault" dashed faded />
+        <Box id="vault" x={50}  y={620} w={140} h={36} label="Secrets" product="Vault" dashed faded />
       )}
       {v('flags') && (
-        <Box id="flags" x={210} y={710} w={140} h={36} label="Feature Flags" product="LaunchDarkly" dashed faded />
+        <Box id="flags" x={210} y={620} w={140} h={36} label="Feature Flags" product="LaunchDarkly" dashed faded />
       )}
 
       {/* 301 — Observability lane on right side */}
@@ -329,7 +317,7 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
             {v('mobile') && <Arrow x1={370} y1={98} x2={350} y2={130} />}
           </>
         )}
-        {/* Browser → fe-pool DIRECT (when no CDN and no LB — chapters 1-5 at 101) */}
+        {/* Browser → server pool DIRECT (when no CDN and no LB — chapters 1-4 at 101) */}
         {v('browser') && !v('cdn') && !v('lb') && <Arrow x1={210} y1={98} x2={295} y2={418} />}
 
         {/* CDN → Gateway (when both exist) */}
@@ -340,85 +328,67 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         {/* Gateway → LB */}
         {v('gateway') && v('lb') && <Arrow x1={300} y1={288} x2={300} y2={320} />}
 
-        {/* LB → FE: fan out to each individual front-end when they're visible (Ch 5+),
-            otherwise a single arrow into the fe-pool placeholder (Ch 1-4). */}
-        {v('lb') && v('fe-1') && (
-          <>
-            <Arrow x1={300} y1={376} x2={190} y2={406} />
-            <Arrow x1={300} y1={376} x2={410} y2={406} />
-          </>
-        )}
-        {v('lb') && !v('fe-1') && <Arrow x1={300} y1={376} x2={300} y2={406} />}
-
-        {/* FE → BE: when individual servers are visible, every FE can talk to every BE
-            (the FEs do their own load-balancing across the BE fleet). Rendered subtle
-            so the 6 lines read as a fan, not a tangle. */}
-        {v('fe-1') ? (
-          <g opacity={0.55}>
-            {/* fe-1 (center 190) → be-1/2/3 (centers 140/300/460) */}
-            <line x1={190} y1={466} x2={140} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-            <line x1={190} y1={466} x2={300} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-            <line x1={190} y1={466} x2={460} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-            {/* fe-2 (center 410) → be-1/2/3 */}
-            <line x1={410} y1={466} x2={140} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-            <line x1={410} y1={466} x2={300} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-            <line x1={410} y1={466} x2={460} y2={496} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+        {/* LB → server pool: fan out to each individual server when visible (Ch 5+),
+            otherwise a single arrow into the placeholder (Ch 1-4). */}
+        {v('lb') && v('be-1') && (
+          <g opacity={0.7}>
+            <line x1={300} y1={376} x2={140} y2={406} stroke={ink} strokeWidth={0.9} markerEnd="url(#arrow)" />
+            <line x1={300} y1={376} x2={300} y2={406} stroke={ink} strokeWidth={0.9} markerEnd="url(#arrow)" />
+            <line x1={300} y1={376} x2={460} y2={406} stroke={ink} strokeWidth={0.9} markerEnd="url(#arrow)" />
           </g>
-        ) : (
-          <Arrow x1={300} y1={466} x2={300} y2={496} />
         )}
+        {v('lb') && !v('be-1') && <Arrow x1={300} y1={376} x2={300} y2={406} />}
 
-        {/* be-pool → aux services. When individual BEs are visible, every BE fans to each aux
-            service (every back-end uses the cache/queue/auth-svc, not just be-2). Subtle styling
-            so 3 fans of 3 lines don't visually overwhelm. Fallback to single arrow when only the
-            be-pool placeholder is visible (chapters 1-4). */}
+        {/* server pool → aux services. When individual servers are visible, every server
+            fans to each aux service. Subtle styling so 3 fans of 3 lines don't overwhelm.
+            Fallback to single arrow when only the be-pool placeholder is visible. */}
         {v('cache') && (
           v('be-1') ? (
             <g opacity={0.55}>
-              <line x1={140} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={300} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={460} y1={556} x2={280} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={140} y1={466} x2={280} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={466} x2={280} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={466} x2={280} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
             </g>
           ) : (
-            <Arrow x1={290} y1={556} x2={280} y2={588} />
+            <Arrow x1={290} y1={466} x2={280} y2={498} />
           )
         )}
         {v('queue') && (
           v('be-1') ? (
             <g opacity={0.55}>
-              <line x1={140} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={300} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={460} y1={556} x2={440} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={140} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
             </g>
           ) : (
-            <Arrow x1={310} y1={556} x2={440} y2={588} />
+            <Arrow x1={310} y1={466} x2={440} y2={498} />
           )
         )}
         {v('auth-svc') && (
           v('be-1') ? (
             <g opacity={0.55}>
-              <line x1={140} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={300} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={460} y1={556} x2={120} y2={588} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={140} y1={466} x2={120} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={466} x2={120} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={466} x2={120} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
             </g>
           ) : (
-            <Arrow x1={270} y1={556} x2={120} y2={588} />
+            <Arrow x1={270} y1={466} x2={120} y2={498} />
           )
         )}
 
         {/* Cache → DB (cache passes through to db when present) */}
-        {v('cache')        && v('db-primary') && <Arrow x1={280} y1={630} x2={180} y2={652} />}
-        {/* be-pool → DB DIRECT (when no cache row at all) */}
-        {!v('cache') && v('db-primary') && <Arrow x1={290} y1={556} x2={140} y2={652} />}
+        {v('cache')        && v('db-primary') && <Arrow x1={280} y1={540} x2={180} y2={562} />}
+        {/* server pool → DB DIRECT (when no cache row at all) */}
+        {!v('cache') && v('db-primary') && <Arrow x1={290} y1={466} x2={140} y2={562} />}
 
         {/* aux → object store */}
-        {v('object-store') && <Arrow x1={310} y1={630} x2={420} y2={652} />}
+        {v('object-store') && <Arrow x1={310} y1={540} x2={420} y2={562} />}
 
         {v('obs-lane') && (
           <g opacity={0.5}>
-            <line x1={440} y1={542} x2={534} y2={355} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
-            <line x1={440} y1={542} x2={534} y2={408} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
-            <line x1={440} y1={542} x2={534} y2={463} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
+            <line x1={440} y1={452} x2={534} y2={355} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
+            <line x1={440} y1={452} x2={534} y2={408} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
+            <line x1={440} y1={452} x2={534} y2={463} stroke={muted} strokeWidth={1} strokeDasharray="2 3" markerEnd="url(#arrow-muted)" />
           </g>
         )}
       </g>

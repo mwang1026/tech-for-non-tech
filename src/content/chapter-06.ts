@@ -15,7 +15,7 @@ const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 /* ============================================================================
  * Chapter 6 — Concurrency (101)
  *
- * Diagram visible at this chapter / 101: browser → fe-pool → be-pool → cache + db-primary.
+ * Diagram visible at this chapter / 101: browser → be-pool → cache + db-primary.
  * No new boxes — concurrency is conceptual at the data tier. Most slides focus on 'data'.
  *
  * Slide arc:

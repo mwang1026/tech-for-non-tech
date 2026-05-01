@@ -9,7 +9,7 @@ const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
 /* ============================================================================
  * Chapter 4 — State (101)
  *
- * Diagram visible by end of chapter at 101: browser, fe-pool, be-pool,
+ * Diagram visible by end of chapter at 101: browser, be-pool,
  * db-primary, + cache (new this chapter)
  *
  * Slide arc:

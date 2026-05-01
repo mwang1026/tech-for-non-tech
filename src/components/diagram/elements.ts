@@ -8,7 +8,6 @@ export type ElementId =
   | 'waf'
   | 'gateway' | 'gateway-auth' | 'gateway-rate' | 'gateway-route'
   | 'lb'
-  | 'fe-pool' | 'fe-1' | 'fe-2'
   | 'be-pool' | 'be-1' | 'be-2' | 'be-3'
   | 'auth-svc' | 'cache' | 'queue'
   | 'db-primary' | 'db-replica-1' | 'db-replica-2' | 'object-store'
@@ -45,10 +44,6 @@ export const elements: Record<ElementId, DiagramElement> = {
   'gateway-route':{ id: 'gateway-route', fromChapter: 5, fromLevel: 201, region: 'gateway' },
 
   lb:             { id: 'lb',      fromChapter: 5, fromLevel: 101, region: 'lb' },
-
-  'fe-pool':      { id: 'fe-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
-  'fe-1':         { id: 'fe-1',    fromChapter: 5, fromLevel: 101, region: 'app' },
-  'fe-2':         { id: 'fe-2',    fromChapter: 5, fromLevel: 101, region: 'app' },
 
   'be-pool':      { id: 'be-pool', fromChapter: 1, fromLevel: 101, region: 'app' },
   'be-1':         { id: 'be-1',    fromChapter: 5, fromLevel: 101, region: 'app' },
@@ -93,7 +88,7 @@ export const REGION_VIEWBOX: Record<string, { x: number; y: number; w: number; h
   edge:    { x: 80,  y: 80,  w: 440, h: 120 },
   gateway: { x: 60,  y: 180, w: 480, h: 160 },
   lb:      { x: 100, y: 290, w: 400, h: 110 },
-  app:     { x: 30,  y: 380, w: 540, h: 180 },
-  data:    { x: 30,  y: 540, w: 540, h: 160 },
+  app:     { x: 30,  y: 380, w: 540, h: 110 },
+  data:    { x: 30,  y: 480, w: 540, h: 180 },
   obs:     { x: 460, y: 160, w: 140, h: 480 },
 }

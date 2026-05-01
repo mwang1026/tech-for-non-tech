@@ -28,7 +28,7 @@ const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
 /* --------------------------- Slide 1 — Intro --------------------------- */
 
 const intro: Block[] = [
-  p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing, front-end and back-end pools, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
+  p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing across a fleet of back-end servers, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
   p(_('We’ve built it one concept at a time. We have not yet watched anything actually flow through it.')),
   p(_('That’s this chapter — the climax of Act I. We’re going to walk four real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
   p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?" Pattern recognition for the failure modes is the whole point.')),
@@ -49,11 +49,11 @@ const happyPath: Block[] = [
       { highlight: ['lb'], status: 'pass', focus: 'lb' },
     ),
     step(
-      [_('Load balancer picks an available front-end server and forwards the request. The front-end passes it on to a back-end server.')],
-      { highlight: ['fe-1', 'be-2'], status: 'pass', focus: 'app' },
+      [_('Load balancer picks an available back-end server and forwards the request to it.')],
+      { highlight: ['be-2'], status: 'pass', focus: 'app' },
     ),
     step(
-      [_('Back-end runs the three gates: authentication (token valid ✓), authorization (user is reading their own data ✓), validation (request shape fine ✓).')],
+      [_('That back-end server runs the three gates: authentication (token valid ✓), authorization (user is reading their own data ✓), validation (request shape fine ✓).')],
       { highlight: ['be-2'], status: 'pass', focus: 'app' },
     ),
     step(
@@ -61,7 +61,7 @@ const happyPath: Block[] = [
       { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
     ),
     step(
-      [_('Data travels back: back-end → front-end → load balancer → browser. The browser renders it. Total round trip: a few hundred milliseconds.')],
+      [_('Data travels back: back-end → load balancer → browser. The browser renders it. Total round trip: a few hundred milliseconds.')],
       { highlight: ['browser'], status: 'pass', focus: 'full' },
     ),
   ),
@@ -74,8 +74,8 @@ const authFailure: Block[] = [
   p(_('Same browser, same dashboard, but this time the request arrives at the back-end without a valid token. Maybe the session expired, maybe an attacker hit the API directly with no token at all. Press → to watch where it stops.')),
   steps(
     step(
-      [_('Request travels through CDN, load balancer, front-end, back-end. Same path as the happy case so far — the CDN doesn’t check tokens; that’s the back-end’s job.')],
-      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
+      [_('Request travels through CDN, load balancer, back-end. Same path as the happy case so far — the CDN doesn’t check tokens; that’s the back-end’s job.')],
+      { highlight: ['cdn', 'lb', 'be-2'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Back-end’s first check is authentication: is the token here, and does it verify? It’s missing or expired. The back-end immediately returns '), t('401 Unauthorized', '401'), _('.')],
@@ -99,8 +99,8 @@ const authzFailure: Block[] = [
   p(_('User 47 is logged in with a valid token. They open the API in their browser’s developer tools and call `GET /api/orders/12345` — but order 12345 belongs to user 92. Press → to walk through what happens.')),
   steps(
     step(
-      [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
+      [_('Same path through CDN, load balancer, back-end.')],
+      { highlight: ['cdn', 'lb', 'be-2'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Authentication: token is valid. User 47 is who they say they are. ✓')],
@@ -128,8 +128,8 @@ const validationFailure: Block[] = [
   p(_('User 47 is updating their profile. They’re authenticated, they’re editing their own profile (so authorization passes), but they sent the request with the email field missing, or set to "not-actually-an-email." Press → to walk through what happens.')),
   steps(
     step(
-      [_('Same path through CDN, load balancer, front-end, back-end.')],
-      { highlight: ['cdn', 'lb', 'fe-1'], status: 'pass', focus: 'full' },
+      [_('Same path through CDN, load balancer, back-end.')],
+      { highlight: ['cdn', 'lb', 'be-2'], status: 'pass', focus: 'full' },
     ),
     step(
       [_('Authentication ✓. Authorization ✓ (user 47 is editing user 47’s profile).')],

@@ -122,6 +122,7 @@ const frontVsBack: Block[] = [
     [_('**Security.** The front-end runs on the user’s machine, which means the user can read it, modify it, or skip it entirely. Anything you really need to enforce — permissions, payment validation, database changes — must happen in the back-end. Hiding a button in the front-end is not security; the user can just call the underlying back-end URL directly with their own code.')],
     [_('**Scale.** When ten million people use your product at once, you don’t have ten million browsers to worry about — they each run on the user’s own device. You only have your own back-end servers to scale up. The front-end scales for free; the back-end is the bottleneck.')],
   ),
+  p(_('One footnote you’ll hear from engineers: in production, what we’re calling "the back-end" is sometimes itself split into two server tiers — a **front-end server** that ships the HTML/CSS/JavaScript files to your browser (think Next.js, Vercel), and a **back-end server** that handles data, auth, and business rules (think Express, Django, Rails). When someone says "front-end server," that\'s what they mean — a server whose job is to serve up the front-end code. For the rest of this primer, we\'ll treat the back-end as one server tier, because every distinction that actually matters in this material — auth, validation, concurrency, scaling, deployment — happens on the data-handling side regardless of how the team has carved up its servers.')),
 ]
 
 /* --------------------------- Chapter 1 export --------------------------- */
