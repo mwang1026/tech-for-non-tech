@@ -68,6 +68,9 @@ export function GlossaryPanel() {
               <div>
                 <div className={styles.eyebrow}>Glossary</div>
                 <div className={styles.title}>{glossary.length} terms</div>
+                <div className={styles.quip}>
+                  you don’t really need this — you could just ask your friendly neighborhood LLM
+                </div>
               </div>
               <button className={styles.closeBtn} onClick={close} aria-label="Close glossary">×</button>
             </header>
