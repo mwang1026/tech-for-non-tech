@@ -1,4 +1,4 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
+import type { Chapter, Block, BodyNode, Inline, ConsoleSpec } from './types'
 
 /* --------------------------- Authoring helpers --------------------------- */
 const _ = (text: string): BodyNode => ({ kind: 'text', text })
@@ -155,6 +155,233 @@ const phase5_diff: Block[] = [
   p(_('The verification habit isn’t about reading code. It’s about refusing to merge anything you can’t have explained back to you in language you understand. If the agent can’t narrate the change cleanly, that’s the signal to keep asking.')),
 ]
 
+/* --------------------------- Console mocks --------------------------- *
+ * The diagram column for Chapter 10 is replaced by a fake Claude Code session.
+ * One worked feature ("add 👍 likes to comments on a multi-author blog,
+ * BlogCorp") is carried across slides 1, 3, 4, 5, 6, and 8 so the chapter
+ * shows one feature shipped end-to-end through the five phases.
+ */
+
+/* Slide 1 — bad prompt vs. directed prompt, stacked. */
+const console_s1: ConsoleSpec = {
+  layout: 'stacked',
+  panes: [
+    {
+      title: 'Vending-machine prompt',
+      cwd: 'blogcorp',
+      branch: 'Branch: main',
+      blocks: [
+        { kind: 'shell', text: 'blogcorp $ claude' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Add a like button to comments. Make it work.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Done. Added a Like component and a POST /comments/:id/like that does:\n  const c = await db.comments.find(id)\n  await db.comments.update(id, { likes: c.likes + 1 })\nLikes update on click. Anything else?' },
+        { kind: 'flag', note: 'Read-then-write race — two simultaneous likes both read 7, both write 8. Ch 6.' },
+      ],
+    },
+    {
+      title: 'Directed prompt',
+      cwd: 'blogcorp',
+      branch: 'Branch: main',
+      blocks: [
+        { kind: 'shell', text: 'blogcorp $ claude' },
+        { kind: 'spacer' },
+        { kind: 'user', text: "I want to add likes to comments. Before any code: what state changes, what's the API, where does the count live, and what happens when two people click at once?" },
+        { kind: 'spacer' },
+        { kind: 'agent', text: "Good — let me lay out the options first. Three places the count can live, two ways to handle the race…" },
+      ],
+    },
+  ],
+  caption: 'Same task, same agent. The prompt is the steering wheel.',
+}
+
+/* Slide 2 — literal first-run terminal. */
+const console_s2: ConsoleSpec = {
+  panes: [
+    {
+      cwd: 'blogcorp',
+      blocks: [
+        { kind: 'shell', text: '~ $ cd ~/code/blogcorp' },
+        { kind: 'shell', text: 'blogcorp $ claude' },
+        { kind: 'spacer' },
+        { kind: 'banner', lines: [
+          '┌──────────────────────────────────────────┐',
+          '│  Claude Code · v1.x                      │',
+          '│  /Users/you/code/blogcorp                │',
+          '│  Branch: main                            │',
+          '└──────────────────────────────────────────┘',
+        ] },
+        { kind: 'spacer' },
+        { kind: 'cursor' },
+      ],
+    },
+  ],
+  caption: 'A folder, a chat. Every prompt in this chapter happens here.',
+}
+
+/* Slide 3 — Phase 1, orient. */
+const console_s3: ConsoleSpec = {
+  phase: { n: 1, total: 5, label: 'Get oriented' },
+  panes: [
+    {
+      cwd: 'blogcorp',
+      branch: 'Branch: main',
+      blocks: [
+        { kind: 'user', text: "Explain this codebase to me like I've never seen it. What does it do, and what are the main pieces?" },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'BlogCorp is a multi-author blog. Three pieces:\n  • web/   — the React front-end users see in the browser\n  • api/   — Node service for posts, comments, auth\n  • db/    — Postgres; main tables: users, posts, comments\n\nThe api talks to the db. The web talks to the api. Auth is via signed cookies issued at /api/login.\nWant me to walk through a specific action?' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Walk me through what happens when someone posts a comment.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: '1. Browser POSTs { postId, body } to /api/comments\n2. Middleware in api/middleware/auth.ts verifies the cookie and sets req.userId\n3. Handler in api/routes/comments.ts validates body length, then INSERTs into the comments table\n4. Returns the new comment as JSON; web prepends it to the visible thread' },
+      ],
+    },
+  ],
+  caption: 'You now have a map. If anything here doesn\'t match the picture in your head, that\'s where to dig.',
+}
+
+/* Slide 4 — Phase 2, learn on demand. */
+const console_s4: ConsoleSpec = {
+  phase: { n: 2, total: 5, label: 'Learn on demand' },
+  panes: [
+    {
+      cwd: 'blogcorp',
+      branch: 'Branch: main',
+      blocks: [
+        { kind: 'user', text: 'I see api/middleware/auth.ts uses something called middleware. What is middleware in this codebase, specifically?' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'In this codebase, middleware is a function that runs before a route handler. Three of them, all in api/middleware/:\n  • auth.ts        — reads the session cookie, sets req.userId, rejects with 401 if missing or invalid\n  • rateLimit.ts   — caps requests per IP\n  • requestId.ts   — tags each request with a UUID for logs\n\nIn api/routes/comments.ts you\'ll see them applied in order:\n  router.use(requestId, rateLimit, auth)\n\nBy the time your handler runs, req.userId is already set — that\'s why the comment-creation handler doesn\'t do any auth work itself.' },
+      ],
+    },
+  ],
+  caption: 'Asking "what is middleware here" beats asking "what is middleware" — you get an answer tied to lines you can open.',
+}
+
+/* Slide 5 — Phase 3, the feature template. */
+const console_s5: ConsoleSpec = {
+  phase: { n: 3, total: 5, label: 'Feature template' },
+  panes: [
+    {
+      cwd: 'blogcorp',
+      branch: 'Branch: feature/likes',
+      blocks: [
+        { kind: 'user', text: "I want to add likes to comments. Walk me through: state, API contract, identity, authorization & validation, concurrency, performance, failure modes, front-end vs. back-end, and a diagram. Don't write any code yet." },
+        { kind: 'spacer' },
+        { kind: 'agent-sections', sections: [
+          { label: 'State', chapter: 'Ch 4', text: 'Add a comment_likes table: (comment_id, user_id, created_at), primary key (comment_id, user_id). Count is COUNT(*); we can denormalize later if it\'s slow.' },
+          { label: 'API contract', text: 'POST   /api/comments/:id/like → { liked: true,  count }\nDELETE /api/comments/:id/like → { liked: false, count }\nGET on the comment list returns each comment\'s count and whether the viewer has liked it.' },
+          { label: 'Identity', chapter: 'Ch 2', text: 'auth.ts middleware sets req.userId from the session cookie. The user_id we write is req.userId — never from the request body.' },
+          { label: 'Authz + validation', chapter: 'Ch 3', text: 'Must be logged in (auth middleware enforces). Comment must exist. No other restriction; anyone logged in can like.' },
+          { label: 'Concurrency', chapter: 'Ch 6', text: 'INSERT … ON CONFLICT DO NOTHING on (comment_id, user_id) keeps double-clicks idempotent. Count is COUNT(*); no read-modify-write to get wrong.' },
+          { label: 'Performance', chapter: 'Ch 5', text: 'Counts are cheap with an index on comment_likes(comment_id). No cache for v1.' },
+          { label: 'Failure modes', chapter: 'Ch 5/9', text: 'DB unreachable → 503; the front-end shows the heart un-toggled and an error toast. We do NOT queue or local-cache; a missed like is acceptable.' },
+          { label: 'Front-end / back-end', chapter: 'Ch 5', text: 'Web renders the heart filled if liked=true in the comment payload. Click toggles via the API and replaces the count optimistically; rollback on error.' },
+          { label: 'Diagram', text: '[browser] → POST /like → [api/auth] → [comments handler] → [postgres: insert] → count via COUNT(*)' },
+        ] },
+      ],
+    },
+  ],
+  caption: 'Each line of the answer is a place you can push back. The next slide is exactly that.',
+}
+
+/* Slide 6 — Phase 4, pushback. */
+const console_s6: ConsoleSpec = {
+  phase: { n: 4, total: 5, label: "When the plan doesn't fit" },
+  panes: [
+    {
+      cwd: 'blogcorp',
+      branch: 'Branch: feature/likes',
+      blocks: [
+        { kind: 'agent', text: '…on second thought, I\'ll keep a likes_count column on the comments table and increment it: count = count + 1. Faster than COUNT(*) on big threads.' },
+        { kind: 'flag', note: 'Read-then-write smell — Ch 6 concurrency. Two simultaneous likes will lose one.' },
+        { kind: 'spacer' },
+        { kind: 'user', text: "Won't that race? Two people like the same comment in the same millisecond — both read 7, both write 8, the count is 8 instead of 9." },
+        { kind: 'spacer' },
+        { kind: 'agent', text: "You're right. Two ways to fix it:\n  (a) UPDATE comments SET likes_count = likes_count + 1 WHERE id = $1\n      — atomic in Postgres; no read needed.\n  (b) Keep the comment_likes table as the source of truth (idempotent on dupe clicks) and recompute likes_count via a trigger or periodic job.\n\n(b) is safer because it also handles unlikes correctly. Want me to go with (b)?" },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Yes. And confirm: the user_id on insert comes from req.userId, not the request body, right?' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Confirmed. Body never carries user_id.' },
+      ],
+    },
+  ],
+  caption: 'Pushback in plain English: "won\'t this race?", "where does user_id come from?". Every flag has a name.',
+}
+
+/* Slide 7 — worktrees, two terminals side by side. */
+const console_s7: ConsoleSpec = {
+  layout: 'side',
+  panes: [
+    {
+      title: 'Terminal A',
+      cwd: 'blogcorp',
+      branch: 'Branch: main',
+      blocks: [
+        { kind: 'shell', text: 'blogcorp $ claude' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Finish the comment-edit bug fix on this branch.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Reading api/routes/comments.ts…' },
+      ],
+    },
+    {
+      title: 'Terminal B',
+      cwd: 'blogcorp-likes',
+      branch: 'Branch: feature/likes',
+      blocks: [
+        { kind: 'shell', text: 'blogcorp-likes $ claude' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Start on the likes plan we just agreed to.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Reading the plan…' },
+      ],
+    },
+  ],
+  caption: 'Two folders on disk, one git history underneath. Neither agent can stomp the other. Created with: git worktree add ../blogcorp-likes feature/likes',
+}
+
+/* Slide 8 — Phase 5, narrate the diff. */
+const console_s8: ConsoleSpec = {
+  phase: { n: 5, total: 5, label: 'Narrate the change' },
+  panes: [
+    {
+      cwd: 'blogcorp-likes',
+      branch: 'Branch: feature/likes',
+      blocks: [
+        { kind: 'user', text: 'Before I review this, walk me through the change. For every file you touched, one line on what changed and why. Then flag anything you decided on your own.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'PR #142 — Add comment likes\nFiles (4):\n  db/migrations/0042_comment_likes.sql\n      New comment_likes table + index. Unique key on (comment_id, user_id) for idempotency.\n  api/routes/likes.ts\n      New POST and DELETE /api/comments/:id/like. user_id from req.userId. No request-body trust.\n  api/routes/comments.ts\n      Comment list now joins comment_likes to return count and viewer_has_liked.\n  web/components/Comment.tsx\n      Heart icon, optimistic toggle, rolls back on 4xx/5xx.\n\nDecisions I made on my own:\n  • Used Postgres ON CONFLICT DO NOTHING for idempotency. Plan didn\'t specify; preserves the "double-click is a no-op" property.\n  • Picked lucide-react for the heart icon — already in web/ deps; no new package.\n  • Optimistic UI rolls back after a 600ms timeout, not on a specific error code. Worth confirming.' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Show me the line where authorization happens.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'api/routes/likes.ts:8 — handler runs after the auth middleware (registered in api/server.ts:34). req.userId is guaranteed set; if absent, auth.ts returned 401 before this handler runs.' },
+      ],
+    },
+  ],
+  caption: "Narration in plain English, not a code review. If the agent can't explain its own change, that's the signal.",
+}
+
+/* Slide 9 — recap cookbook of the five phase prompts. */
+const console_s9: ConsoleSpec = {
+  panes: [
+    {
+      title: 'The five prompts',
+      blocks: [
+        { kind: 'user', text: 'Explain this codebase to me like I\'ve never seen it. What does it do, and what are the main pieces?' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'There\'s a [term] in this file. What is it, here, specifically?' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'I want to add [feature]. Walk me through: state, API contract, identity, authorization & validation, concurrency, performance, failure modes, front-end vs. back-end, and a diagram. Don\'t write any code yet.' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Won\'t this race / where does user_id come from / what\'s the staleness window / where\'s the back-end check?' },
+        { kind: 'spacer' },
+        { kind: 'user', text: 'Walk me through the change file by file. Then flag anything you decided on your own.' },
+      ],
+    },
+  ],
+  caption: 'One cookbook page. Five prompts, applied to any feature, in any codebase.',
+}
+
 /* --------------------------- Chapter 10 export --------------------------- */
 
 export const chapter10: Chapter = {
@@ -163,19 +390,20 @@ export const chapter10: Chapter = {
   title: 'Working with Claude Code',
   subtitle: 'How to direct an AI coding agent in a real codebase',
   slides: [
-    { id: 's1', level: 101, headline: 'The agent isn’t a vending machine', body: { kind: 'prose', blocks: notVendingMachine }, diagramFocus: 'full' },
-    { id: 's2', level: 101, headline: 'Where Claude Code actually runs', body: { kind: 'prose', blocks: whereItRuns }, hideDiagram: true },
-    { id: 's3', level: 101, headline: 'Phase 1 — Get oriented', body: { kind: 'prose', blocks: phase1 }, diagramFocus: 'full' },
-    { id: 's4', level: 101, headline: 'Phase 2 — Learn on demand', body: { kind: 'prose', blocks: phase2 }, diagramFocus: 'full' },
-    { id: 's5', level: 101, headline: 'Phase 3 — Run the feature template', body: { kind: 'prose', blocks: phase3 }, diagramFocus: 'full' },
-    { id: 's6', level: 101, headline: 'Phase 4 — When the plan doesn’t fit', body: { kind: 'prose', blocks: phase4_pushback }, diagramFocus: 'full' },
-    { id: 's7', level: 101, headline: 'Running parallel agents — worktrees', body: { kind: 'prose', blocks: worktrees }, hideDiagram: true },
-    { id: 's8', level: 101, headline: 'Phase 5 — Have the agent narrate the change', body: { kind: 'prose', blocks: phase5_diff }, diagramFocus: 'full' },
+    { id: 's1', level: 101, headline: 'The agent isn’t a vending machine', body: { kind: 'prose', blocks: notVendingMachine }, console: console_s1 },
+    { id: 's2', level: 101, headline: 'Where Claude Code actually runs', body: { kind: 'prose', blocks: whereItRuns }, console: console_s2 },
+    { id: 's3', level: 101, headline: 'Phase 1 — Get oriented', body: { kind: 'prose', blocks: phase1 }, console: console_s3 },
+    { id: 's4', level: 101, headline: 'Phase 2 — Learn on demand', body: { kind: 'prose', blocks: phase2 }, console: console_s4 },
+    { id: 's5', level: 101, headline: 'Phase 3 — Run the feature template', body: { kind: 'prose', blocks: phase3 }, console: console_s5 },
+    { id: 's6', level: 101, headline: 'Phase 4 — When the plan doesn’t fit', body: { kind: 'prose', blocks: phase4_pushback }, console: console_s6 },
+    { id: 's7', level: 101, headline: 'Running parallel agents — worktrees', body: { kind: 'prose', blocks: worktrees }, console: console_s7 },
+    { id: 's8', level: 101, headline: 'Phase 5 — Have the agent narrate the change', body: { kind: 'prose', blocks: phase5_diff }, console: console_s8 },
     {
       id: 's9',
       level: 101,
       kind: 'recap',
       headline: 'What you have, end to end',
+      console: console_s9,
       body: {
         kind: 'recap',
         learned: [

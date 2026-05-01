@@ -64,8 +64,61 @@ export type Slide = {
    * Override which diagram this slide uses, regardless of chapter default. Currently used by
    * Ch 9's observability slide to swap back to the runtime architecture diagram from Ch 1–7.
    */
-  diagramKind?: 'runtime' | 'chapter8' | 'chapter9'
+  diagramKind?: 'runtime' | 'chapter8' | 'chapter9' | 'console'
+  /** Console mock used by Chapter 10. Rendered in place of the system diagram. */
+  console?: ConsoleSpec
   kind?: SlideKind
+}
+
+/* ------------------------- Console mocks (Chapter 10) ------------------------- *
+ * Per-slide terminal/chat mock that sits in the diagram column for Chapter 10.
+ * The chapter teaches dialogue with an AI agent, not architecture, so a fake
+ * Claude Code session is the right visual primitive.
+ */
+
+export type ConsoleBlock =
+  /** Raw shell line, e.g. `blogcorp $ claude`. */
+  | { kind: 'shell'; text: string }
+  /** ASCII welcome banner — array of literal lines rendered inside a box. */
+  | { kind: 'banner'; lines: string[] }
+  /** Blank line — adds vertical breathing room between blocks. */
+  | { kind: 'spacer' }
+  /** A user message to the agent. Rendered with a `>` prefix. */
+  | { kind: 'user'; text: string }
+  /** An agent reply — multiline plain text. */
+  | { kind: 'agent'; text: string }
+  /** A sectioned agent reply — used by the feature-template slide. */
+  | { kind: 'agent-sections'; intro?: string; sections: AgentSection[] }
+  /** A red dotted-underline annotation attached to the block immediately above. */
+  | { kind: 'flag'; note: string }
+  /** Blinking cursor — used for the literal-first-run slide. */
+  | { kind: 'cursor' }
+
+export type AgentSection = {
+  label: string
+  /** Optional chapter tag, e.g. 'Ch 4'. Rendered as a small accent pill. */
+  chapter?: string
+  text: string
+}
+
+export type ConsolePane = {
+  /** Optional small label for the pane chrome, e.g. "Terminal A". */
+  title?: string
+  /** Branch label rendered in the pane chrome, e.g. "Branch: main". */
+  branch?: string
+  /** Working directory shown in the pane chrome, e.g. "blogcorp". */
+  cwd?: string
+  blocks: ConsoleBlock[]
+}
+
+export type ConsoleSpec = {
+  /** Optional phase indicator, e.g. {n:3, total:5, label:'Run the feature template'}. */
+  phase?: { n: number; total: number; label: string }
+  /** 'single' (default), 'stacked' (slide 1), 'side' (slide 7 worktrees). */
+  layout?: 'single' | 'stacked' | 'side'
+  panes: ConsolePane[]
+  /** Caption rendered below the console frame. */
+  caption?: string
 }
 
 export type Chapter = {

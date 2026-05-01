@@ -1,0 +1,217 @@
+/* Chapter 10 console mock — sits in the diagram column.
+   Aesthetically a real terminal: monospace, hairline frame, paper background. */
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: text;
+}
+
+.phaseBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-s) var(--space-s);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.phasePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.phaseDots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 4px;
+}
+.phaseDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--hairline-strong);
+}
+.phaseDotActive {
+  background: var(--accent);
+}
+
+.label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Outer container for the console panes */
+.body {
+  flex: 1 1 auto;
+  display: flex;
+  gap: var(--space-s);
+  min-height: 0;
+}
+.body.stacked { flex-direction: column; }
+.body.side    { flex-direction: row; }
+.body.single  { flex-direction: column; }
+
+/* One terminal pane */
+.pane {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.paneChrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(26, 24, 21, 0.03);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.paneTitle { color: var(--ink); font-weight: 600; }
+
+.paneMeta {
+  display: inline-flex;
+  gap: 10px;
+}
+
+/* Scrollable transcript */
+.transcript {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--space-s) 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, "Roboto Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Block types */
+.shell {
+  color: var(--ink-muted);
+}
+
+.banner {
+  color: var(--ink-muted);
+  margin: 4px 0 8px;
+}
+
+.user {
+  color: var(--ink);
+}
+.userPrefix {
+  color: var(--accent);
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.agent {
+  color: var(--ink);
+  margin-top: 2px;
+}
+.agentPrefix {
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.spacer { height: 8px; }
+
+/* Sectioned agent reply (template slide) */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.sectionLabel {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.sectionChapter {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.sectionBody {
+  color: var(--ink);
+}
+
+/* Red flag annotation */
+.flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 2px 0 4px;
+  padding: 4px 6px;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+}
+.flagArrow {
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+/* Blinking caret for the bare-terminal slide */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--ink);
+  vertical-align: text-bottom;
+  animation: blink 1.05s steps(2, end) infinite;
+  margin-left: 2px;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.caption {
+  margin-top: var(--space-s);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}

@@ -9,6 +9,7 @@ import { ChapterRail } from './components/ChapterRail'
 import { Diagram } from './components/diagram/Diagram'
 import { Chapter8Diagram } from './components/diagram/Chapter8Diagram'
 import { Chapter9Diagram } from './components/diagram/Chapter9Diagram'
+import { Console } from './components/console/Console'
 import { SlideStream } from './components/SlideStream'
 import { GlossaryPanel } from './components/GlossaryPanel'
 import { IntroPage } from './components/IntroPage'
@@ -233,7 +234,12 @@ function Inner() {
         const kind = currentSlide?.diagramKind
           ?? (chapter.number === 8 ? 'chapter8'
             : chapter.number === 9 ? 'chapter9'
+            : chapter.number === 10 ? 'console'
             : 'runtime')
+        if (kind === 'console') {
+          if (!currentSlide?.console) return undefined
+          return <Console spec={currentSlide.console} />
+        }
         if (kind === 'chapter8') {
           return (
             <Chapter8Diagram
