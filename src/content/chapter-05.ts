@@ -40,7 +40,7 @@ const loadBalancers: Block[] = [
     _('That something is a '), t('load balancer', 'load-balancer'),
     _('. It’s a piece of software (sometimes its own dedicated machine) that sits between the public internet and your fleet of back-end servers. Every incoming request hits it first; it picks one of the available servers and forwards the request there.'),
   ),
-  p(_('How does it pick? The simplest strategy is round-robin: server 1, server 2, server 3, server 1, server 2, and so on. Smarter strategies look at which servers are busy and route to the least-loaded one. Some setups even pin a user to one server (called a "sticky session") so that server can use its in-memory cache for that user — convenient until that server dies.')),
+  p(_('How does it pick? The simplest strategy is round-robin: server 1, server 2, server 3, server 1, server 2, and so on. Smarter strategies look at which servers are busy and route to the least-loaded one. Some setups pin a user to one server (a pattern called a **sticky session**) so every request from that user keeps hitting the same machine and its in-memory cache for that user stays useful. Convenient until that server dies — at which point that user’s session goes with it.')),
   p(_('The load balancer also watches its servers. If one stops responding to a "are you alive?" check, the load balancer takes it out of rotation — new requests skip the broken one. When the server comes back, it’s added back in. Users never see the failure.')),
   p(_('Common load balancers:')),
   ul(

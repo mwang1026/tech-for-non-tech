@@ -64,6 +64,10 @@ function BlockRender({ block, activeStepIndex }: { block: Block; activeStepIndex
           ))}
         </ol>
       )
+    case 'code':
+      return (
+        <pre className={styles.codeBlock}><code>{block.text}</code></pre>
+      )
     case 'steps': {
       const active = activeStepIndex ?? 0
       return (

@@ -7,6 +7,8 @@ import { Layout } from './components/Layout'
 import { TopBar } from './components/TopBar'
 import { ChapterRail } from './components/ChapterRail'
 import { Diagram } from './components/diagram/Diagram'
+import { Chapter8Diagram } from './components/diagram/Chapter8Diagram'
+import { Chapter9Diagram } from './components/diagram/Chapter9Diagram'
 import { SlideStream } from './components/SlideStream'
 import { GlossaryPanel } from './components/GlossaryPanel'
 import { IntroPage } from './components/IntroPage'
@@ -224,15 +226,44 @@ function Inner() {
           onSelectSlide={setSlideIndex}
         />
       }
-      diagram={
-        <Diagram
-          chapter={chapter.number}
-          level={level}
-          focus={diagramFocus}
-          highlight={diagramHighlight}
-          highlightStatus={diagramStatus}
-        />
-      }
+      diagram={(() => {
+        if (currentSlide?.hideDiagram) return undefined
+        // Per-slide override wins over chapter default. Used by Ch 9 s5 (observability)
+        // to swap back to the runtime diagram so logs/metrics light up the real fleet.
+        const kind = currentSlide?.diagramKind
+          ?? (chapter.number === 8 ? 'chapter8'
+            : chapter.number === 9 ? 'chapter9'
+            : 'runtime')
+        if (kind === 'chapter8') {
+          return (
+            <Chapter8Diagram
+              slideIndex={safeIndex}
+              focus={diagramFocus}
+              highlight={diagramHighlight}
+              highlightStatus={diagramStatus}
+            />
+          )
+        }
+        if (kind === 'chapter9') {
+          return (
+            <Chapter9Diagram
+              slideIndex={safeIndex}
+              focus={diagramFocus}
+              highlight={diagramHighlight}
+              highlightStatus={diagramStatus}
+            />
+          )
+        }
+        return (
+          <Diagram
+            chapter={chapter.number}
+            level={level}
+            focus={diagramFocus}
+            highlight={diagramHighlight}
+            highlightStatus={diagramStatus}
+          />
+        )
+      })()}
       content={
         visibleSlides.length === 0
           ? <EmptyChapter chapterTitle={chapter.title} />

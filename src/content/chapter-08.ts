@@ -5,6 +5,7 @@ const _ = (text: string): BodyNode => ({ kind: 'text', text })
 const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
 const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+const code = (text: string): Block => ({ kind: 'code', text })
 
 /* ============================================================================
  * Chapter 8 — Code Lifecycle (101)
@@ -31,10 +32,32 @@ const saveNotEnough: Block[] = [
     [_('You want to roll back to last Tuesday’s working version. There’s no last Tuesday — only now.')],
   ),
   p(_('What needs to happen: a system that records *every* change anyone ever made, lets people work on different versions in parallel, and gives you a way to bring those versions back together (or revert them) safely.')),
-  p(_('That system is called version control, and the version that essentially every team uses is git.')),
+  p(_('That system is called **version control**, and the version that essentially every team uses is git.')),
 ]
 
-/* --------------------------- Slide 2 — Git basics --------------------------- */
+/* --------------------------- Slide 2 — Your local copy --------------------------- */
+
+const localCopy: Block[] = [
+  p(_('Before any of this works, the code has to live somewhere on your computer. The codebase itself sits on '), t('GitHub', 'github'), _(' (or GitLab); your job is to make a copy onto your laptop to work on. The command for that is '), t('git clone', 'git-clone'), _('.')),
+  p(_('What you actually type, the very first time:')),
+  code(`git clone https://github.com/your-org/your-repo.git
+cd your-repo`),
+  p(_('After this, you have a folder on your laptop that contains the project plus a hidden `.git` folder where git stores all the history. You never edit `.git` directly — git manages it.')),
+  code(`~/code/your-repo/
+  .git/           ← history lives here (don't touch)
+  src/
+  package.json
+  README.md`),
+  p(_('When you run `claude` inside that folder, this is the agent’s working surface. Every file edit lands here on disk; git records what changed.')),
+  p(_('Two terms you’ll keep hearing:')),
+  ul(
+    [_('**Local** — the copy on your laptop. What you can edit and run.')],
+    [_('**Remote** — the copy on GitHub. The shared source of truth that everyone else clones from.')],
+  ),
+  p(_('They sync via two commands: `git pull` brings down changes from the remote into your local copy; `git push` sends your local commits up to the remote. The next slide gets to commits, branches, and how those flow.')),
+]
+
+/* --------------------------- Slide 3 — Git basics --------------------------- */
 
 const gitBasics: Block[] = [
   p(
@@ -48,10 +71,20 @@ const gitBasics: Block[] = [
     [t('Merge', 'merge'), _(' — Bringing changes from one branch back into another. When your feature branch is ready, you merge it into main, and main now contains your work plus everyone else’s. Sometimes git can do this automatically; sometimes it can’t.')],
   ),
   p(
-    _('When git can’t merge automatically, it’s because two branches changed the same lines of the same file. Git doesn’t know which version should win, so it asks a human. This is called a '),
+    _('When git can’t merge automatically, it’s because two branches changed the same lines of the same file. For example: developer A changed line 42 to set `price = 10`, and developer B changed the same line to set `price = 15`. Git can’t pick a winner, so it asks a human. This is called a '),
     t('merge conflict', 'merge-conflict'),
     _('. The person merging looks at both versions, picks (or combines) the right answer, and saves the resolution. Common, not scary, just tedious.'),
   ),
+  p(_('Visualized as a graph, a feature branch that gets merged back looks like this:')),
+  code(`main:     A───B───C────────M
+                   \\      /
+feature:            D────E`),
+  p(_('A, B, C are commits on `main`. D and E are two commits made on a feature branch (which started from C). M is the merge commit — the moment those two timelines come back together.')),
+  p(_('What you actually type day-to-day:')),
+  code(`git checkout -b fix-payments    # create a new branch and switch to it
+git add .                       # stage your edits for the next commit
+git commit -m "fix payment bug" # save a snapshot with a message
+git push                        # send the branch up to GitHub`),
   p(_('Most teams host their git repositories on '), t('GitHub', 'github'), _(' or '), t('GitLab', 'gitlab'), _(' — services that store the code and add review and collaboration features on top. Which is the next slide.')),
 ]
 
@@ -73,7 +106,7 @@ const pullRequests: Block[] = [
     [_('Triggers automated checks. The moment you open the PR, automated tests start running against your branch. If they fail, the PR is blocked from merging until you fix them. (More on this next slide.)')],
     [_('Creates a record. The PR’s description, the discussion, and the list of commits become permanent history. Six months from now, when someone asks "why did we do this?", the PR is the answer.')],
   ),
-  p(_('When you direct an AI agent to make a change, the agent doesn’t commit directly to main. It (and you) work on a branch; the work becomes a PR; the PR gets reviewed; the PR gets merged. Reading the diff in the PR is your last chance to catch mistakes before they ship — never skip it.')),
+  p(_('When you direct an AI agent to make a change, the agent doesn’t commit directly to main. It (and you) work on a branch; the work becomes a PR; the PR gets reviewed; the PR gets merged. Reading the diff in the PR is your last chance to catch mistakes before they ship — never skip it. On GitHub, the diff lives on the **Files changed** tab of the pull request page. (And if you’re working with Claude Code, you can also ask the agent: *"show me the diff for this branch."*) Chapter 10 covers how to actually verify the change without reading code yourself.')),
 ]
 
 /* --------------------------- Slide 4 — Tests and CI --------------------------- */
@@ -114,18 +147,20 @@ export const chapter08: Chapter = {
   title: 'Code Lifecycle',
   subtitle: 'How code becomes the running system',
   slides: [
-    { id: 's1', level: 101, headline: 'Save isn’t enough', body: { kind: 'prose', blocks: saveNotEnough }, diagramFocus: 'full' },
-    { id: 's2', level: 101, headline: 'Git — a record of every change', body: { kind: 'prose', blocks: gitBasics }, diagramFocus: 'full' },
-    { id: 's3', level: 101, headline: 'Pull requests — proposing a change', body: { kind: 'prose', blocks: pullRequests }, diagramFocus: 'full' },
-    { id: 's4', level: 101, headline: 'Tests and CI — verifying behavior automatically', body: { kind: 'prose', blocks: testsAndCI }, diagramFocus: 'full' },
+    { id: 's1', level: 101, headline: 'Save isn’t enough', body: { kind: 'prose', blocks: saveNotEnough }, diagramFocus: 'local-only' },
+    { id: 's2', level: 101, headline: 'Your local copy — clone, folder, history', body: { kind: 'prose', blocks: localCopy }, diagramFocus: 'local-remote' },
+    { id: 's3', level: 101, headline: 'Git — a record of every change', body: { kind: 'prose', blocks: gitBasics }, diagramFocus: 'branches' },
+    { id: 's4', level: 101, headline: 'Pull requests — proposing a change', body: { kind: 'prose', blocks: pullRequests }, diagramFocus: 'pr' },
+    { id: 's5', level: 101, headline: 'Tests and CI — verifying behavior automatically', body: { kind: 'prose', blocks: testsAndCI }, diagramFocus: 'ci' },
     {
-      id: 's5',
+      id: 's6',
       level: 101,
       kind: 'recap',
       headline: 'What you have so far',
       body: {
         kind: 'recap',
         learned: [
+          'Cloning a repo gives you a local folder with the code plus its full history (`.git`); local is your copy, remote is GitHub',
           'Git tracks every change to the code with full history; commits are snapshots, branches are parallel timelines, merges combine them',
           'Pull requests are proposals to merge — where reviewers see the diff, comment, and approve before anything ships',
           'CI runs the test suite automatically on every PR; green means tests passed and the PR can merge, red means blocked',

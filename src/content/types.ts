@@ -38,6 +38,7 @@ export type Block =
   | { kind: 'h'; text: string }                    // small subhead (sparingly)
   | { kind: 'ul'; items: Inline[] }                // bullet list
   | { kind: 'ol'; items: Inline[] }                // numbered list (use when sequence matters)
+  | { kind: 'code'; text: string; lang?: string }  // monospace block for shell commands, folder trees, ASCII branch graphs
   | { kind: 'steps'; items: StepItem[] }           // interactive step-through with diagram coordination
 
 export type SlideBody =
@@ -57,6 +58,13 @@ export type Slide = {
   headline: string
   body: SlideBody
   diagramFocus?: string
+  /** Hide the architecture diagram for this slide — used when the slide is about a different layer (e.g. local-laptop mechanics). */
+  hideDiagram?: boolean
+  /**
+   * Override which diagram this slide uses, regardless of chapter default. Currently used by
+   * Ch 9's observability slide to swap back to the runtime architecture diagram from Ch 1–7.
+   */
+  diagramKind?: 'runtime' | 'chapter8' | 'chapter9'
   kind?: SlideKind
 }
 

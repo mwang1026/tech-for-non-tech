@@ -77,6 +77,35 @@
   color: var(--ink);
 }
 
+/* Block code — folder trees, shell commands, ASCII branch graphs. Plain text inside; preserves whitespace. */
+.codeBlock {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.55;
+  background: rgba(26, 24, 21, 0.045);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  /* Don't let the surrounding flex column squash this below its content height
+     (overflow-x: auto turns min-height: auto into 0 in flex layouts). */
+  flex-shrink: 0;
+  color: var(--ink);
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline-strong) transparent;
+}
+.codeBlock code {
+  /* Reset the inline-code styling — inside .codeBlock the <code> is just a semantic wrapper. */
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
 /* Inline emphasis (renders from **…** and *…* in the source). */
 .body strong,
 .bulletList strong { font-weight: 600; color: var(--ink); }
