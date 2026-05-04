@@ -94,7 +94,7 @@ const gitAndGitHub: Block[] = [
   p(_('Now: where does the code actually live? Two layers, often confused.')),
   ul(
     [t('Git', 'git'), _(' is the version-control software. It runs on every developer\'s laptop and on the server hosting the canonical copy. It tracks every change ever made to the codebase, with full history. It\'s open source, free, and works offline. When someone runs `git commit` or `git push`, that\'s the git program on their laptop doing the work.')],
-    [t('GitHub', 'github'), _(' is an application companies use to host their code. It runs git on its servers — that\'s where "the canonical copy" actually sits — and adds a website on top: pull request pages, code review, search, issue tracking, automated checks, permissions. GitHub is owned by Microsoft. '), t('GitLab', 'gitlab'), _(' is the main alternative; it can also be self-hosted on a company\'s own infrastructure. '), t('Bitbucket', 'bitbucket'), _(' (Atlassian) is a third. A team picks one and that\'s where their code lives.')],
+    [t('GitHub', 'github'), _(' is an application companies use to host their code. It runs git on its servers — that\'s where "the canonical copy" actually sits — and adds a website on top: pull request pages, code review, search, issue tracking, automated checks, permissions. GitHub is owned by Microsoft. '), t('GitLab', 'gitlab'), _(' is the main alternative; it can also be self-hosted on a company\'s own infrastructure. '), t('Bitbucket', 'bitbucket'), _(' (Atlassian) is a third. A team picks one and that\'s where the canonical copy lives.')],
   ),
   p(
     _('A '), t('repository', 'repository'),
@@ -115,12 +115,12 @@ cd your-repo`),
 const branches: Block[] = [
   p(_('Editing `Hero.tsx` directly on the canonical timeline is the wrong move. The canonical timeline is called '), t('main', 'main-branch'), _(' (some older repos call it `master`). Every other developer pulling from `main` would immediately get the half-finished orange change in their working copy. Worse, the moment something else needs to ship from `main`, the orange change is part of it whether it\'s ready or not.')),
   p(
-    _('The fix is a '),
+    _('The way around this is a '),
     t('branch', 'branch'),
     _(' — a parallel timeline of changes that doesn\'t disturb `main`. The developer creates one and switches to it:'),
   ),
   code(`git checkout -b sun-color-orange`),
-  p(_('`checkout` is the verb git uses for "switch to this branch." `-b` means "and create it if it doesn\'t exist." The branch starts as an exact copy of `main` at that moment, then diverges from there.')),
+  p(_('`checkout` is the verb git uses for "switch to this branch." `-b` means "create a new branch with this name and switch to it." If a branch by that name already exists, git errors — to switch to an existing branch, drop the `-b`. The new branch starts as an exact copy of `main` at that moment, then diverges from there.')),
   p(_('On the new branch, the developer edits `Hero.tsx` and changes "yellow" to "orange". The file on disk now reads orange. On `main`, the same file still reads yellow. Two timelines, same starting point, different content from this point forward.')),
   p(_('Five developers can each have their own branch open at the same time — one fixing a payment bug, one adding a new sign-up flow, one rewording the homepage, plus the orange-sun change — all without stepping on each other. Branches are how parallel work happens without chaos.')),
 ]
@@ -207,7 +207,7 @@ const mergeConflicts: Block[] = [
 const ci: Block[] = [
   p(_('When the orange-sun PR is opened, a separate piece of automation kicks in. A fresh machine — not the developer\'s laptop, not GitHub\'s general infrastructure — downloads the branch, sets the project up from scratch, and runs every automated check the team has configured. The umbrella term for this is '), t('CI', 'ci'), _(' (continuous integration).')),
   p(_('Why a fresh machine? Because "works on my laptop" is famously not a guarantee. The laptop has the developer\'s editor, their tools, their cached files, their shell history. The CI machine starts from nothing — clones the repo, installs dependencies, runs the checks. If the change works there, it has a real chance of working somewhere else.')),
-  p(_('CI is the current industry standard for any codebase past one developer working alone. Most professional teams run it on every PR. The 2024 Stack Overflow Developer Survey reports CI/CD adoption among professional developers; GitHub\'s State of the Octoverse reports usage of GitHub Actions specifically. Plenty of repos still don\'t have CI — solo prototypes, internal scripts, abandoned projects — and that\'s fine for what they are. The point isn\'t that CI is universal; it\'s that any team shipping a real product should have it, and the reader will see it on every serious codebase they meet.')),
+  p(_('CI is the current industry standard for any codebase past one developer working alone. Most professional teams run it on every PR. The 2024 Stack Overflow Developer Survey reports CI/CD adoption among professional developers; GitHub\'s State of the Octoverse reports usage of GitHub Actions specifically.')),
   ul(
     [_('Stack Overflow Developer Survey — '), _('https://survey.stackoverflow.co/')],
     [_('GitHub Octoverse — '), _('https://octoverse.github.com/')],
@@ -268,7 +268,7 @@ export const chapter08: Chapter = {
     { id: 's1', level: 101, headline: 'The change we’re making', body: { kind: 'prose', blocks: theChange }, diagramFocus: 'change' },
     { id: 's2', level: 101, headline: 'Code is text — plus the thing that runs it', body: { kind: 'prose', blocks: codeIsText }, diagramFocus: 'text-runtime' },
     { id: 's3', level: 101, headline: 'How a codebase is organized', body: { kind: 'prose', blocks: organization }, diagramFocus: 'organization' },
-    { id: 's4', level: 101, headline: 'git, GitHub, and getting a copy', body: { kind: 'prose', blocks: gitAndGitHub }, diagramFocus: 'laptop' },
+    { id: 's4', level: 101, headline: 'git, GitHub, and getting a copy', body: { kind: 'prose', blocks: gitAndGitHub }, diagramFocus: 'full' },
     { id: 's5', level: 101, headline: 'Branches — a parallel timeline', body: { kind: 'prose', blocks: branches }, diagramFocus: 'branches' },
     { id: 's6', level: 101, headline: 'Commits — the named unit of change', body: { kind: 'prose', blocks: commits }, diagramFocus: 'commit-detail' },
     { id: 's7', level: 101, headline: 'Push — your branch reaches the remote', body: { kind: 'prose', blocks: push }, diagramFocus: 'remote' },

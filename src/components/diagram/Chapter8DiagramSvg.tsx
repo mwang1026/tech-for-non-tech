@@ -594,7 +594,7 @@ function SceneSpine({
           <text x={10} y={354} fontSize="13" fontWeight={700} letterSpacing="1.6" fill={ink} fontFamily={fontUi}>
             BRANCH GRAPH
           </text>
-          <text x={120} y={354} fontSize="11" fill={muted} fontFamily={fontUi} fontStyle="italic">
+          <text x={190} y={354} fontSize="11" fill={muted} fontFamily={fontUi} fontStyle="italic">
             timelines on the .git history
           </text>
         </motion.g>
