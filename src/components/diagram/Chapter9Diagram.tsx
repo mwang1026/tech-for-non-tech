@@ -162,7 +162,7 @@ export function Chapter9Diagram({ slideIndex, focus, highlight, highlightStatus 
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <span className={styles.label}>Deployment · Ch 9</span>
+        <span className={styles.label}>From merged to running · Ch 9</span>
         <svg
           className={styles.svg}
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}

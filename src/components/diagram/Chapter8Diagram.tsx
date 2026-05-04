@@ -162,7 +162,7 @@ export function Chapter8Diagram({ slideIndex, focus, highlight, highlightStatus 
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <span className={styles.label}>Code Lifecycle · Ch 8</span>
+        <span className={styles.label}>From edited text to merged · Ch 8</span>
         <svg
           className={styles.svg}
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
