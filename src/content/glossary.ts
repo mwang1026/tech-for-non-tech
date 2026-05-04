@@ -271,6 +271,18 @@ export const glossary: GlossaryEntry[] = [
    * Chapter 2 — Identity
    * ==================================================================== */
   {
+    id: 'wire',
+    term: 'Wire',
+    short: 'Casual shorthand for the network connection between two machines — the path data takes when it leaves one computer and arrives at another.',
+    body: [
+      'When engineers say "across the wire" or "over the wire," they mean any data that leaves one machine and travels to another — a request from a browser to a server, a query from a server to a database. The literal cabling doesn\'t matter; the point is that the data is briefly in transit, outside the control of either side, and potentially visible to anything along the path that can read it.',
+      'That\'s why "the password never crosses the wire again" matters: every trip across the network is another chance for sensitive data to leak. It\'s also why HTTPS encrypts traffic in transit — wire traffic is the easiest part of a request to snoop on.',
+    ],
+    chapter: 2,
+    category: 'web-basics',
+    related: ['https', 'token'],
+  },
+  {
     id: 'identity',
     term: 'Identity',
     short: 'Who the request is from — the verified user behind the token.',

@@ -39,7 +39,9 @@ const loginOnce: Block[] = [
   p(
     _('The way this is solved: after a successful login, the server creates a '),
     t('token', 'token'),
-    _(' — a long, opaque string — and hands it back to the browser. The browser stores it. From that point on, every request the browser makes includes that token in a header (an extra piece of information tagged onto the request, separate from the page or data being requested). The server checks the token, sees it’s valid, and knows which user this request belongs to. The password never crosses the wire again until the next login.'),
+    _(' — a long, opaque string — and hands it back to the browser. The browser stores it. From that point on, every request the browser makes includes that token in a header (an extra piece of information tagged onto the request, separate from the page or data being requested). The server checks the token, sees it’s valid, and knows which user this request belongs to. The password never crosses the '),
+    t('wire', 'wire'),
+    _(' (engineering shorthand for the network connection between browser and server) again until the next login.'),
   ),
   p(
     _('Two common forms at this level: a '),

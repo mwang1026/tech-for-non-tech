@@ -19,7 +19,11 @@ import { _, t, p, ul, h, step, steps } from './authoring'
 
 const whatIsState: Block[] = [
   p(_('Coming out of Chapter 3, we know the back-end checks identity (Ch 2) and gates the action on a resource (Ch 3). The next question: what does the system *hold* between requests, so the next one can find it?')),
-  p(_('Look back at the bank transfer from Chapter 1. Several different things are involved at once: the user clicking the button, the request flying across the wire, the two accounts whose balances change. Each of these has facts attached to it. The user has a name and an email. The request has an amount and a source. Each account has a balance and an owner.')),
+  p(
+    _('Look back at the bank transfer from Chapter 1. Several different things are involved at once: the user clicking the button, the request flying across the '),
+    t('wire', 'wire'),
+    _(', the two accounts whose balances change. Each of these has facts attached to it. The user has a name and an email. The request has an amount and a source. Each account has a balance and an owner.'),
+  ),
   p(
     _('These facts are *attributes* — each one is the X of some Y. Every piece of data the system holds is an attribute of some thing; there is no free-floating data. The collection of those attributes is what we call '),
     t('state', 'state'),
@@ -56,7 +60,7 @@ const stateInMotion: Block[] = [
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
     step(
-      [_('**Request travels to the server.** The request attributes are copied across the wire from the browser into the server\'s memory. The server takes the token and looks the identity up in the session store (cache or database, depending on the setup). Now the server knows which user is asking.')],
+      [_('**Request travels to the server.** The request attributes are copied across the '), t('wire', 'wire'), _(' from the browser into the server\'s memory. The server takes the token and looks the identity up in the session store (cache or database, depending on the setup). Now the server knows which user is asking.')],
       { highlight: ['be-pool', 'cache'], status: 'neutral', focus: 'full' },
     ),
     step(
@@ -77,6 +81,9 @@ const stateInMotion: Block[] = [
     ),
   ),
   p(_('The request was born and died in seconds. The identity stayed warm in the cache between requests. The resource is permanent until something writes over it.')),
+  h('What if the server dies mid-request?'),
+  p(_('That walkthrough assumed every step landed. In real systems they don\'t always: the network drops, the server crashes between steps, the database is briefly unreachable. Because the request\'s attributes only ever lived in that one server\'s memory, a crash mid-transfer means the in-flight state is gone. The browser doesn\'t hear back, and depending on *where* the server died, the database may or may not have already been updated.')),
+  p(_('Handling this well is hard, and we won\'t get into it here. The strategies — the browser retries the request, the server checkpoints progress somewhere durable so a different server can pick it up, the system simply accepts that some requests will be lost — each carry tradeoffs. A blind retry can charge the user twice if the database write already happened. Checkpointing adds latency and code to every request, even the ones that never fail. Accepting the loss is cheap to build but pushes the problem onto the user. Anything held only in memory disappears if the machine running it goes down — and when an agent designs a multi-step server flow, the question to ask is *what happens if this stops halfway?*')),
   p(_('When you direct an AI agent to add a feature that touches data, the question to ask out loud is: *which entity does this attribute belong to, and how long does it have to last?* The answer to the second question decides where it lives. If the agent picks a place without naming the entity, that\'s where to push back.')),
 ]
 
