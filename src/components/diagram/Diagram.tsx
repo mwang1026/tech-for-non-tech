@@ -115,6 +115,7 @@ export function Diagram({ chapter, level, focus, highlight, highlightStatus }: P
   /** Drag to pan. */
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return
+    if ((e.target as Element).closest('button')) return
     ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
     dragging.current = { x: e.clientX, y: e.clientY, vb }
     setManual(true)
