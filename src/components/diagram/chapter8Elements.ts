@@ -3,88 +3,118 @@
  *
  * Coordinate system: 600 wide × 720 tall, matching the architecture diagram's canvas.
  *
- * Visibility is per-slide (not per-chapter+level like the architecture diagram), because
- * Ch 8's diagram accretes through the chapter's six slides:
- *   s0: a folder of files on a laptop (the chapter's starting state — no git yet)
- *   s1: + .git folder, + GitHub remote, + clone/push/pull arrows
- *   s2: + branch graph
- *   s3: + open-PR badge on the remote
- *   s4: + CI ✓ badge on the remote
- *   s5: full diagram (recap), + worktree pair
+ * The chapter walks one concrete change (`sunColor = "yellow"` → `"orange"` in
+ * `src/components/Hero.tsx`) through 13 slides. The diagram switches between
+ * five scenes driven by `ch8Scene(slideIndex)`:
+ *
+ *   slide 0  — scene 'change'         the literal yellow→orange diff, big inset
+ *   slide 1  — scene 'text-runtime'   text file → compiler / runtime → running program
+ *   slide 2  — scene 'organization'   file tree + zoomed-in file (function, class, module, package)
+ *   slides 3–7, 9–12 — scene 'spine'  accreting laptop / GitHub / branches / PR / CI
+ *   slide 8  — scene 'merge-conflict' two branches, competing edits to the same line
+ *
+ * Inside the 'spine' scene, individual elements appear at fixed slide indices:
+ *
+ *   slide 3  laptop + GitHub + clone arrow         (git, GitHub, clone)
+ *   slide 4  branch graph                          (a branch peels off main)
+ *   slide 5  commit metadata callout               (one commit zoomed in)
+ *   slide 6  push arrow + branch on remote         (push)
+ *   slide 7  PR card with diff + checks panel      (pull request)
+ *   slide 9  CI machine attached to PR             (CI)
+ *   slide 10 four lanes: build / lint / types / tests
+ *   slide 11 green status + merge commit on main   (the merge happens)
+ *   slide 12 recap (everything visible)
  */
 
+export type Ch8Scene = 'change' | 'text-runtime' | 'organization' | 'spine' | 'merge-conflict'
+
 export type Ch8ElementId =
-  // Laptop / local
+  // Spine — laptop side
   | 'ch8-laptop'
-  | 'ch8-folder-name'
-  | 'ch8-git-folder'
-  | 'ch8-src-folder'
-  | 'ch8-package-json'
-  | 'ch8-readme'
-  | 'ch8-claude-badge'
-  // GitHub / remote
+  | 'ch8-laptop-files'
+  | 'ch8-laptop-git-folder'
+  // Spine — remote side
   | 'ch8-github'
-  | 'ch8-pr-badge'
-  | 'ch8-ci-badge'
-  // Sync arrows
+  | 'ch8-github-files'
+  // Spine — sync arrow
   | 'ch8-arrow-clone'
   | 'ch8-arrow-push'
-  | 'ch8-arrow-pull'
-  // Branches
-  | 'ch8-branches-frame'
+  // Spine — branch graph
+  | 'ch8-branch-graph'
   | 'ch8-branch-main'
   | 'ch8-branch-feature'
-  | 'ch8-merge-commit'
-  // Worktree
-  | 'ch8-worktree-frame'
-  | 'ch8-worktree-a'
-  | 'ch8-worktree-b'
-  | 'ch8-worktree-shared-git'
+  | 'ch8-commit-orange'
+  | 'ch8-commit-merge'
+  // Spine — commit metadata callout (slide 6)
+  | 'ch8-commit-callout'
+  // Spine — pull request card (slide 8)
+  | 'ch8-pr-card'
+  | 'ch8-pr-diff'
+  | 'ch8-pr-checks-panel'
+  // Spine — CI machine (slide 10)
+  | 'ch8-ci-machine'
+  | 'ch8-ci-lane-build'
+  | 'ch8-ci-lane-lint'
+  | 'ch8-ci-lane-types'
+  | 'ch8-ci-lane-tests'
+  | 'ch8-ci-status-green'
 
 export type Ch8Element = {
   id: Ch8ElementId
-  /** Slide index (0-based) at which this element first appears. */
+  /** Slide index (0-based) at which this element first appears within the 'spine' scene. */
   fromSlide: number
-  /** Optional region used to drive viewBox focus when a slide names this region. */
-  region?: 'local' | 'local-remote' | 'branches' | 'pr' | 'ci' | 'worktree'
 }
 
 export const ch8Elements: Record<Ch8ElementId, Ch8Element> = {
-  // s0 — just the laptop with a folder of files
-  'ch8-laptop':         { id: 'ch8-laptop',        fromSlide: 0, region: 'local' },
-  'ch8-folder-name':    { id: 'ch8-folder-name',   fromSlide: 0, region: 'local' },
-  'ch8-src-folder':     { id: 'ch8-src-folder',    fromSlide: 0, region: 'local' },
-  'ch8-package-json':   { id: 'ch8-package-json',  fromSlide: 0, region: 'local' },
-  'ch8-readme':         { id: 'ch8-readme',        fromSlide: 0, region: 'local' },
+  // Slide 3 — laptop, GitHub, clone arrow appear together
+  'ch8-laptop':         { id: 'ch8-laptop',         fromSlide: 3 },
+  'ch8-laptop-files':   { id: 'ch8-laptop-files',   fromSlide: 3 },
+  'ch8-laptop-git-folder': { id: 'ch8-laptop-git-folder', fromSlide: 3 },
+  'ch8-github':         { id: 'ch8-github',         fromSlide: 3 },
+  'ch8-github-files':   { id: 'ch8-github-files',   fromSlide: 3 },
+  'ch8-arrow-clone':    { id: 'ch8-arrow-clone',    fromSlide: 3 },
 
-  // s1 — git appears, github appears, sync arrows appear
-  'ch8-git-folder':     { id: 'ch8-git-folder',    fromSlide: 1, region: 'local' },
-  'ch8-claude-badge':   { id: 'ch8-claude-badge',  fromSlide: 1, region: 'local' },
-  'ch8-github':         { id: 'ch8-github',        fromSlide: 1, region: 'local-remote' },
-  'ch8-arrow-clone':    { id: 'ch8-arrow-clone',   fromSlide: 1, region: 'local-remote' },
-  'ch8-arrow-push':     { id: 'ch8-arrow-push',    fromSlide: 1, region: 'local-remote' },
-  'ch8-arrow-pull':     { id: 'ch8-arrow-pull',    fromSlide: 1, region: 'local-remote' },
+  // Slide 4 — branch graph
+  'ch8-branch-graph':   { id: 'ch8-branch-graph',   fromSlide: 4 },
+  'ch8-branch-main':    { id: 'ch8-branch-main',    fromSlide: 4 },
+  'ch8-branch-feature': { id: 'ch8-branch-feature', fromSlide: 4 },
+  'ch8-commit-orange':  { id: 'ch8-commit-orange',  fromSlide: 4 },
 
-  // s2 — branch graph appears
-  'ch8-branches-frame': { id: 'ch8-branches-frame', fromSlide: 2, region: 'branches' },
-  'ch8-branch-main':    { id: 'ch8-branch-main',    fromSlide: 2, region: 'branches' },
-  'ch8-branch-feature': { id: 'ch8-branch-feature', fromSlide: 2, region: 'branches' },
-  'ch8-merge-commit':   { id: 'ch8-merge-commit',   fromSlide: 2, region: 'branches' },
+  // Slide 5 — commit metadata callout
+  'ch8-commit-callout': { id: 'ch8-commit-callout', fromSlide: 5 },
 
-  // s3 — PR badge on the remote
-  'ch8-pr-badge':       { id: 'ch8-pr-badge',      fromSlide: 3, region: 'pr' },
+  // Slide 6 — push arrow
+  'ch8-arrow-push':     { id: 'ch8-arrow-push',     fromSlide: 6 },
 
-  // s4 — CI badge on the remote
-  'ch8-ci-badge':       { id: 'ch8-ci-badge',      fromSlide: 4, region: 'ci' },
+  // Slide 7 — PR card (diff + empty checks panel)
+  'ch8-pr-card':        { id: 'ch8-pr-card',        fromSlide: 7 },
+  'ch8-pr-diff':        { id: 'ch8-pr-diff',        fromSlide: 7 },
+  'ch8-pr-checks-panel': { id: 'ch8-pr-checks-panel', fromSlide: 7 },
 
-  // s5 — recap; worktree visualization appears
-  'ch8-worktree-frame':      { id: 'ch8-worktree-frame',      fromSlide: 5, region: 'worktree' },
-  'ch8-worktree-a':          { id: 'ch8-worktree-a',          fromSlide: 5, region: 'worktree' },
-  'ch8-worktree-b':          { id: 'ch8-worktree-b',          fromSlide: 5, region: 'worktree' },
-  'ch8-worktree-shared-git': { id: 'ch8-worktree-shared-git', fromSlide: 5, region: 'worktree' },
+  // Slide 9 — CI machine appears (slide 8 is merge-conflict scene; CI shows up after)
+  'ch8-ci-machine':     { id: 'ch8-ci-machine',     fromSlide: 9 },
+
+  // Slide 10 — four lanes inside CI
+  'ch8-ci-lane-build':  { id: 'ch8-ci-lane-build',  fromSlide: 10 },
+  'ch8-ci-lane-lint':   { id: 'ch8-ci-lane-lint',   fromSlide: 10 },
+  'ch8-ci-lane-types':  { id: 'ch8-ci-lane-types',  fromSlide: 10 },
+  'ch8-ci-lane-tests':  { id: 'ch8-ci-lane-tests',  fromSlide: 10 },
+
+  // Slide 11 — all green; merge lands
+  'ch8-ci-status-green': { id: 'ch8-ci-status-green', fromSlide: 11 },
+  'ch8-commit-merge':   { id: 'ch8-commit-merge',   fromSlide: 11 },
 }
 
-/** Which element IDs are visible at this slide index? */
+/** Which scene the diagram is in for a given slide index. */
+export function ch8Scene(slideIndex: number): Ch8Scene {
+  if (slideIndex === 0) return 'change'
+  if (slideIndex === 1) return 'text-runtime'
+  if (slideIndex === 2) return 'organization'
+  if (slideIndex === 8) return 'merge-conflict'
+  return 'spine'
+}
+
+/** Which spine elements are visible at this slide index. Only consulted when scene === 'spine'. */
 export function visibleCh8Elements(slideIndex: number): Set<Ch8ElementId> {
   const out = new Set<Ch8ElementId>()
   for (const el of Object.values(ch8Elements)) {
@@ -95,13 +125,23 @@ export function visibleCh8Elements(slideIndex: number): Set<Ch8ElementId> {
 
 export const CH8_FULL_VIEWBOX = { x: 0, y: 0, w: 600, h: 720 }
 
-/** Per-region viewBoxes that slides reference via `diagramFocus`. */
+/**
+ * Per-region viewBoxes the slides reference via `diagramFocus`. Each scene has
+ * its own natural framing; the spine has region zooms for laptop, branches, PR, CI.
+ */
 export const CH8_REGION_VIEWBOX: Record<string, { x: number; y: number; w: number; h: number }> = {
   full:           CH8_FULL_VIEWBOX,
-  'local-only':   { x: 0,   y: 30,  w: 320, h: 330 },
-  'local-remote': { x: 0,   y: 30,  w: 600, h: 330 },
-  branches:       { x: 0,   y: 360, w: 600, h: 180 },
-  pr:             { x: 300, y: 30,  w: 300, h: 330 },
-  ci:             { x: 300, y: 30,  w: 300, h: 330 },
-  worktree:       { x: 0,   y: 540, w: 600, h: 180 },
+  // Whole-scene framings
+  change:         { x: 0,   y: 0,   w: 600, h: 720 },
+  'text-runtime': { x: 0,   y: 0,   w: 600, h: 720 },
+  organization:   { x: 0,   y: 0,   w: 600, h: 720 },
+  'merge-conflict': { x: 0, y: 0,   w: 600, h: 720 },
+  // Spine subregions
+  spine:          CH8_FULL_VIEWBOX,
+  laptop:         { x: 0,   y: 40,  w: 320, h: 320 },
+  remote:         { x: 280, y: 40,  w: 320, h: 320 },
+  branches:       { x: 0,   y: 360, w: 600, h: 160 },
+  'commit-detail': { x: 200, y: 360, w: 400, h: 200 },
+  pr:             { x: 0,   y: 360, w: 600, h: 200 },
+  ci:             { x: 0,   y: 540, w: 600, h: 180 },
 }

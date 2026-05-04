@@ -2,135 +2,244 @@ import type { Chapter, Block } from './types'
 import { _, t, p, ul, code } from './authoring'
 
 /* ============================================================================
- * Chapter 8 — Code Lifecycle (101)
+ * Chapter 8 — From Edited Text to Merged Change (101)
  *
- * No new diagram boxes at 101 — code lifecycle is process, not architecture.
+ * One worked example threads through the whole chapter: a developer wants to
+ * change `sunColor = "yellow"` to `"orange"` inside `src/components/Hero.tsx`.
+ * Every concept is anchored to that two-line edit.
  *
  * Slide arc:
- *   1. Why "save the file" isn't enough
- *   2. Git: a record of every change
- *   3. Pull requests — proposing a change
- *   4. Tests + CI — verifying behavior automatically
- *   5. Recap (with prompts)
+ *   1.  The change we're making        (set up the worked example)
+ *   2.  Code is text + the thing that runs it   (compiler / interpreter / runtime)
+ *   3.  How a codebase is organized     (file / folder / function / method / class / module / package)
+ *   4.  git, GitHub, clone              (the canonical copy + your local copy)
+ *   5.  Branches                        (parallel timeline so you don't disturb main)
+ *   6.  Commits                         (the named unit of change)
+ *   7.  Push                            (your branch reaches the remote)
+ *   8.  Pull request                    (a proposal everyone can read)
+ *   9.  Merge conflicts                 (when two timelines disagree)
+ *   10. CI                              (the robot that checks every PR)
+ *   11. What CI runs                    (build / lint / type check / tests)
+ *   12. Green, red, the merge           (the change officially lands on main)
+ *   13. Recap
+ *
+ * The diagram (Chapter8DiagramSvg.tsx) switches between five scenes driven by
+ * the slide index — see chapter8Elements.ts.
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — Save isn't enough --------------------------- */
+/* --------------------------- Slide 1 — The change we're making --------------------------- */
 
-const saveNotEnough: Block[] = [
-  p(_('Act I done — coming out of Chapter 7, you have the full mental model of how a request flows through the running system. Act II is the orthogonal story: how the code that runs all this gets there in the first place. Starting with the very first problem: editing files.')),
-  p(_('Imagine for a moment a team of ten engineers, all editing the same codebase by just saving files to a shared folder. The problems start immediately:')),
-  ul(
-    [_('Two engineers edit the same file at the same time. One save overwrites the other. Hours of work, gone.')],
-    [_('Something breaks in production. You ask "when did this break?" — and there’s no record. No history. Just the current state of the files.')],
-    [_('You want to try a risky change without affecting anyone else. There’s no way to do that without making your own copy of the whole codebase.')],
-    [_('You want to roll back to last Tuesday’s working version. There’s no last Tuesday — only now.')],
-  ),
-  p(_('What needs to happen: a system that records *every* change anyone ever made, lets people work on different versions in parallel, and gives you a way to bring those versions back together (or revert them) safely.')),
-  p(_('That system is called **version control**, and the version that essentially every team uses is git.')),
+const theChange: Block[] = [
+  p(_('Act II is about how the code that runs the system gets there in the first place. Watching that journey from one direction is the cleanest way to see every piece, so this whole chapter and the next track a single change end to end.')),
+  p(_('Somewhere in the codebase of some product, a line says:')),
+  code(`sunColor = "yellow"`),
+  p(_('Product wants the homepage sun to be orange. The developer needs that line to read:')),
+  code(`sunColor = "orange"`),
+  p(_('Six characters changed, in one file, in one place. That is the entire technical change. Everything else in this chapter — git, branches, pull requests, CI — exists because real teams need a way to do that change safely with other people in the codebase, with a record of what happened, and with automated checks before it ships.')),
+  p(_('The same path applies to changes a thousand times bigger. Walking it through a tiny example makes every step visible without the reader having to know any code.')),
 ]
 
-/* --------------------------- Slide 2 — Your local copy --------------------------- */
+/* --------------------------- Slide 2 — Code is text + runtime --------------------------- */
 
-const localCopy: Block[] = [
-  p(_('Before any of this works, the code has to live somewhere on your computer. The codebase itself sits on '), t('GitHub', 'github'), _(' (or GitLab); your job is to make a copy onto your laptop to work on. The command for that is '), t('git clone', 'git-clone'), _('.')),
-  p(_('What you actually type, the very first time:')),
+const codeIsText: Block[] = [
+  p(_('Some readers of this primer have edited code; some haven\'t. So before going further: what is code, literally?')),
+  p(_('Code is text saved in files. Plain text — no fonts, no formatting, just characters. A developer opens the file in a text editor (VS Code, Cursor, JetBrains IDEs are all editors), types, and saves. The "yellow" in the previous slide is seven literal characters inside one file. Changing it to "orange" is a six-character edit and another save.')),
+  p(_('Text by itself doesn\'t do anything — it just sits on disk. The machine doesn\'t speak the language the developer wrote. A second program sits between the text and the machine and translates. Two flavors of that second program:')),
+  ul(
+    [_('A '), t('compiler', 'compiler'), _(' translates the whole codebase into machine instructions ahead of time, producing a binary the machine runs later. Go, Rust, Java, and C work this way.')],
+    [_('An '), t('interpreter', 'interpreter'), _(' reads the text and executes it on the fly, every time the program runs. Python and Ruby work this way. JavaScript runs in the browser via the browser\'s built-in interpreter, and on the server via '), t('Node.js', 'nodejs'), _(' — the JavaScript runtime that executes the same code outside the browser.')],
+  ),
+  p(
+    _('The word '),
+    t('runtime', 'runtime'),
+    _(' shows up everywhere — it\'s the umbrella name for whatever piece does that translation and execution while the program runs. Containers in the next chapter package the code together with its runtime so the program runs the same anywhere.'),
+  ),
+  p(_('Different languages have different syntax (the rules for what counts as a valid sentence) and different communities, but the developer\'s job is the same in any of them: edit text in files, save, hand it to the compiler or runtime.')),
+]
+
+/* --------------------------- Slide 3 — Codebase organization --------------------------- */
+
+const organization: Block[] = [
+  p(_('A real product is rarely one giant text file. Splitting code into many smaller pieces is how a human (or an agent) navigates a codebase without drowning. The vocabulary for those scales:')),
+  ul(
+    [_('A '), t('file', 'code-file'), _(' is one text document on disk. `Hero.tsx` is a file. The orange-sun change touches one file.')],
+    [_('A '), t('folder', 'folder'), _(' (sometimes called a directory) groups files by purpose. `src/components/` holds UI components; `src/db/` holds database code. Folder structure is a navigation tool — it tells you where to look for a given concern.')],
+    [_('A '), t('function', 'function'), _(' is a named block of code that does one job. `getSunColor()` returns a color. Inside the file, code is organized into functions so each one can be read, tested, and reused on its own.')],
+    [_('A '), t('class', 'class'), _(' bundles related data together with the operations on it. A `User` class might hold a name and email plus operations like `changePassword()`. When a function lives inside a class, some languages call it a '), t('method', 'method'), _(' (Java, Python, Ruby do; JavaScript and Go usually still say function). Same job, different name by convention.')],
+    [_('A '), t('module', 'module'), _(' is a single file (or small group) treated as a unit other code imports from. `theme.ts` exporting the sun color is a module — other files bring it in by name.')],
+    [_('A '), t('package', 'package'), _(' is a folder of modules distributed and versioned together. The whole `your-repo/` codebase is a package. `react`, which other projects install and use, is also a package — published, versioned, and pulled in as a dependency.')],
+  ),
+  p(_('Names blur across languages — what JavaScript calls a module is roughly what Python calls a module which is roughly what Java calls a class file. The reader doesn\'t need to know the differences. Just to recognize that when a reviewer or an agent says "module," "package," or "method," they\'re naming a scale of code organization, not a magic concept.')),
+  p(_('For the orange-sun change: the file is `Hero.tsx`, inside the `components` folder, inside `src`, inside the `your-repo` package. The line being changed sits inside a function called `getSunColor`, attached to a class called `Hero`. The reviewer asking "where\'s the change?" is asking for that path.')),
+]
+
+/* --------------------------- Slide 4 — git, GitHub, clone --------------------------- */
+
+const gitAndGitHub: Block[] = [
+  p(_('Now: where does the code actually live? Two layers, often confused.')),
+  ul(
+    [t('Git', 'git'), _(' is the version-control software. It runs on every developer\'s laptop and on the server hosting the canonical copy. It tracks every change ever made to the codebase, with full history. It\'s open source, free, and works offline. When someone runs `git commit` or `git push`, that\'s the git program on their laptop doing the work.')],
+    [t('GitHub', 'github'), _(' is an application companies use to host their code. It runs git on its servers — that\'s where "the canonical copy" actually sits — and adds a website on top: pull request pages, code review, search, issue tracking, automated checks, permissions. GitHub is owned by Microsoft. '), t('GitLab', 'gitlab'), _(' is the main alternative; it can also be self-hosted on a company\'s own infrastructure. '), t('Bitbucket', 'bitbucket'), _(' (Atlassian) is a third. A team picks one and that\'s where their code lives.')],
+  ),
+  p(
+    _('A '), t('repository', 'repository'),
+    _(' (or "repo") is the whole tree of files plus the full history git tracks for them. To work on a repo, the developer brings a copy onto their laptop:'),
+  ),
   code(`git clone https://github.com/your-org/your-repo.git
 cd your-repo`),
-  p(_('After this, you have a folder on your laptop that contains the project plus a hidden `.git` folder where git stores all the history. You never edit `.git` directly — git manages it.')),
-  code(`~/code/your-repo/
-  .git/           ← history lives here (don't touch)
-  src/
-  package.json
-  README.md`),
-  p(_('When you run `claude` inside that folder, this is the agent’s working surface. Every file edit lands here on disk; git records what changed.')),
-  p(_('Two terms you’ll keep hearing:')),
+  p(_('After this, the laptop has a folder `your-repo/` with all the project files plus a hidden `.git` folder where git stores the history. The two copies (laptop and GitHub) start identical. Two terms used constantly:')),
   ul(
-    [_('**Local** — the copy on your laptop. What you can edit and run.')],
-    [_('**Remote** — the copy on GitHub. The shared source of truth that everyone else clones from.')],
+    [_('**Local** — the copy on the laptop. What you can edit and run.')],
+    [_('**Remote** — the copy on GitHub. The shared source of truth.')],
   ),
-  p(_('They sync via two commands: `git pull` brings down changes from the remote into your local copy; `git push` sends your local commits up to the remote. The next slide gets to commits, branches, and how those flow.')),
+  p(_('For the orange-sun change: `git clone` ran some time ago; the laptop already has the repo. The developer opens `src/components/Hero.tsx` in the editor and is ready to change "yellow" to "orange".')),
 ]
 
-/* --------------------------- Slide 3 — Git basics --------------------------- */
+/* --------------------------- Slide 5 — Branches --------------------------- */
 
-const gitBasics: Block[] = [
+const branches: Block[] = [
+  p(_('Editing `Hero.tsx` directly on the canonical timeline is the wrong move. The canonical timeline is called '), t('main', 'main-branch'), _(' (some older repos call it `master`). Every other developer pulling from `main` would immediately get the half-finished orange change in their working copy. Worse, the moment something else needs to ship from `main`, the orange change is part of it whether it\'s ready or not.')),
   p(
-    t('Git', 'git'),
-    _(' is a system that tracks every change anyone makes to the code, with full history. It lives in your project folder and treats the whole codebase as a sequence of snapshots over time.'),
+    _('The fix is a '),
+    t('branch', 'branch'),
+    _(' — a parallel timeline of changes that doesn\'t disturb `main`. The developer creates one and switches to it:'),
   ),
-  p(_('Three ideas do most of the work:')),
-  ul(
-    [t('Commit', 'commit'), _(' — A snapshot of the code at a moment in time, with a message explaining what changed and why. Every commit has an author, a timestamp, and a unique ID. You can travel back to any commit. "I broke X yesterday afternoon" → find the commit that broke it, look at exactly what changed.')],
-    [t('Branch', 'branch'), _(' — A parallel timeline of commits. The main timeline is usually called `main` (or sometimes `master`). When you want to work on a feature without disturbing the main timeline, you create a branch off of it, make commits there, and the main branch stays untouched. Other people can be working on their own branches at the same time.')],
-    [t('Merge', 'merge'), _(' — Bringing changes from one branch back into another. When your feature branch is ready, you merge it into main, and main now contains your work plus everyone else’s. Sometimes git can do this automatically; sometimes it can’t.')],
-  ),
-  p(
-    _('When git can’t merge automatically, it’s because two branches changed the same lines of the same file. For example: developer A changed line 42 to set `price = 10`, and developer B changed the same line to set `price = 15`. Git can’t pick a winner, so it asks a human. This is called a '),
-    t('merge conflict', 'merge-conflict'),
-    _('. The person merging looks at both versions, picks (or combines) the right answer, and saves the resolution. Common, not scary, just tedious.'),
-  ),
-  p(_('Visualized as a graph, a feature branch that gets merged back looks like this:')),
-  code(`main:     A───B───C────────M
-                   \\      /
-feature:            D────E`),
-  p(_('A, B, C are commits on `main`. D and E are two commits made on a feature branch (which started from C). M is the merge commit — the moment those two timelines come back together.')),
-  p(_('What you actually type day-to-day:')),
-  code(`git checkout -b fix-payments    # create a new branch and switch to it
-git add .                       # stage your edits for the next commit
-git commit -m "fix payment bug" # save a snapshot with a message
-git push                        # send the branch up to GitHub`),
-  p(_('Most teams host their git repositories on '), t('GitHub', 'github'), _(' or '), t('GitLab', 'gitlab'), _(' — services that store the code and add review and collaboration features on top. Which is the next slide.')),
+  code(`git checkout -b sun-color-orange`),
+  p(_('`checkout` is the verb git uses for "switch to this branch." `-b` means "and create it if it doesn\'t exist." The branch starts as an exact copy of `main` at that moment, then diverges from there.')),
+  p(_('On the new branch, the developer edits `Hero.tsx` and changes "yellow" to "orange". The file on disk now reads orange. On `main`, the same file still reads yellow. Two timelines, same starting point, different content from this point forward.')),
+  p(_('Five developers can each have their own branch open at the same time — one fixing a payment bug, one adding a new sign-up flow, one rewording the homepage, plus the orange-sun change — all without stepping on each other. Branches are how parallel work happens without chaos.')),
 ]
 
-/* --------------------------- Slide 3 — Pull requests --------------------------- */
+/* --------------------------- Slide 6 — Commits --------------------------- */
 
-const pullRequests: Block[] = [
-  p(_('Imagine you’ve made a branch, written some code, and you think it’s ready. You don’t just merge it into main yourself. You open a pull request.')),
+const commits: Block[] = [
+  p(_('Saving the file in the editor isn\'t enough. The file on disk has new content, but git doesn\'t yet know which set of edits the developer wants to record as a unit. That\'s what a commit is.')),
+  p(
+    _('A '),
+    t('commit', 'commit'),
+    _(' is a snapshot of the codebase at a moment, with a message explaining what changed and why. Two commands do it:'),
+  ),
+  code(`git add src/components/Hero.tsx
+git commit -m "change sun color from yellow to orange"`),
+  p(_('`git add` stages the file — tells git "this edit is part of the next commit." `git commit -m "..."` saves the snapshot with the given message. After this, the orange change is one commit on the `sun-color-orange` branch.')),
+  p(_('Every commit carries:')),
+  ul(
+    [_('**A unique ID** — a long string of letters and numbers (often shortened to seven characters in display, e.g. `42a1f2`). This ID is how every other tool refers to the commit later.')],
+    [_('**An author** — who wrote it.')],
+    [_('**A timestamp** — when it was made.')],
+    [_('**A message** — the human-readable explanation.')],
+    [_('**A diff** — the exact lines added and removed.')],
+  ),
+  p(_('Commit messages are not throwaway. Six months from now, when something breaks and an investigator runs `git blame` on `Hero.tsx`, the commit message is what tells them why orange. "fix" or "wip" as a message is a small disservice to that future person.')),
+]
+
+/* --------------------------- Slide 7 — Push --------------------------- */
+
+const push: Block[] = [
+  p(_('After the commit, the orange change exists in exactly one place: the local copy on the developer\'s laptop. The remote on GitHub still doesn\'t know about it. Anybody else who clones the repo right now gets yellow.')),
+  code(`git push -u origin sun-color-orange`),
+  p(_('`git push` sends the branch and its commits to the remote. `-u origin sun-color-orange` is plumbing the first time a branch is pushed — it tells git "this local branch tracks the remote branch with the same name on the `origin` remote." After running it once, future pushes on this branch can be just `git push`.')),
+  p(_('Now the branch exists in two places: the laptop and GitHub. The two are in sync. `main` on the remote is still untouched — the orange-sun branch is sitting next to `main`, not part of it.')),
+  p(_('That last point is the bridge to the next slide. The branch is on the remote but it isn\'t merged into `main`, which is what would actually make it part of the canonical codebase. The mechanism for proposing the merge is the pull request.')),
+]
+
+/* --------------------------- Slide 8 — Pull request --------------------------- */
+
+const pullRequest: Block[] = [
   p(
     _('A '),
     t('pull request', 'pull-request'),
-    _(' (often shortened to "PR" — or "MR" for "merge request" on GitLab) is a *proposal* to merge your branch into main. It’s where the team reviews the change before it actually happens. The PR shows the '),
-    t('diff', 'diff'),
-    _(' — the exact lines added, removed, and changed — alongside discussion threads where reviewers can comment on specific lines.'),
+    _(' (PR) is a proposal to merge one branch into another — almost always, a feature branch into `main`. On '),
+    t('GitLab', 'gitlab'),
+    _(' the same thing is called a "merge request" (MR). Same concept, different name.'),
   ),
-  p(_('What a pull request does:')),
+  p(_('A PR is a webpage on GitHub. It has a URL anyone with access can read. On the page:')),
   ul(
-    [_('Makes the change visible. Other engineers see what you’re proposing and can comment, ask questions, or request changes before anything ships.')],
-    [_('Forces a review. Most teams require at least one approval from another engineer before a PR can be merged.')],
-    [_('Triggers automated checks. The moment you open the PR, automated tests start running against your branch. If they fail, the PR is blocked from merging until you fix them. (More on this next slide.)')],
-    [_('Creates a record. The PR’s description, the discussion, and the list of commits become permanent history. Six months from now, when someone asks "why did we do this?", the PR is the answer.')],
+    [_('**The title and description** — what this change is and why. For the orange-sun PR: title "change sun color from yellow to orange," description with any context the reviewer needs.')],
+    [_('**The diff** — every line added and removed across every file. For this PR, exactly two lines: `- sunColor = "yellow"` (red) and `+ sunColor = "orange"` (green). Diffs are how engineers read changes; learning to read them is the foundation of code review.')],
+    [_('**Discussion threads** — reviewers comment on specific lines or on the PR overall. Asking questions, requesting changes, approving.')],
+    [_('**The list of commits** — every commit on the branch. For this PR, just one.')],
+    [_('**A checks panel** — the live status of the automated checks that run on every PR. (Next slides cover what those checks are.)')],
   ),
-  p(_('When you direct an AI agent to make a change, the agent doesn’t commit directly to main. It (and you) work on a branch; the work becomes a PR; the PR gets reviewed; the PR gets merged. Reading the diff in the PR is your last chance to catch mistakes before they ship — never skip it. On GitHub, the diff lives on the **Files changed** tab of the pull request page. (And if you’re working with Claude Code, you can also ask the agent: *"show me the diff for this branch."*) Chapter 10 covers how to actually verify the change without reading code yourself.')),
+  p(_('GitHub enforces team rules at the PR level: a PR usually can\'t be merged until at least one other engineer has approved it, and until all the automated checks pass. Those rules are configured per repository. They\'re not a social convention — the merge button literally won\'t click on a PR that hasn\'t met them.')),
+  p(_('When an AI agent makes a change, it goes through the same path: branch, commits, PR, review, checks, merge. The PR is where a non-coder can verify what the agent did before any of it lands — read the diff, ask questions, approve or push back.')),
 ]
 
-/* --------------------------- Slide 4 — Tests and CI --------------------------- */
+/* --------------------------- Slide 9 — Merge conflicts --------------------------- */
 
-const testsAndCI: Block[] = [
-  p(_('When you open a pull request, you usually want to know one thing right away: did your change break anything? Doing that by hand — clicking through the entire app to make sure nothing’s broken — is impossibly slow. So we automate it.')),
-  p(
-    t('Tests', 'tests'),
-    _(' are little programs that exercise the real code and check that it does what it’s supposed to. The simplest kind tests one function in isolation: "given this input, did we get the right output?" Bigger tests stand up parts of the system together and check that they cooperate. The biggest tests drive a fake browser through the full app to make sure the user-visible flow still works.'),
+const mergeConflicts: Block[] = [
+  p(_('Two ways the orange-sun PR can hit trouble at the merge step. Both have the same root cause: a line has two competing versions, and git can\'t pick.')),
+  ul(
+    [_('**Two open PRs touching the same lines.** Two developers branched off `main` at the same point. PR A changed `sunColor` to `"orange"`; PR B changed the same line to `"gold"`. PR A merges first and goes in cleanly. When PR B tries to merge, its baseline is now stale — the line PR B is touching has already been changed by PR A. Git doesn\'t know whether "gold" should win over "orange" or the other way around.')],
+    [_('**`main` moved while a branch sat.** The orange-sun branch was created off `main` last Tuesday. Over the week, four PRs merged into `main`, and one of them touched the same line. When the orange-sun PR is opened a week later, its view of that line disagrees with `main`\'s view. Same problem, different way to land in it.')],
   ),
   p(
-    _('When a pull request opens, an automation called '),
-    t('CI', 'ci'),
-    _(' (Continuous Integration) runs the entire test suite against your branch automatically. If every test passes, your PR shows up '),
-    t('green', 'green-build'),
-    _(' — ready for review and merge. If anything fails, your PR shows up '),
-    t('red', 'red-build'),
-    _(' — blocked from merging until you fix it. The team’s rule is usually simple: red PRs do not get merged.'),
+    _('When git can\'t merge automatically, it produces a '),
+    t('merge conflict', 'merge-conflict'),
+    _('. Git rewrites the file with both versions clearly marked, separated by special lines. Something like:'),
+  ),
+  code(`<<<<<<< HEAD
+  sunColor = "orange"
+=======
+  sunColor = "gold"
+>>>>>>> branch B`),
+  p(_('Resolving the conflict is a human job. The developer opens the file, reads both versions, picks (or combines) the right answer, deletes the marker lines, saves, commits the resolution. Modern editors and the GitHub website have UI for this — visual side-by-side views, a "use ours / use theirs" button — so it doesn\'t require typing literally between the markers.')),
+  p(_('Conflicts are routine. They happen any time two changes touch the same lines. Not scary, just tedious. The reason this slide exists at all is that the word "conflict" sounds dramatic and it isn\'t — it\'s the normal cost of letting parallel work happen.')),
+]
+
+/* --------------------------- Slide 10 — CI --------------------------- */
+
+const ci: Block[] = [
+  p(_('When the orange-sun PR is opened, a separate piece of automation kicks in. A fresh machine — not the developer\'s laptop, not GitHub\'s general infrastructure — downloads the branch, sets the project up from scratch, and runs every automated check the team has configured. The umbrella term for this is '), t('CI', 'ci'), _(' (continuous integration).')),
+  p(_('Why a fresh machine? Because "works on my laptop" is famously not a guarantee. The laptop has the developer\'s editor, their tools, their cached files, their shell history. The CI machine starts from nothing — clones the repo, installs dependencies, runs the checks. If the change works there, it has a real chance of working somewhere else.')),
+  p(_('CI is the current industry standard for any codebase past one developer working alone. Most professional teams run it on every PR. The 2024 Stack Overflow Developer Survey reports CI/CD adoption among professional developers; GitHub\'s State of the Octoverse reports usage of GitHub Actions specifically. Plenty of repos still don\'t have CI — solo prototypes, internal scripts, abandoned projects — and that\'s fine for what they are. The point isn\'t that CI is universal; it\'s that any team shipping a real product should have it, and the reader will see it on every serious codebase they meet.')),
+  ul(
+    [_('Stack Overflow Developer Survey — '), _('https://survey.stackoverflow.co/')],
+    [_('GitHub Octoverse — '), _('https://octoverse.github.com/')],
   ),
   p(
-    _('CI usually also runs other automated checks alongside tests: linting (style consistency), type checking (catching obvious mismatches like "expected a number, got text"), and sometimes security scans. All of them have to pass. Common CI services: '),
+    _('Common CI services: '),
     t('GitHub Actions', 'github-actions'),
-    _(' (built into GitHub), '),
+    _(' (built into GitHub, the most common choice for repos hosted there), '),
     t('CircleCI', 'circleci'),
     _(', '),
     t('GitLab CI', 'gitlab-ci'),
-    _(', '),
+    _(' (built into GitLab), '),
     t('Buildkite', 'buildkite'),
-    _('.'),
+    _('. They look different on the inside, but the job they do is the same: pull the branch, run the checks, report back.'),
   ),
+]
+
+/* --------------------------- Slide 11 — What CI runs --------------------------- */
+
+const whatCiRuns: Block[] = [
+  p(_('CI runs several different kinds of check, each catching a different category of bug. For a real PR, all of them have to pass.')),
+  ul(
+    [_('**Build** — does the code turn into a runnable program at all? For compiled languages, this is literally running the compiler. For interpreted ones, it usually means installing dependencies and bundling files together. Build catches typos, missing imports, broken syntax — the most basic class of "this can\'t even run" mistake.')],
+    [_('A '), t('linter', 'linter'), _(' enforces the team\'s style and pattern rules — things like unused variables, banned functions, formatting drift, inconsistent quoting. It doesn\'t catch behavior bugs. It catches the small surface-level inconsistencies that, accumulated, make a codebase harder for everyone to read.')],
+    [_('A '), t('type checker', 'type-checker'), _(' verifies that the pieces fit together. If `sunColor` is supposed to be a string and somewhere a number got assigned to it, the type checker catches that before the code ever runs. Languages like TypeScript, Go, Rust, and Java have type checking built in; languages like Python and JavaScript add it as a separate optional layer.')],
+    [t('Tests', 'tests'), _(' — small programs that exercise the real code and check it does what it should. Three sizes worth knowing:')],
+  ),
+  ul(
+    [t('Unit tests', 'unit-test'), _(' — one function, in isolation. "Given input X, do we get output Y?" Cheapest to run, cheapest to maintain, narrowest in what they prove.')],
+    [t('Integration tests', 'integration-test'), _(' — multiple pieces working together. "When the API receives this request, does the right row appear in the database?" More setup, broader coverage.')],
+    [t('End-to-end tests', 'e2e-test'), _(' — a fake browser drives the real app from the outside. "Load the homepage, see an orange sun." Slow to run, easy to break, but the only kind that proves the user-visible thing works.')],
+  ),
+  p(_('For the orange-sun change, the test that matters is probably an end-to-end one that loads the homepage and checks for the right color. If a test was previously asserting the literal string "yellow" on the page, it\'s about to fail — not because orange is wrong, but because the test needs updating to match the new expected value. That update is part of the PR.')),
+]
+
+/* --------------------------- Slide 12 — Green, red, the merge --------------------------- */
+
+const greenRedMerge: Block[] = [
+  p(_('When CI finishes, the PR is in one of two states.')),
+  ul(
+    [t('Green', 'green-build'), _(' — every check passed. The PR is mergeable, assuming reviewers have approved.')],
+    [t('Red', 'red-build'), _(' — at least one check failed. GitHub blocks the merge button (this is enforced server-side, not just visually). The developer reads the CI output, fixes whatever broke, pushes another commit. CI re-runs automatically. Repeat until green.')],
+  ),
+  p(_('For the orange-sun PR: assume CI is now green and a reviewer has approved. Click **Merge**. Behind the scenes, GitHub takes the branch\'s commits and adds them to `main`. The orange-sun commit is now part of `main`\'s history. The branch can be deleted (the commits stay, attached to `main`). The PR page is preserved permanently as the record of what happened and why.')),
+  p(_('From here on, anybody who clones the repo or pulls `main` gets the orange version of `Hero.tsx`. The change is officially part of the canonical codebase.')),
+  p(_('But — and this is the bridge to chapter 9 — `main` on GitHub is *not* what users see when they load the homepage. Real users hit production servers, and production servers don\'t run code straight off GitHub. They run a packaged, ready-to-execute version that has to be built and deployed to them. Until that happens, every visitor still sees yellow.')),
+  p(_('Chapter 9 picks up from this exact moment.')),
 ]
 
 /* --------------------------- Chapter 8 export --------------------------- */
@@ -138,37 +247,43 @@ const testsAndCI: Block[] = [
 export const chapter08: Chapter = {
   id: 'ch8',
   number: 8,
-  title: 'Code Lifecycle',
-  subtitle: 'How code becomes the running system',
+  title: 'From Edited Text to Merged Change',
+  subtitle: 'How one tiny edit travels through git, review, and CI',
   slides: [
-    { id: 's1', level: 101, headline: 'Save isn’t enough', body: { kind: 'prose', blocks: saveNotEnough }, diagramFocus: 'local-only' },
-    { id: 's2', level: 101, headline: 'Your local copy — clone, folder, history', body: { kind: 'prose', blocks: localCopy }, diagramFocus: 'local-remote' },
-    { id: 's3', level: 101, headline: 'Git — a record of every change', body: { kind: 'prose', blocks: gitBasics }, diagramFocus: 'branches' },
-    { id: 's4', level: 101, headline: 'Pull requests — proposing a change', body: { kind: 'prose', blocks: pullRequests }, diagramFocus: 'pr' },
-    { id: 's5', level: 101, headline: 'Tests and CI — verifying behavior automatically', body: { kind: 'prose', blocks: testsAndCI }, diagramFocus: 'ci' },
+    { id: 's1', level: 101, headline: 'The change we’re making', body: { kind: 'prose', blocks: theChange }, diagramFocus: 'change' },
+    { id: 's2', level: 101, headline: 'Code is text — plus the thing that runs it', body: { kind: 'prose', blocks: codeIsText }, diagramFocus: 'text-runtime' },
+    { id: 's3', level: 101, headline: 'How a codebase is organized', body: { kind: 'prose', blocks: organization }, diagramFocus: 'organization' },
+    { id: 's4', level: 101, headline: 'git, GitHub, and getting a copy', body: { kind: 'prose', blocks: gitAndGitHub }, diagramFocus: 'laptop' },
+    { id: 's5', level: 101, headline: 'Branches — a parallel timeline', body: { kind: 'prose', blocks: branches }, diagramFocus: 'branches' },
+    { id: 's6', level: 101, headline: 'Commits — the named unit of change', body: { kind: 'prose', blocks: commits }, diagramFocus: 'commit-detail' },
+    { id: 's7', level: 101, headline: 'Push — your branch reaches the remote', body: { kind: 'prose', blocks: push }, diagramFocus: 'remote' },
+    { id: 's8', level: 101, headline: 'Pull request — a proposal everyone can read', body: { kind: 'prose', blocks: pullRequest }, diagramFocus: 'pr' },
+    { id: 's9', level: 101, headline: 'Merge conflicts — when two timelines disagree', body: { kind: 'prose', blocks: mergeConflicts }, diagramFocus: 'merge-conflict' },
+    { id: 's10', level: 101, headline: 'CI — the robot that checks every PR', body: { kind: 'prose', blocks: ci }, diagramFocus: 'pr' },
+    { id: 's11', level: 101, headline: 'What CI actually runs', body: { kind: 'prose', blocks: whatCiRuns }, diagramFocus: 'pr' },
+    { id: 's12', level: 101, headline: 'Green, red, and the merge', body: { kind: 'prose', blocks: greenRedMerge }, diagramFocus: 'pr' },
     {
-      id: 's6',
+      id: 's13',
       level: 101,
       kind: 'recap',
       headline: 'What you have so far',
       body: {
         kind: 'recap',
         learned: [
-          'Cloning a repo gives you a local folder with the code plus its full history (`.git`); local is your copy, remote is GitHub',
-          'Git tracks every change to the code with full history; commits are snapshots, branches are parallel timelines, merges combine them',
-          'Pull requests are proposals to merge — where reviewers see the diff, comment, and approve before anything ships',
-          'CI runs the test suite automatically on every PR; green means tests passed and the PR can merge, red means blocked',
-          'Reading the diff before a PR merges is your last chance to catch mistakes — especially important when the code came from an AI agent',
+          'Code is human-readable text in files; a compiler or runtime translates it into instructions the machine runs',
+          'A codebase is organized at several scales — file, folder, function, method, class, module, package — with names that vary by language',
+          'git tracks history; GitHub (or GitLab, Bitbucket) is an application that hosts the canonical copy and adds review, CI, and permissions on top',
+          'A change starts on a branch, becomes a commit, gets pushed to the remote, and is proposed via a pull request that shows the diff for review',
+          'CI runs build, lint, type checks, and tests on every PR; green unblocks the merge, red blocks it; the merge is what officially lands the change on `main`',
+          'The orange-sun change is now part of `main` on GitHub — but no real user has seen it yet, because production runs a deployed copy, not GitHub directly',
         ],
         whereInSystem: [
-          _('Code lifecycle happens *upstream* of the running system: developers write code on their machines, commit to git, open pull requests on '),
+          _('The code-lifecycle layer sits upstream of the running system. Developers edit files locally, push branches up to '),
           t('GitHub', 'github'),
-          _(' or '),
-          t('GitLab', 'gitlab'),
-          _(', and pass through CI before the new version ever reaches the production servers we drew in earlier chapters.'),
+          _(', open pull requests, and pass through CI before any change reaches the production servers from earlier chapters. Nothing in this chapter has touched a real user yet.'),
         ],
         bridge: [
-          _('Coming up — Chapter 9: Deployment & Operations. Once a pull request passes CI and gets merged into main, the code still has to actually reach production safely — without breaking the live system for users in the middle of a session.'),
+          _('Chapter 9 picks up at the exact moment the orange-sun PR is merged into `main` and follows the same change through build, container packaging, environments, deploy, and observability — until a real visitor finally sees orange.'),
         ],
       },
     },
