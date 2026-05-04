@@ -32,7 +32,7 @@ const whyGates: Block[] = [
 
 const frontendNotSecurity: Block[] = [
   p(_('A request actually starts on the user’s machine. Before any data leaves the browser, the front-end runs its own checks — and these run first, in wall-clock time, before the request is even sent.')),
-  p(_('What "front-end validation" actually is, in practice:')),
+  p(_('What "front-end validation" looks like:')),
   ul(
     [_('**HTML form attributes** like `required`, `type="email"`, `pattern`, or `maxlength` — built into the browser, no code needed.')],
     [_('**JavaScript checks** before submit — custom logic that runs when the user clicks the button and stops the request if something looks wrong.')],
@@ -60,32 +60,32 @@ const authnVsAuthz: Block[] = [
     [t('Authorization', 'authorization'), _(' (authz) — OK, you’re really you. But are you allowed to do *this specific thing*? Read this particular order? Edit this particular profile? Delete this comment? Authorization asks: can this identity perform this '), t('action', 'action'), _(' on this '), t('resource', 'resource'), _('? Failure returns '), t('403 Forbidden', '403'), _('.')],
   ),
   p(_('Here’s the trap: a successful login (authentication) doesn’t mean you can do anything. A logged-in user can still try to read someone else’s data, and authorization is what stops them. The auth checks happen on every single request, every single endpoint — not just at the login screen.')),
-  p(_('A common authorization mistake: an endpoint that accepts a `userId` from the request body and returns that user’s data. The token authenticates the caller as user 47, but if the endpoint blindly returns whatever userId you asked for, you can pass `userId=48` and read someone else’s data. The fix: derive the identity from the verified *token*, not from anything the caller can change.')),
+  p(_('An authorization bug to watch for: an endpoint that accepts a `userId` from the request body and returns that user’s data. The token authenticates the caller as user 47, but if the endpoint blindly returns whatever userId you asked for, you can pass `userId=48` and read someone else’s data. The fix: derive the identity from the verified *token*, not from anything the caller can change.')),
 ]
 
 /* --------------------------- Slide 4 — Three ways authorization gets answered --------------------------- */
 
 const authzPatterns: Block[] = [
-  p(_('Authorization is a question — *can this identity perform this action on this resource?* — but how the back-end actually answers it varies. Three patterns cover almost everything you’ll see in a real codebase. Recognizing them by name is the goal here; an agent will use these terms unprompted, and you’ll want to follow.')),
+  p(_('Authorization is a question — *can this identity perform this action on this resource?* — but how the back-end actually answers it varies. Three patterns are worth knowing by name. They’re how agents and engineers talk about authorization, so you’ll want to follow.')),
   ul(
-    [_('**Owner-based** — the most common. The resource has an owner (the user who created it, the account it belongs to), and the back-end checks that the identity matches. "Can user 47 edit comment 8932?" becomes "is comment 8932’s author_id equal to 47?" Most consumer apps run on this.')],
-    [_('**Role-based** — the identity carries a role (admin, editor, viewer, customer), and each action requires a role. "Can this user delete any post?" becomes "does this identity have the admin role?" Common in admin panels, content systems, and enterprise apps with structured permission tiers.')],
-    [_('**Rule-based** — an arbitrary check function combining identity, action, resource, and current state. "Can this user refund this order?" becomes "is this identity in the support team AND is the order paid AND is the order less than 30 days old?" The most flexible; covers ownership and roles as special cases. Often expressed as a policy file, or a check function that returns yes/no.')],
+    [_('**Owner-based.** The resource has an owner (the user who created it, the account it belongs to), and the back-end checks that the identity matches. "Can user 47 edit comment 8932?" becomes "is comment 8932’s author_id equal to 47?"')],
+    [_('**Role-based.** The identity carries a role (admin, editor, viewer, customer), and each action requires a role. "Can this user delete any post?" becomes "does this identity have the admin role?" Used when permissions cluster into clear tiers — admin panels, content systems, enterprise apps.')],
+    [_('**Rule-based.** An arbitrary check function combining identity, action, resource, and current state. "Can this user refund this order?" becomes "is this identity in the support team AND is the order paid AND is the order less than 30 days old?" Strictly more expressive than the other two — ownership and roles are special cases. Expressed as a policy file or a check function that returns yes/no.')],
   ),
-  p(_('Real codebases mix all three. A user owns their own posts (owner-based) but admins can edit any post (role-based) unless the post is in a frozen state (rule-based). When directing an agent, naming the pattern is what makes the conversation crisp — *"the comment-edit endpoint should be an owner check"*; *"the admin override should be role-gated"*; *"the refund window is a rule, not just a role."*')),
+  p(_('The patterns combine. A user owns their own posts (owner-based) but admins can edit any post (role-based) unless the post is in a frozen state (rule-based). When directing an agent, naming the pattern is what makes the conversation crisp — *"the comment-edit endpoint should be an owner check"*; *"the admin override should be role-gated"*; *"the refund window is a rule, not just a role."*')),
 ]
 
 /* --------------------------- Slide 5 — Back-end validation --------------------------- */
 
 const dataValidation: Block[] = [
-  p(_('You’re authenticated, you’re authorized, and now the back-end actually has to look at what you sent. Even from a legitimate user, the data could be malformed, out of range, or actively malicious — and remember, anything the front-end checked was checked on the user’s machine, so the back-end has to assume none of those checks happened.')),
+  p(_('You’re authenticated, you’re authorized, and now the back-end has to look at what you sent. Even from a legitimate user, the data could be malformed, out of range, or actively malicious — and remember, anything the front-end checked was checked on the user’s machine, so the back-end has to assume none of those checks happened.')),
   p(
     t('Validation', 'validation'),
     _(' is the third gate: is this input even something the system can safely use? Required fields present? Numbers within the expected range? Text fields short enough to fit? Email addresses shaped like email addresses? An empty or wrong-shaped request gets rejected with status code '),
     t('400 Bad Request', '400'),
     _(', and nothing in the database changes.'),
   ),
-  p(_('Validation also defends against actively hostile inputs. Two of the most common attack categories — both worth knowing by name:')),
+  p(_('Validation also defends against actively hostile inputs. Two attack categories worth knowing by name:')),
   ul(
     [t('SQL injection', 'sql-injection'), _(' — When user input ends up inside a database query as if it were code, an attacker can put fragments of database language into a form field and trick the system into running them. ("Put your name here:" → the attacker types something that means "delete the entire users table.") Modern frameworks defend against this, but only if developers use them correctly.')],
     [t('Cross-site scripting (XSS)', 'xss'), _(' — When user input is shown back to other users without being cleaned up, an attacker can hide little bits of code in their post that runs in your browser when you read it. Modern frameworks again defend against this, but only if used correctly.')],
@@ -116,9 +116,9 @@ export const chapter03: Chapter = {
         learned: [
           'A request passes through checks in order: front-end checks on the user’s machine first (good UX, not security), then three real gates on the back-end — authentication (is the identity real), authorization (can this identity perform this action on this resource), validation (is the input even acceptable)',
           'A 401 means "we don’t know who you are"; 403 means "we know who you are, but you can’t do this"; 400 means "the request itself is malformed"',
-          'Authorization in real codebases is owner-based (does the resource belong to you), role-based (do you have the right role), or rule-based (does an arbitrary policy say yes) — usually a mix of all three',
+          'Authorization is owner-based (does the resource belong to you), role-based (do you have the right role), or rule-based (does an arbitrary policy say yes) — and they combine within a single codebase',
           'Front-end checks are bypassable by anyone with DevTools, `curl`, or an AI agent — the same workflow used to *build* with an agent is what an attacker uses to *probe* an API directly',
-          'Missing back-end authorization checks ("broken access control") are the #1 category of web vulnerability on OWASP’s industry-standard list — usually the bug behind "user A read user B’s data" headlines',
+          'Missing back-end authorization checks ("broken access control") are the #1 category of web vulnerability on OWASP’s industry-standard list — the bug pattern behind "user A read user B’s data" headlines',
         ],
         whereInSystem: [
           _('The three gates live in the back-end, between the request arriving and any '),
