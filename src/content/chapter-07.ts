@@ -102,15 +102,15 @@ const authzFailure: Block[] = [
       { highlight: ['be-2'], status: 'reject', focus: 'app' },
     ),
     step(
-      [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response, even if the UI hid it.')],
-      { highlight: ['db-primary'], status: 'neutral', focus: 'data' },
+      [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response.')],
+      { highlight: ['be-2'], status: 'neutral', focus: 'app' },
     ),
     step(
       [_('The 403 goes back to the browser. The user sees an error, a redirect, or nothing — but never sees order 12345.')],
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
   ),
-  p(_('This is the failure mode that produces "user A read user B’s data" headlines when it’s done wrong. The fix is always the same: the back-end has to compare the resource’s owner against the user from the token, on every single request, on every single endpoint that returns user-specific data. Hide-the-button-in-the-UI is not enough.')),
+  p(_('This is the failure mode that produces "user A read user B’s data" headlines when it’s done wrong. The fix is always the same: the back-end has to compare the resource’s owner against the user from the token, on every single request, on every single endpoint that returns user-specific data.')),
 ]
 
 /* --------------------------- Slide 5 — Validation failure --------------------------- */
