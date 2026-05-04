@@ -26,7 +26,7 @@ import { _, t, p, ul, step, steps } from './authoring'
 
 const manyAtOnce: Block[] = [
   p(_('Up until now we’ve followed a single request through the system. The gates from Chapter 3 do their job — token verified, permission checked, data validated — and the request flows through cleanly.')),
-  p(_('The reality is busier. A real back-end has thousands of requests in flight at any given moment. Each one runs independently — until two land on the same row at the same instant.')),
+  p(_('A real back-end has thousands of requests in flight at any given moment. Each one runs independently — until two land on the same row at the same instant.')),
   p(_('Before we get to the collisions, a frame: a back-end can handle each request one of two ways.')),
   ul(
     [
@@ -56,7 +56,7 @@ const syncDefinition: Block[] = [
     [_('The mental model matches everyday conversation: ask a question, get an answer.')],
   ),
   p(_('Where it fits: anywhere the user is actively waiting and the work is fast. Logging in. Posting a comment. Checking whether a username is taken. Fetching a page. The user wants the answer to keep going, and the server can produce it in well under a second.')),
-  p(_('The catch starts to show when more than one of these is happening at once on the same data.')),
+  p(_('Sync breaks down when more than one of these is happening at once on the same data.')),
 ]
 
 /* --------------------------- Slide 3 — When sync requests collide --------------------------- */
@@ -110,7 +110,7 @@ const locks: Block[] = [
       _(' — you can ask the database to hold a lock on the rows you’re working with, so other transactions that want the same rows wait their turn. The lock releases when the transaction commits or rolls back.'),
     ],
   ),
-  p(_('Important catch: just wrapping reads and writes in a transaction is *not* enough on its own. By default, two transactions can both read the same "1 in stock" before either has written. The lock that prevents this has to be asked for explicitly — it doesn’t come for free.')),
+  p(_('Wrapping reads and writes in a transaction is *not* enough on its own. By default, two transactions can both read the same "1 in stock" before either has written. The lock that prevents this has to be asked for explicitly — it doesn’t come for free.')),
   p(_('Done correctly, the inventory replay works:')),
   ul(
     [_('Request A asks for the lock and gets it. Request B asks for the lock too and is told to wait.')],
@@ -188,8 +188,8 @@ const asyncCosts: Block[] = [
   p(_('Going async fixes the wait problem but introduces three new things to worry about. Each one is genuinely new — they don’t exist in a sync world.')),
   p(_('**The result arrives through a different channel.** The original request already returned "got it" — not the answer. The actual outcome surfaces later through one of the patterns from Chapter 5: polling a status endpoint, receiving a webhook, getting a push notification, or being told "we’ll email you when it’s ready." Whichever pattern you pick, it has to be designed in deliberately. The user has to know what to expect.')),
   p(_('**Jobs can run more than once.** If a worker crashes mid-job, the queue redelivers — the same job runs again. So the same job may run twice. The 101 takeaway when an agent is writing async work: ask *"what if this runs twice — does the user get charged twice, do we send the email twice, do we ship the order twice?"* The pattern that handles this safely has a name; that’s a 201 topic.')),
-  p(_('**Workers still race.** Async doesn’t rescue you from concurrency. Two workers can grab two different jobs that touch the same row at the same instant — and the same race conditions from earlier in this chapter still apply. Transactions and locks still earn their keep, just inside the worker now instead of inside the request handler.')),
-  p(_('That last one is worth pausing on: async and concurrency are two separate problems. Async decides where the work runs (in the request, or later in a worker). Concurrency decides what protects shared rows when many things touch them at once. Both come up in any real system that has slow work and shared state.')),
+  p(_('**Workers still race.** Async doesn’t rescue you from concurrency. Two workers can grab two different jobs that touch the same row at the same instant — and the same race conditions from earlier in this chapter still apply. Transactions and locks are still required, just inside the worker now instead of inside the request handler.')),
+  p(_('Async and concurrency are two separate problems. Async decides where the work runs (in the request, or later in a worker). Concurrency decides what protects shared rows when many things touch them at once. Both come up in any real system that has slow work and shared state.')),
 ]
 
 /* --------------------------- Slide 9 — Sync vs async: choosing --------------------------- */

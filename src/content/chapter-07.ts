@@ -23,7 +23,7 @@ const intro: Block[] = [
   p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing across a fleet of back-end servers, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
   p(_('We’ve built it one concept at a time. We have not yet watched anything actually flow through it.')),
   p(_('That’s this chapter — the climax of Act I. We’re going to walk five real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
-  p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?" Pattern recognition for the failure modes is the whole point.')),
+  p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?"')),
   p(_('Five scenarios. Happy path first.')),
 ]
 
@@ -82,7 +82,7 @@ const authFailure: Block[] = [
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
   ),
-  p(_('Why this matters: authentication is the *first* gate. A request that fails it never gets near your data. This is also why you never write code that does any sensitive work before checking the token — that work would be exposed even on rejected requests.')),
+  p(_('Authentication is the *first* gate: a request that fails it never gets near your data. This is also why you never write code that does any sensitive work before checking the token — that work would be exposed even on rejected requests.')),
 ]
 
 /* --------------------------- Slide 4 — Authz failure --------------------------- */
