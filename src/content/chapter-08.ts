@@ -1,5 +1,5 @@
 import type { Chapter, Block } from './types'
-import { _, t, p, h, ul, code } from './authoring'
+import { _, t, p, h, ul, li, code } from './authoring'
 
 /* ============================================================================
  * Chapter 8 — From Edited Text to Merged Change (101)
@@ -233,14 +233,16 @@ const whatCiRuns: Block[] = [
     [_('**Build** — does the code turn into a runnable program at all? For compiled languages, this is literally running the compiler. For interpreted ones, it usually means installing dependencies and bundling files together. Build catches typos, missing imports, broken syntax — the most basic class of "this can\'t even run" mistake.')],
     [_('A '), t('linter', 'linter'), _(' enforces the team\'s style and pattern rules — things like unused variables, banned functions, formatting drift, inconsistent quoting. It doesn\'t catch behavior bugs. It catches the small surface-level inconsistencies that, accumulated, make a codebase harder for everyone to read.')],
     [_('A '), t('type checker', 'type-checker'), _(' verifies that the pieces fit together. If `sunColor` is supposed to be a string and somewhere a number got assigned to it, the type checker catches that before the code ever runs. Languages like TypeScript, Go, Rust, and Java have type checking built in; languages like Python and JavaScript add it as a separate optional layer.')],
-    [t('Tests', 'tests'), _(' — small programs that exercise the real code and check it does what it should. Three sizes worth knowing:')],
+    li(
+      [t('Tests', 'tests'), _(' — small programs that exercise the real code and check it does what it should. Three sizes worth knowing:')],
+      ul(
+        [t('Unit tests', 'unit-test'), _(' — one function, in isolation. "Given input X, do we get output Y?" Cheapest to run, cheapest to maintain, narrowest in what they prove.')],
+        [t('Integration tests', 'integration-test'), _(' — multiple pieces working together. "When the API receives this request, does the right row appear in the database?" More setup, broader coverage.')],
+        [t('End-to-end tests', 'e2e-test'), _(' — a fake browser drives the real app from the outside. "Load the homepage, see an orange sun." Slow to run, easy to break, but the only kind that proves the user-visible thing works.')],
+      ),
+    ),
   ),
-  ul(
-    [t('Unit tests', 'unit-test'), _(' — one function, in isolation. "Given input X, do we get output Y?" Cheapest to run, cheapest to maintain, narrowest in what they prove.')],
-    [t('Integration tests', 'integration-test'), _(' — multiple pieces working together. "When the API receives this request, does the right row appear in the database?" More setup, broader coverage.')],
-    [t('End-to-end tests', 'e2e-test'), _(' — a fake browser drives the real app from the outside. "Load the homepage, see an orange sun." Slow to run, easy to break, but the only kind that proves the user-visible thing works.')],
-  ),
-  p(_('For the orange-sun change, the test that matters is probably an end-to-end one that loads the homepage and checks for the right color. If a test was previously asserting the literal string "yellow" on the page, it\'s about to fail — not because orange is wrong, but because the test needs updating to match the new expected value. That update is part of the PR.')),
+  p(_('For the orange-sun change, three things can happen at the testing layer. If a snapshot test of Hero exists, its yellow snapshot disagrees with the orange render and CI fails until the developer regenerates the snapshot and commits it. If a visual-regression service like Percy or Chromatic is wired in, it posts a pixel diff to the PR for a human to approve. If neither exists, CI goes green — the verification is a reviewer opening the preview deploy (a temporary URL running this PR\'s branch, covered in chapter 9) and confirming the sun looks orange. In all three cases, anything that pinned the old appearance gets updated in the same PR.')),
 ]
 
 /* --------------------------- Slide 12 — Green, red, the merge --------------------------- */

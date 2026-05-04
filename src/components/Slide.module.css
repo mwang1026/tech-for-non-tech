@@ -198,6 +198,30 @@
   border-bottom: 1px solid var(--hairline-strong);
 }
 
+/* Nested lists — sub-bullets under a parent list item. Slightly smaller text,
+   tighter gap, hollow bullet so the hierarchy is visible at a glance. */
+.bulletList .bulletList,
+.bulletList .numberedList,
+.numberedList .bulletList,
+.numberedList .numberedList {
+  margin-top: 6px;
+  gap: 6px;
+}
+.bulletList .bulletList li,
+.numberedList .bulletList li {
+  font-size: 15px;
+  padding-left: 18px;
+}
+.bulletList .bulletList li::before,
+.numberedList .bulletList li::before {
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  width: 5px;
+  height: 5px;
+  left: 4px;
+  top: 0.65em;
+}
+
 /* Steps list — interactive walkthrough. Mirrors .numberedList structurally but
    per-item state (active / past / future) is set by Slide.tsx, and the badge
    color follows the active step's status (pass / reject / neutral). */

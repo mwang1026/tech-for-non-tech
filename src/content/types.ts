@@ -34,12 +34,23 @@ export type StepItem = {
   pulse?: 'once' | 'repeat'
 }
 
+/**
+ * A list item is either flat inline content, or inline content with a nested
+ * list under it (sub-bullets). Use the `li` helper for the nested form.
+ */
+export type ListItem =
+  | Inline
+  | { content: Inline; children: ListBlock }
+
+export type ListBlock =
+  | { kind: 'ul'; items: ListItem[] }
+  | { kind: 'ol'; items: ListItem[] }
+
 /** Top-level structural blocks within a slide body. Use sparingly — narrative voice prefers prose; structure when it genuinely aids scanning. */
 export type Block =
   | { kind: 'p'; nodes: Inline }                   // paragraph
   | { kind: 'h'; text: string }                    // small subhead (sparingly)
-  | { kind: 'ul'; items: Inline[] }                // bullet list
-  | { kind: 'ol'; items: Inline[] }                // numbered list (use when sequence matters)
+  | ListBlock                                      // bullet / numbered list, with optional nested sub-lists
   | { kind: 'code'; text: string; lang?: string }  // monospace block for shell commands, folder trees, ASCII branch graphs
   | { kind: 'steps'; items: StepItem[] }           // interactive step-through with diagram coordination
 

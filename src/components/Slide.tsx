@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Slide as SlideType, Paragraph, Inline, Block } from '../content/types'
+import type { Slide as SlideType, Paragraph, Inline, Block, ListBlock, ListItem } from '../content/types'
 import { useGlossary } from '../hooks/useGlossary'
 import { InlineMd, renderInlineRunToHtml } from './inlineMd'
 import styles from './Slide.module.css'
@@ -43,6 +43,30 @@ function ParagraphRender({ p }: { p: Paragraph }) {
   return <p><InlineRender nodes={p} /></p>
 }
 
+function ListRender({ block }: { block: ListBlock }) {
+  const Tag = block.kind === 'ul' ? 'ul' : 'ol'
+  const className = block.kind === 'ul' ? styles.bulletList : styles.numberedList
+  return (
+    <Tag className={className}>
+      {block.items.map((item, i) => (
+        <ListItemRender key={i} item={item} />
+      ))}
+    </Tag>
+  )
+}
+
+function ListItemRender({ item }: { item: ListItem }) {
+  if (Array.isArray(item)) {
+    return <li><InlineRender nodes={item} /></li>
+  }
+  return (
+    <li>
+      <InlineRender nodes={item.content} />
+      <ListRender block={item.children} />
+    </li>
+  )
+}
+
 function BlockRender({ block, activeStepIndex }: { block: Block; activeStepIndex: number | null }) {
   switch (block.kind) {
     case 'p':
@@ -50,21 +74,9 @@ function BlockRender({ block, activeStepIndex }: { block: Block; activeStepIndex
     case 'h':
       return <h3 className={styles.subhead}><InlineMd>{block.text}</InlineMd></h3>
     case 'ul':
-      return (
-        <ul className={styles.bulletList}>
-          {block.items.map((item, i) => (
-            <li key={i}><InlineRender nodes={item} /></li>
-          ))}
-        </ul>
-      )
     case 'ol':
-      return (
-        <ol className={styles.numberedList}>
-          {block.items.map((item, i) => (
-            <li key={i}><InlineRender nodes={item} /></li>
-          ))}
-        </ol>
-      )
+      return <ListRender block={block} />
+
     case 'code':
       return (
         <pre className={styles.codeBlock}><code>{block.text}</code></pre>

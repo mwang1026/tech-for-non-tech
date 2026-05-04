@@ -1,4 +1,4 @@
-import type { Block, BodyNode, Inline, StepItem, StepStatus } from './types'
+import type { Block, BodyNode, Inline, ListBlock, ListItem, StepItem, StepStatus } from './types'
 
 /**
  * Shared authoring helpers for chapter content.
@@ -49,8 +49,10 @@ export const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term'
 
 export const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
 export const h = (text: string): Block => ({ kind: 'h', text })
-export const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
-export const ol = (...items: Inline[]): Block => ({ kind: 'ol', items })
+export const ul = (...items: ListItem[]): ListBlock => ({ kind: 'ul', items })
+export const ol = (...items: ListItem[]): ListBlock => ({ kind: 'ol', items })
+/** A list item with sub-bullets nested under it. Pair with `ul`/`ol` for the nested block. */
+export const li = (content: Inline, children: ListBlock): ListItem => ({ content, children })
 export const code = (text: string, lang?: string): Block => ({ kind: 'code', text, lang })
 
 export const step = (
