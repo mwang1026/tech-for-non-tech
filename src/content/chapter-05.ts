@@ -38,8 +38,8 @@ const loadBalancers: Block[] = [
   p(_('The load balancer also watches its servers. If one stops responding to a "are you alive?" check, the load balancer takes it out of rotation — new requests skip the broken one. When the server comes back, it’s added back in. Users never see the failure.')),
   p(_('Common load balancers:')),
   ul(
-    [t('Nginx', 'nginx'), _(' — Open-source, runs on a server you operate. The most common general-purpose option.')],
-    [t('HAProxy', 'haproxy'), _(' — Another popular open-source option, known for high throughput.')],
+    [t('Nginx', 'nginx'), _(' — Open-source, runs on a server you operate. General-purpose.')],
+    [t('HAProxy', 'haproxy'), _(' — Open-source. Built for high throughput.')],
     [t('AWS Elastic Load Balancer (ELB)', 'aws-elb'), _(' — Managed by AWS; you don’t run any servers for it yourself.')],
     [t('Cloudflare Load Balancing', 'cloudflare-lb'), _(' — Runs on Cloudflare’s global network, close to users.')],
   ),
@@ -53,7 +53,7 @@ const cdn: Block[] = [
     _('We have a '), t('load balancer', 'load-balancer'),
     _(' fanning requests across many application servers. But every request still travels from the user’s browser, across the public internet, to those servers — and back.'),
   ),
-  p(_('Most of what a web page actually delivers — images, JavaScript, fonts, stylesheets — is identical for every user. A typical page is 2–5 MB of these "static" files. If your servers sit in Virginia and your user is in Tokyo, that data crosses half the planet on every page load, even though the bytes never change. Multiply by millions of users and you’re shipping terabytes of identical content across the planet.')),
+  p(_('A modern web page is several megabytes — images, JavaScript, fonts, and stylesheets. These are all "static" files: identical for every user, even though they cross the network on every page load. If your servers sit in Virginia and your user is in Tokyo, that data crosses half the planet on every load, even though the bytes never change. Multiply by millions of users and you’re shipping terabytes of identical content across the planet.')),
   p(_('What needs to happen: those static files should live closer to the user — geographically — so the user doesn’t pay the round-trip cost.')),
   p(
     _('The way this is solved is with a fleet of cache servers spread around the world — Tokyo, Frankfurt, São Paulo, Sydney, dozens of cities. Each one holds a local copy of your static files. When a user in Tokyo asks for your logo, the request never touches your real server in Virginia. It hits the closest cache server (called the '),
@@ -64,9 +64,9 @@ const cdn: Block[] = [
     _('This is called a '), t('Content Delivery Network', 'cdn'), _(', or '), t('CDN', 'cdn'), _('. The big providers:'),
   ),
   ul(
-    [t('Cloudflare', 'cloudflare'), _(' — The default for most modern sites. Generous free tier, runs on a massive global network.')],
-    [t('Fastly', 'fastly'), _(' — Heavy in media (Stripe, Shopify, NYT). Known for very fast cache purges.')],
-    [t('Akamai', 'akamai'), _(' — The enterprise incumbent. Largest network; oldest in the space.')],
+    [t('Cloudflare', 'cloudflare'), _(' — Generous free tier, runs on a global network.')],
+    [t('Fastly', 'fastly'), _(' — Built for very fast cache purges.')],
+    [t('Akamai', 'akamai'), _(' — Founded 1998. The enterprise incumbent.')],
     [t('AWS CloudFront', 'cloudfront'), _(' — The AWS-native option, integrated with the rest of AWS.')],
   ),
   p(_('The tradeoff is staleness — the CDN serves what it cached, not what’s live. Updating a file may take time to reach every edge server, or you can manually "purge" the cache to force a refresh. This is the same speed-vs-freshness tradeoff from Chapter 4 (Cache vs. Database), now applied at the network layer.')),
@@ -75,11 +75,11 @@ const cdn: Block[] = [
 /* --------------------------- Slide 4 — Ask vs. be told --------------------------- */
 
 const pollVsWebhook: Block[] = [
-  p(_('We’ve been drawing our system as self-contained. In practice, almost every real product lives next to systems we don’t own — payment processors, identity providers, email senders, '), t('GitHub', 'github'), _(', geocoders, weather APIs. Conversations with those systems usually fall into one of three shapes.')),
+  p(_('We’ve been drawing our system as self-contained. Real products lean on systems we don’t own — payment processors, identity providers, email senders, '), t('GitHub', 'github'), _(', geocoders, weather APIs. Conversations with those systems fall into three shapes.')),
   steps(
     step(
       [
-        _('**Synchronous API call.** We send a request and the answer comes back in the same response — the work happens *during* the call. *Convert this currency. Translate this text. Geocode this address. Charge this card.* It’s request-response with someone else’s server, no different in shape from how a browser talks to ours. Most external traffic looks like this.'),
+        _('**Synchronous API call.** We send a request and the answer comes back in the same response — the work happens *during* the call. *Convert this currency. Translate this text. Geocode this address. Charge this card.* It’s request-response with someone else’s server, no different in shape from how a browser talks to ours.'),
       ],
       { highlight: ['arrow:webhook-stripe-out', 'arrow:webhook-stripe-in', 'webhook-stripe'], status: 'pass', focus: 'full', pulse: 'once' },
     ),
@@ -110,7 +110,7 @@ const monolith: Block[] = [
     [t('Monolith', 'monolith'), _(' — One codebase, one program, one deployable unit. Simple to reason about — everything is in one place. Simple to deploy — one command pushes everything. The cost: every team shares it, so changes ripple, and the more code lives in one bundle, the slower the test suite and the riskier each deploy gets.')],
     [t('Microservices', 'microservices'), _(' — The back-end is split into many small programs (services), each owned by one team, each deployed independently. One team’s broken service doesn’t take down everyone else’s. One team can ship ten times a day without coordinating with anyone. The cost: complexity moves outward — services now have to talk to each other across the network (which can fail), and debugging a single user action means tracing it across several services.')],
   ),
-  p(_('Most companies start as monoliths and split when scale forces it. Netflix, Amazon, and Uber are famous microservices stories — they grew past what one codebase could handle. GitHub, Shopify, and Basecamp run famously large monoliths and ship fine. The right answer is whichever lets your specific team ship safely — monolith vs. microservices is as much a team decision as a technical one.')),
+  p(_('Netflix, Amazon, and Uber outgrew their original monoliths and split into microservices — well-known migrations driven by team count and scale. GitHub, Shopify, and Basecamp run large monoliths and ship fine. The right answer is whichever lets your specific team ship safely — monolith vs. microservices is as much a team decision as a technical one.')),
 ]
 
 /* --------------------------- Chapter 5 export --------------------------- */
@@ -135,8 +135,8 @@ export const chapter05: Chapter = {
         kind: 'recap',
         learned: [
           'A single back-end server can\'t serve a real audience — you need many, behind a load balancer that spreads requests across them',
-          'CDNs cache static files (images, JS, fonts) close to users geographically, so most page weight never touches your origin server',
-          'Talking to external systems comes in three shapes — regular API calls, polling, and webhooks — and most cross-system features are one of those three',
+          'CDNs cache static files (images, JS, fonts) close to users geographically, so the heaviest assets never touch your origin server',
+          'Talking to external systems comes in three shapes: regular API calls, polling, and webhooks',
           'Monolith vs. microservices is a team-and-scale decision, not a winner — the answer depends on how independent your teams need to be',
         ],
         whereInSystem: [
