@@ -13,7 +13,8 @@ import { _, t, p, step, steps } from './authoring'
  *   3. Auth failure — no/expired token (401)
  *   4. Authz failure — valid user, forbidden action (403)
  *   5. Validation failure — bad input (400)
- *   6. Recap (with prompts)
+ *   6. Concurrency failure — both requests pass every gate
+ *   7. Recap (with prompts)
  * ============================================================================ */
 
 /* --------------------------- Slide 1 — Intro --------------------------- */
@@ -21,9 +22,9 @@ import { _, t, p, step, steps } from './authoring'
 const intro: Block[] = [
   p(_('Coming out of Chapter 6, we have the entire system in front of us. Browser at the top, CDN at the edge, load balancer routing across a fleet of back-end servers, cache, database. We’ve also picked up a set of cross-cutting ideas that don’t live in any one box: identity (who’s asking), validation (is this allowed and well-formed), concurrency (what if two requests collide).')),
   p(_('We’ve built it one concept at a time. We have not yet watched anything actually flow through it.')),
-  p(_('That’s this chapter — the climax of Act I. We’re going to walk four real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
+  p(_('That’s this chapter — the climax of Act I. We’re going to walk five real request scenarios end-to-end through the diagram and see exactly what happens at each step. Some succeed. Some get rejected. The job is to feel where rejection happens — at which gate, with which status code, and why.')),
   p(_('When you direct an AI agent on a feature, this is the kind of trace you should be running in your head. "If this request comes in, where does it stop? Where could it be silently wrong instead of rejected?" Pattern recognition for the failure modes is the whole point.')),
-  p(_('Four scenarios. Happy path first.')),
+  p(_('Five scenarios. Happy path first.')),
 ]
 
 /* --------------------------- Slide 2 — Happy path --------------------------- */
@@ -77,7 +78,7 @@ const authFailure: Block[] = [
       { highlight: ['cache', 'db-primary'], status: 'pass', focus: 'data' },
     ),
     step(
-      [_('The browser sees the 401 and typically redirects the user to the login page. They re-authenticate, get a fresh token, retry — back to the happy path.')],
+      [_('The browser sees the 401 and redirects the user to the login page (or shows whatever logged-out state the front-end uses). They re-authenticate, get a fresh token, retry — back to the happy path.')],
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
   ),
@@ -102,7 +103,7 @@ const authzFailure: Block[] = [
       { highlight: ['be-2'], status: 'reject', focus: 'app' },
     ),
     step(
-      [_('Critical detail: the order data is *never sent to the client*. If it had been (a common bug), the user could read it by inspecting the network response.')],
+      [_('Critical detail: the order data is *never sent to the client*. If it had been, the user could read it by inspecting the network response.')],
       { highlight: ['be-2'], status: 'neutral', focus: 'app' },
     ),
     step(
@@ -135,7 +136,7 @@ const validationFailure: Block[] = [
       { highlight: ['db-primary'], status: 'pass', focus: 'data' },
     ),
     step(
-      [_('The 400 goes back to the browser, which usually shows the user a form error highlighting the problem field.')],
+      [_('The 400 goes back to the browser. The front-end shows a form error highlighting the problem field.')],
       { highlight: ['browser'], status: 'neutral', focus: 'full' },
     ),
   ),
@@ -146,7 +147,7 @@ const validationFailure: Block[] = [
 /* --------------------------- Slide 6 — Concurrency failure --------------------------- */
 
 const concurrencyFailure: Block[] = [
-  p(_('Three failure modes so far were caught at one of the gates — auth, authz, or validation. Now a fourth scenario, and it’s the one gate-thinking alone can’t catch. Two users, on opposite sides of the country, both buy the last copy of a popular book within the same 50 milliseconds. Press → to walk through it.')),
+  p(_('Three failure modes so far were caught at one of the gates — auth, authz, or validation. Now a fourth failure mode, and it’s the one gate-thinking alone can’t catch. Two users, on opposite sides of the country, both buy the last copy of a popular book within the same 50 milliseconds. Press → to walk through it.')),
   steps(
     step(
       [_('Both requests hit the load balancer. It hands them to two different back-end servers, both of which begin processing in parallel.')],
@@ -169,7 +170,7 @@ const concurrencyFailure: Block[] = [
       { highlight: ['browser'], status: 'reject', focus: 'full' },
     ),
   ),
-  p(_('This is the failure mode that *passes* every gate. Authentication, authorization, validation — they all said yes, twice. The bug is at the back-end ↔ database seam, where two requests racing on the same row both got "in stock" before either had written. Chapter 6’s transactions and locks are how this gets fixed; the pattern to recognize is read-modify-write on shared data.')),
+  p(_('This is the failure mode that *passes* every gate. Authentication, authorization, validation — they all said yes, twice. The bug is at the back-end ↔ database boundary, where two requests racing on the same row both got "in stock" before either had written. Chapter 6’s transactions and locks are how this gets fixed; the pattern to recognize is read-modify-write on shared data.')),
   p(_('Why this belongs in the synthesis: gate-thinking catches a lot, but it doesn’t catch this. When you direct an agent on anything involving counters, balances, uniqueness checks, or state transitions, this is the failure mode to ask about explicitly — "could two of these run at the same time and both see the same starting value?"')),
 ]
 
@@ -202,7 +203,7 @@ export const chapter07: Chapter = {
           'Pattern recognition for these failure modes is what lets you spot missing checks (and missing transactions) in agent-generated code',
         ],
         whereInSystem: [
-          _('All five scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate. Concurrency lives at that last seam — the back-end ↔ database — and is what bites when two requests race on the same row.'),
+          _('All five scenarios use the same diagram we’ve been building since Chapter 1. The CDN serves static assets at the edge; the back-end is where every gate (authentication, authorization, validation) actually runs; the database is only ever touched when a request makes it past every gate. Concurrency lives at that last boundary — the back-end ↔ database — and is what bites when two requests race on the same row.'),
         ],
         bridge: [
           _('Act I is done. Coming up — Chapter 8: Code Lifecycle. We\'ve walked through how the system runs at runtime; Act II is the orthogonal story of how the code that runs all this becomes the system in the first place. Then Ch 10 is the payoff: directing an AI coding agent against the whole picture.'),
