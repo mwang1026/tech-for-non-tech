@@ -76,6 +76,7 @@ const slicingTheDb: Block[] = [
   p(_('Picture the back-end’s data as one giant room with everyone’s stuff in it — every user’s notes, orders, messages, photos. Each item carries a small stamp: this one belongs to user 123, this one to user 456, and so on.')),
   p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123), then asks for everything stamped 123. Items stamped 456 are sitting right there next to them, but they were never asked for, so they never come back. The requesting user only ever sees their own.')),
   p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a shared back-end into something that feels, to each user, like their own private space.')),
+  p(_('(A side note on terms. The split we just described is *logical* isolation — one shared database, identity decides which rows belong to whom. *Physical* isolation is the other shape: separate databases per customer, per region, or per country. Regulation drives the regional case. GDPR restricts moving EU residents’ personal data outside the EU; Russia and India require certain personal data to stay in-country. A product subject to those rules runs a separate database per region, and identity still does the slicing within each one.)')),
 ]
 
 /* --------------------------- Recap --------------------------- */

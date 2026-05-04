@@ -256,7 +256,7 @@ function ScenePipeline({
           x={BUILD_X} y={STAGE_Y} w={BUILD_W} h={STAGE_H}
           eyebrow="Build"
           title="package"
-          sublabel="source → artifact"
+          sublabel={v('ch9-container-artifact') ? undefined : 'source → artifact'}
           highlighted={isHi('ch9-stage-build')}
           status={status}
         />
@@ -302,14 +302,14 @@ function ScenePipeline({
         <motion.g data-region="ch9-container-artifact" variants={diagramReveal}>
           {/* Container chip inside the build stage. */}
           <rect
-            x={BUILD_X + 14} y={STAGE_Y + 50} width={BUILD_W - 28} height={20} rx={3}
+            x={BUILD_X + 8} y={STAGE_Y + 50} width={BUILD_W - 16} height={20} rx={3}
             fill={accentSoft}
             stroke={isHi('ch9-container-artifact') ? strokeForStatus(status) : accent}
             strokeWidth={isHi('ch9-container-artifact') ? 1.8 : 1.2}
           />
           <text
             x={BUILD_X + BUILD_W / 2} y={STAGE_Y + 64}
-            textAnchor="middle" fontSize="10" fontWeight={700} letterSpacing="0.8"
+            textAnchor="middle" fontSize="9" fontWeight={700} letterSpacing="0.4"
             fill={accent} fontFamily={fontUi}
           >
             CONTAINER · 124 MB
@@ -318,16 +318,16 @@ function ScenePipeline({
       )}
       {v('ch9-container-callout') && (
         <motion.g data-region="ch9-container-callout" variants={diagramReveal}>
-          {/* Connector from build stage down to callout */}
-          <line x1={BUILD_X + BUILD_W / 2} y1={STAGE_Y + STAGE_H} x2={BUILD_X + BUILD_W / 2} y2={210} stroke={muted} strokeDasharray="2 3" strokeWidth={0.8} />
-          <Stage x={210} y={210} w={170} h={62} tinted>
-            <text x={295} y={228} textAnchor="middle" fontSize="10" fontWeight={600} letterSpacing="1.2" fill={muted} fontFamily={fontUi}>
+          {/* Connector from build stage down to callout — leave a clear gap above the box */}
+          <line x1={BUILD_X + BUILD_W / 2} y1={STAGE_Y + STAGE_H} x2={BUILD_X + BUILD_W / 2} y2={214} stroke={muted} strokeDasharray="2 3" strokeWidth={0.8} />
+          <Stage x={210} y={220} w={170} h={70} tinted>
+            <text x={295} y={240} textAnchor="middle" fontSize="10" fontWeight={600} letterSpacing="1.2" fill={muted} fontFamily={fontUi}>
               WHAT&apos;S IN A CONTAINER
             </text>
-            <text x={222} y={246} fontSize="11" fill={ink} fontFamily={fontUi}>· OS pieces</text>
-            <text x={300} y={246} fontSize="11" fill={ink} fontFamily={fontUi}>· libraries</text>
-            <text x={222} y={262} fontSize="11" fill={ink} fontFamily={fontUi}>· runtime</text>
-            <text x={300} y={262} fontSize="11" fill={ink} fontFamily={fontUi}>· your code</text>
+            <text x={222} y={260} fontSize="11" fill={ink} fontFamily={fontUi}>· OS pieces</text>
+            <text x={300} y={260} fontSize="11" fill={ink} fontFamily={fontUi}>· libraries</text>
+            <text x={222} y={278} fontSize="11" fill={ink} fontFamily={fontUi}>· runtime</text>
+            <text x={300} y={278} fontSize="11" fill={ink} fontFamily={fontUi}>· your code</text>
           </Stage>
         </motion.g>
       )}
@@ -414,39 +414,42 @@ function ScenePipeline({
         </Stage>
       )}
 
-      {/* ===== OBSERVABILITY LANE ===== */}
+      {/* ===== OBSERVABILITY LANE =====
+       * Three 70-wide boxes centered under the production box (PROD_CENTER=480).
+       * Logs at center 405, Metrics at 480, Errors at 555.
+       */}
       {v('ch9-obs-arrow') && (
         <motion.g data-region="ch9-obs-arrow" variants={diagramReveal}>
           <line x1={PROD_CENTER} y1={PROD_Y + PROD_H} x2={PROD_CENTER} y2={490} stroke={ink} strokeWidth={1.2} />
-          <text x={PROD_CENTER + 10} y={486} fontSize="10" fill={muted} fontFamily={fontUi}>data flows out</text>
-          <line x1={420} y1={490} x2={560} y2={490} stroke={ink} strokeWidth={1.2} />
-          <line x1={420} y1={490} x2={420} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
-          <line x1={490} y1={490} x2={490} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
-          <line x1={560} y1={490} x2={560} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
+          <text x={480} y={482} textAnchor="middle" fontSize="10" fill={muted} fontFamily={fontUi}>data flows out</text>
+          <line x1={405} y1={490} x2={555} y2={490} stroke={ink} strokeWidth={1.2} />
+          <line x1={405} y1={490} x2={405} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
+          <line x1={480} y1={490} x2={480} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
+          <line x1={555} y1={490} x2={555} y2={508} stroke={ink} strokeWidth={1.2} markerEnd="url(#ch9-arrow)" />
         </motion.g>
       )}
       {v('ch9-obs-logs') && (
-        <Stage id="ch9-obs-logs" x={390} y={510} w={60} h={80} highlighted={isHi('ch9-obs-logs')} status={status}>
-          <text x={420} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Logs</text>
-          <text x={420} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Datadog</text>
-          <text x={420} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">what happened</text>
-          <text x={420} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">in order</text>
+        <Stage id="ch9-obs-logs" x={370} y={510} w={70} h={80} highlighted={isHi('ch9-obs-logs')} status={status}>
+          <text x={405} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Logs</text>
+          <text x={405} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Datadog</text>
+          <text x={405} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">what happened</text>
+          <text x={405} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">in order</text>
         </Stage>
       )}
       {v('ch9-obs-metrics') && (
-        <Stage id="ch9-obs-metrics" x={460} y={510} w={60} h={80} highlighted={isHi('ch9-obs-metrics')} status={status}>
-          <text x={490} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Metrics</text>
-          <text x={490} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Prom.</text>
-          <text x={490} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">how trending</text>
-          <text x={490} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">right now</text>
+        <Stage id="ch9-obs-metrics" x={445} y={510} w={70} h={80} highlighted={isHi('ch9-obs-metrics')} status={status}>
+          <text x={480} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Metrics</text>
+          <text x={480} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Prom.</text>
+          <text x={480} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">how trending</text>
+          <text x={480} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">right now</text>
         </Stage>
       )}
       {v('ch9-obs-errors') && (
-        <Stage id="ch9-obs-errors" x={530} y={510} w={60} h={80} highlighted={isHi('ch9-obs-errors')} status={status}>
-          <text x={560} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Errors</text>
-          <text x={560} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Sentry</text>
-          <text x={560} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">what crashed</text>
-          <text x={560} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">how often</text>
+        <Stage id="ch9-obs-errors" x={520} y={510} w={70} h={80} highlighted={isHi('ch9-obs-errors')} status={status}>
+          <text x={555} y={530} textAnchor="middle" fontSize="11" fontWeight={600} fill={ink} fontFamily={fontUi}>Errors</text>
+          <text x={555} y={550} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi}>Sentry</text>
+          <text x={555} y={566} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">what crashed</text>
+          <text x={555} y={580} textAnchor="middle" fontSize="9" fill={muted} fontFamily={fontUi} fontStyle="italic">how often</text>
         </Stage>
       )}
     </motion.g>
@@ -498,7 +501,7 @@ function ProductionInner({
     return (
       <g>
         <line x1={x + 10} y1={innerY} x2={x + w - 10} y2={innerY} stroke={hairline} strokeWidth={0.5} />
-        <text x={cx} y={innerY + 18} textAnchor="middle" fontSize="10" fontWeight={600} letterSpacing="1" fill={muted} fontFamily={fontUi}>
+        <text x={cx} y={innerY + 18} textAnchor="middle" fontSize="9" fontWeight={600} letterSpacing="0.4" fill={muted} fontFamily={fontUi}>
           LOAD BALANCER SPLITS TRAFFIC
         </text>
         {/* v1 cohort */}

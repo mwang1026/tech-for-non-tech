@@ -109,6 +109,9 @@ export function visibleCh9Elements(slideIndex: number): Set<Ch9ElementId> {
   for (const el of Object.values(ch9Elements)) {
     if (el.fromSlide <= slideIndex) out.add(el.id)
   }
+  // Callout only relevant on slide 2 (container intro). Once the registry
+  // and rollout bus appear on slide 3+, the callout would overlap them.
+  if (slideIndex >= 3) out.delete('ch9-container-callout')
   return out
 }
 
