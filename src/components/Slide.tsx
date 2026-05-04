@@ -1,6 +1,7 @@
+import { useMemo } from 'react'
 import type { Slide as SlideType, Paragraph, Inline, Block } from '../content/types'
 import { useGlossary } from '../hooks/useGlossary'
-import { InlineMd, inlineMdToHtml } from './inlineMd'
+import { InlineMd, renderInlineRunToHtml } from './inlineMd'
 import styles from './Slide.module.css'
 
 type Props = {
@@ -14,27 +15,27 @@ type Props = {
   onNext?: () => void
 }
 
+/**
+ * Render a mixed text/term inline run. Markdown is parsed across the whole run
+ * (so formatting can span term boundaries), and glossary anchors are wired up
+ * via event delegation rather than per-element React handlers.
+ */
 function InlineRender({ nodes }: { nodes: Inline }) {
   const { open } = useGlossary()
+  const html = useMemo(() => renderInlineRunToHtml(nodes), [nodes])
   return (
-    <>
-      {nodes.map((node, i) => {
-        if (node.kind === 'text') {
-          return <InlineMd key={i}>{node.text}</InlineMd>
+    <span
+      dangerouslySetInnerHTML={{ __html: html }}
+      onClick={(e) => {
+        const a = (e.target as HTMLElement).closest?.('a') as HTMLAnchorElement | null
+        if (!a) return
+        const href = a.getAttribute('href')
+        if (href && href.startsWith('#glossary/')) {
+          e.preventDefault()
+          open(href.slice('#glossary/'.length))
         }
-        return (
-          <a
-            key={i}
-            href={`#glossary/${node.glossaryId}`}
-            onClick={(e) => {
-              e.preventDefault()
-              open(node.glossaryId)
-            }}
-            dangerouslySetInnerHTML={{ __html: inlineMdToHtml(node.text) }}
-          />
-        )
-      })}
-    </>
+      }}
+    />
   )
 }
 

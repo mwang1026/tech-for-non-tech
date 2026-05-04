@@ -537,6 +537,88 @@ export const glossary: GlossaryEntry[] = [
     category: 'concurrency',
     related: ['race-condition', 'transaction'],
   },
+  {
+    id: 'synchronous',
+    term: 'Synchronous',
+    short: 'The caller waits with the connection open until the answer comes back in the same call.',
+    body: [
+      'Synchronous is the default request-response shape: client asks, server does the work, server replies, all in one back-and-forth. The caller is blocked the entire time.',
+      'Pick sync when the user is actively waiting and the answer is fast — login, posting a comment, fetching a page, checking whether a username is taken. The catch is that slow sync work ties up server capacity and forces the user to wait.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['asynchronous', 'message-queue'],
+  },
+  {
+    id: 'asynchronous',
+    term: 'Asynchronous',
+    short: 'The server accepts the request, replies "got it" immediately, and does the actual work later.',
+    body: [
+      'Asynchronous flows decouple "we received your request" from "the work is done." A queue holds the pending job; a separate fleet of workers processes it; the user finds out the result through a different channel (polling, webhook, push notification, email).',
+      'Pick async when the work is slow, can be retried, needs to survive crashes, or shouldn’t make the user wait. Sending email, generating reports, encoding video, settling payments, indexing uploads — all classically async.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['synchronous', 'message-queue', 'worker-pool'],
+  },
+  {
+    id: 'message-queue',
+    term: 'Message queue',
+    short: 'A piece of infrastructure that durably stores pending jobs until a worker picks each one up.',
+    body: [
+      'The producer (your back-end) writes a job description into the queue and immediately moves on. The consumer (a worker) pulls jobs off and does the work. Producer and consumer never talk directly.',
+      'A queue gives you durability (jobs survive a worker crash), decoupling (producer and consumer can scale independently), and spike absorption (a sudden traffic burst piles up in the queue instead of melting the workers).',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['asynchronous', 'worker-pool', 'sqs', 'rabbitmq', 'kafka'],
+  },
+  {
+    id: 'worker-pool',
+    term: 'Worker pool',
+    short: 'A fleet of programs whose only job is to pull jobs off a queue and do them.',
+    body: [
+      'Workers run as their own service, separate from the back-end fleet that handles user requests. They watch the queue, claim jobs one at a time, do the work, and mark them done.',
+      'Workers can be retried, so the same job may run more than once if a worker crashes mid-job. They also still need transactions and locks when they touch shared rows — async doesn’t rescue you from concurrency.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['asynchronous', 'message-queue', 'transaction'],
+  },
+  {
+    id: 'sqs',
+    term: 'AWS SQS',
+    short: 'AWS’s managed message queue — you don’t run any servers for it yourself.',
+    body: [
+      'The default queue for anything else running on AWS. Pay-per-message pricing, integrates with Lambda and the rest of the AWS catalog. No-ops in the operational sense — AWS handles durability, scaling, and availability.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['message-queue', 'aws'],
+  },
+  {
+    id: 'rabbitmq',
+    term: 'RabbitMQ',
+    short: 'A popular open-source message queue. The general-purpose workhorse you self-host.',
+    body: [
+      'Mature, flexible, supports many messaging patterns (fan-out, routing, work queues). Common when teams want full control over their messaging infrastructure or aren’t on AWS.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['message-queue'],
+  },
+  {
+    id: 'kafka',
+    term: 'Kafka',
+    short: 'A heavy-duty event streaming platform — used when the volume of events is enormous.',
+    body: [
+      'Different mental model from a typical queue: Kafka stores a durable, ordered log of events that many independent consumers can read at their own pace. Used heavily for analytics pipelines, cross-team event buses, and high-throughput workloads.',
+      'Overkill for small async job queues. Reach for SQS or RabbitMQ first; reach for Kafka when you need the streaming-log model or the throughput.',
+    ],
+    chapter: 6,
+    category: 'concurrency',
+    related: ['message-queue'],
+  },
 
   /* ====================================================================
    * Chapter 5 — Architecture & Communication Patterns

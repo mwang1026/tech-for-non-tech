@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import type { ElementId } from './elements'
 import { visibleElements } from './elements'
 import type { Level, StepStatus } from '../../content/types'
-import { diagramReveal, staggerChildren } from '../../motion/variants'
+import { diagramReveal, pulseOnce, pulseRepeat, staggerChildren } from '../../motion/variants'
 
 type Props = {
   chapter: number
@@ -11,6 +11,10 @@ type Props = {
   highlight?: string[]
   /** Tints the highlighted boxes green (pass), red (reject), or accent (neutral). */
   highlightStatus?: StepStatus
+  /** Force these element IDs visible regardless of chapter/level gating. */
+  extraVisible?: string[]
+  /** When set, any highlighted arrow pulses (once or on repeat). */
+  pulse?: 'once' | 'repeat'
 }
 
 /**
@@ -170,9 +174,40 @@ function Arrow({ x1, y1, x2, y2, dashed }: { x1: number; y1: number; x2: number;
   )
 }
 
-export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props) {
+/**
+ * Pulsing arrow — used by slides that want to make request/response direction visible.
+ * Same drawing primitive as <Arrow>, but switches to accent color and animates opacity
+ * when `pulsing` is true.
+ */
+function PulseArrow({
+  x1, y1, x2, y2, pulsing, mode, status,
+}: {
+  x1: number; y1: number; x2: number; y2: number
+  pulsing: boolean
+  mode?: 'once' | 'repeat'
+  status: StepStatus
+}) {
+  const stroke = pulsing ? strokeForStatus(status) : ink
+  const strokeWidth = pulsing ? 1.8 : 1
+  const variants = mode === 'once' ? pulseOnce : pulseRepeat
+  // `key` on the motion.line ensures a fresh mount when the pulse mode changes,
+  // so a single ping doesn't stick around as a leftover from a previous step.
+  return (
+    <motion.line
+      key={pulsing ? `pulse-${mode}` : 'static'}
+      x1={x1} y1={y1} x2={x2} y2={y2}
+      stroke={stroke} strokeWidth={strokeWidth}
+      markerEnd="url(#arrow)"
+      variants={variants}
+      animate={pulsing ? 'pulse' : false}
+    />
+  )
+}
+
+export function DiagramSvg({ chapter, level, highlight, highlightStatus, extraVisible, pulse }: Props) {
   const visible = visibleElements(chapter, level)
-  const v = (id: ElementId) => visible.has(id)
+  const extra = new Set(extraVisible ?? [])
+  const v = (id: ElementId) => visible.has(id) || extra.has(id)
 
   /** Resolve glossary-style aliases (e.g. 'api-gateway' → 'gateway') so authors can use either name. */
   const resolveAlias = (id: string): string => {
@@ -238,13 +273,49 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         />
       )}
 
-      {/* Stripe webhook */}
-      {v('webhook-stripe') && (
-        <g>
-          <Box id="webhook-stripe" x={490} y={230} w={90} h={40} label="Stripe" product="webhook" faded highlighted={isHi('webhook-stripe')} status={status} />
-          <Arrow x1={490} y1={250} x2={482} y2={250} />
-        </g>
-      )}
+      {/* Stripe webhook — drawn as an external system in its own dashed boundary below the
+          data tier, to make "ours vs. theirs" visually clear. Two long arrows run between the
+          rightmost server and Stripe: outbound (we ask, polling) and inbound (they tell us, webhook).
+          Slides drive which one pulses via `highlight: ['arrow:webhook-stripe-in' | 'arrow:webhook-stripe-out']`.
+          Source server: be-3 when individual servers are visible (Ch 5+), otherwise the be-pool placeholder. */}
+      {v('webhook-stripe') && (() => {
+        // Source point: bottom edge of be-3 (rightmost server) when visible, else the be-pool placeholder.
+        const srcX = v('be-1') ? 480 : 320
+        const srcY = 466
+        return (
+          <g>
+            {/* External boundary — visual mirror of the SERVER POOL band. */}
+            <rect x={360} y={638} width={180} height={62} fill="none" stroke={hairline} strokeDasharray="3 3" />
+            <text
+              x={366} y={632}
+              fontSize="8" fontWeight={500} letterSpacing="1.2"
+              fill={muted} fontFamily="var(--font-ui)"
+            >
+              EXTERNAL · THIRD-PARTY
+            </text>
+            <Box
+              id="webhook-stripe"
+              x={380} y={650} w={140} h={42}
+              label="Stripe" faded
+              highlighted={isHi('webhook-stripe')} status={status}
+            />
+            {/* Outbound: server → Stripe (we're asking). Offset slightly left. */}
+            <PulseArrow
+              x1={srcX - 6} y1={srcY} x2={444} y2={650}
+              pulsing={isHi('arrow:webhook-stripe-out')}
+              mode={pulse}
+              status={status}
+            />
+            {/* Inbound: Stripe → server (they're telling us). Offset slightly right. */}
+            <PulseArrow
+              x1={456} y1={650} x2={srcX + 6} y2={srcY}
+              pulsing={isHi('arrow:webhook-stripe-in')}
+              mode={pulse}
+              status={status}
+            />
+          </g>
+        )
+      })()}
 
       {/* Load Balancer */}
       {v('lb') && (
@@ -270,7 +341,8 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
       <g>
         {v('auth-svc') && <Box id="auth-svc" x={50}  y={498} w={140} h={42} label="Auth Service" product="Auth0" highlighted={isHi('auth-svc')} status={status} />}
         {v('cache')    && <Box id="cache"    x={210} y={498} w={140} h={42} label="Cache" product="Redis" highlighted={isHi('cache')} status={status} />}
-        {v('queue')    && <Box id="queue"    x={370} y={498} w={140} h={42} label="Queue" product="Kafka" highlighted={isHi('queue')} status={status} />}
+        {v('queue')    && <Box id="queue"    x={370} y={498} w={100} h={42} label="Queue" product="Kafka" highlighted={isHi('queue')} status={status} />}
+        {v('workers')  && <Box id="workers"  x={485} y={498} w={110} h={42} label="Workers" highlighted={isHi('workers')} status={status} />}
       </g>
 
       {/* Data tier */}
@@ -356,14 +428,18 @@ export function DiagramSvg({ chapter, level, highlight, highlightStatus }: Props
         {v('queue') && (
           v('be-1') ? (
             <g opacity={0.55}>
-              <line x1={140} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={300} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
-              <line x1={460} y1={466} x2={440} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={140} y1={466} x2={420} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={300} y1={466} x2={420} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
+              <line x1={460} y1={466} x2={420} y2={498} stroke={ink} strokeWidth={0.8} markerEnd="url(#arrow)" />
             </g>
           ) : (
-            <Arrow x1={310} y1={466} x2={440} y2={498} />
+            <Arrow x1={310} y1={466} x2={420} y2={498} />
           )
         )}
+        {/* Queue → Workers (workers pull jobs off the queue) */}
+        {v('queue') && v('workers') && <Arrow x1={470} y1={519} x2={485} y2={519} />}
+        {/* Workers → DB (workers commit results to the database) */}
+        {v('workers') && v('db-primary') && <Arrow x1={540} y1={540} x2={210} y2={562} />}
         {v('auth-svc') && (
           v('be-1') ? (
             <g opacity={0.55}>

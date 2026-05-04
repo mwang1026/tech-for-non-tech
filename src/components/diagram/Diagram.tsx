@@ -16,6 +16,10 @@ type Props = {
   highlight?: string[]
   /** Tints highlighted elements green (pass), red (reject), or accent (neutral). */
   highlightStatus?: StepStatus
+  /** Force these element IDs visible regardless of chapter/level gating. */
+  extraVisible?: string[]
+  /** When set, any highlighted arrow pulses (once or on repeat). */
+  pulse?: 'once' | 'repeat'
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -54,7 +58,7 @@ function regionForFocus(focus?: string): ViewBox {
   return FULL_VIEWBOX
 }
 
-export function Diagram({ chapter, level, focus, highlight, highlightStatus }: Props) {
+export function Diagram({ chapter, level, focus, highlight, highlightStatus, extraVisible, pulse }: Props) {
   /** When no explicit highlight list is given, default to the focused element (preserves legacy slide behavior). */
   const effectiveHighlight = highlight ?? (focus ? [focus] : [])
   const [vb, setVb] = useState<ViewBox>(FULL_VIEWBOX)
@@ -184,7 +188,7 @@ export function Diagram({ chapter, level, focus, highlight, highlightStatus }: P
           onClick={onSvgClick}
         >
           <motion.g animate={controls}>
-            <DiagramSvg chapter={chapter} level={level} highlight={effectiveHighlight} highlightStatus={highlightStatus} />
+            <DiagramSvg chapter={chapter} level={level} highlight={effectiveHighlight} highlightStatus={highlightStatus} extraVisible={extraVisible} pulse={pulse} />
           </motion.g>
         </svg>
 

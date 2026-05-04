@@ -9,7 +9,7 @@ export type ElementId =
   | 'gateway' | 'gateway-auth' | 'gateway-rate' | 'gateway-route'
   | 'lb'
   | 'be-pool' | 'be-1' | 'be-2' | 'be-3'
-  | 'auth-svc' | 'cache' | 'queue'
+  | 'auth-svc' | 'cache' | 'queue' | 'workers'
   | 'db-primary' | 'db-replica-1' | 'db-replica-2' | 'object-store'
   | 'webhook-stripe'
   | 'obs-lane' | 'obs-logs' | 'obs-metrics' | 'obs-traces'
@@ -52,7 +52,8 @@ export const elements: Record<ElementId, DiagramElement> = {
 
   'auth-svc':     { id: 'auth-svc', fromChapter: 2, fromLevel: 201 },
   cache:          { id: 'cache',   fromChapter: 4, fromLevel: 101 },
-  queue:          { id: 'queue',   fromChapter: 6, fromLevel: 201 },
+  queue:          { id: 'queue',   fromChapter: 6, fromLevel: 101 },
+  workers:        { id: 'workers', fromChapter: 6, fromLevel: 101, region: 'data' },
 
   'db-primary':   { id: 'db-primary',   fromChapter: 1, fromLevel: 101, region: 'data' },
   'db-replica-1': { id: 'db-replica-1', fromChapter: 9, fromLevel: 301, region: 'data' },

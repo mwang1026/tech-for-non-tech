@@ -175,6 +175,8 @@ function Inner() {
   const diagramFocus = activeStep?.focus ?? currentSlide?.diagramFocus
   const diagramHighlight = activeStep?.highlight
   const diagramStatus = activeStep?.status
+  const diagramPulse = activeStep?.pulse
+  const diagramExtraVisible = currentSlide?.extraVisible
 
   if (isIntro) {
     return (
@@ -267,6 +269,8 @@ function Inner() {
             focus={diagramFocus}
             highlight={diagramHighlight}
             highlightStatus={diagramStatus}
+            extraVisible={diagramExtraVisible}
+            pulse={diagramPulse}
           />
         )
       })()}

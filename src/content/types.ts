@@ -24,12 +24,14 @@ export type StepStatus = 'pass' | 'reject' | 'neutral'
 /** One step in a `steps` block. Carries its prose plus optional diagram coordination. */
 export type StepItem = {
   content: Inline
-  /** Diagram element IDs to highlight on this step (e.g. ['be-pool', 'cache']). */
+  /** Diagram element IDs to highlight on this step (e.g. ['be-pool', 'cache']). Arrow ids (e.g. 'arrow:webhook-stripe-in') also accepted. */
   highlight?: string[]
   /** Tints the highlighted elements green / red / accent. Defaults to 'neutral'. */
   status?: StepStatus
   /** Optional viewBox region/element to pan to on this step. Overrides slide.diagramFocus. */
   focus?: string
+  /** When set, any highlighted arrow pulses — once for a single ping, repeat for ongoing. */
+  pulse?: 'once' | 'repeat'
 }
 
 /** Top-level structural blocks within a slide body. Use sparingly — narrative voice prefers prose; structure when it genuinely aids scanning. */
@@ -58,6 +60,8 @@ export type Slide = {
   headline: string
   body: SlideBody
   diagramFocus?: string
+  /** Force-visible diagram element IDs for this slide only, regardless of chapter/level gating. Used when a slide needs a node that isn't part of the chapter's accretion arc (e.g. an external system shown for one slide). */
+  extraVisible?: string[]
   /** Hide the architecture diagram for this slide — used when the slide is about a different layer (e.g. local-laptop mechanics). */
   hideDiagram?: boolean
   /**

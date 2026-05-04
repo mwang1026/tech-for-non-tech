@@ -23,3 +23,19 @@ export const diagramReveal: Variants = {
 export const staggerChildren: Variants = {
   shown: { transition: { staggerChildren: 0.03 } },
 }
+
+/** Repeated pulse for an arrow that's "asking, asking, asking" (polling). */
+export const pulseRepeat: Variants = {
+  pulse: {
+    opacity: [0.25, 1, 0.25],
+    transition: { duration: 1.1, ease: easeOut, repeat: Infinity },
+  },
+}
+
+/** Single sharp ping for a one-time event arrival (webhook). */
+export const pulseOnce: Variants = {
+  pulse: {
+    opacity: [0.2, 1, 0.85],
+    transition: { duration: 0.7, ease: easeOut },
+  },
+}

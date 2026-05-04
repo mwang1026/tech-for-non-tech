@@ -1,16 +1,5 @@
-import type { Chapter, Block, BodyNode, Inline, StepItem, StepStatus } from './types'
-
-/* --------------------------- Authoring helpers --------------------------- */
-const _ = (text: string): BodyNode => ({ kind: 'text', text })
-const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
-const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-// const h = (text: string): Block => ({ kind: 'h', text })  // available; rarely needed
-const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
-const step = (
-  content: Inline,
-  opts: { highlight?: string[]; status?: StepStatus; focus?: string } = {},
-): StepItem => ({ content, ...opts })
-const steps = (...items: StepItem[]): Block => ({ kind: 'steps', items })
+import type { Chapter, Block } from './types'
+import { _, t, p, ul, step, steps } from './authoring'
 
 /* ============================================================================
  * Chapter 1 — The Request-Response Cycle (101)

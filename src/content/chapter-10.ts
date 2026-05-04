@@ -1,12 +1,5 @@
-import type { Chapter, Block, BodyNode, Inline, ConsoleSpec } from './types'
-
-/* --------------------------- Authoring helpers --------------------------- */
-const _ = (text: string): BodyNode => ({ kind: 'text', text })
-const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
-const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
-const ol = (...items: Inline[]): Block => ({ kind: 'ol', items })
-const code = (text: string): Block => ({ kind: 'code', text })
+import type { Chapter, Block, ConsoleSpec } from './types'
+import { _, t, p, ul, ol, code } from './authoring'
 
 /* ============================================================================
  * Chapter 10 — Working with Claude Code (101)

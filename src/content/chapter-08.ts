@@ -1,11 +1,5 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
-
-/* --------------------------- Authoring helpers --------------------------- */
-const _ = (text: string): BodyNode => ({ kind: 'text', text })
-const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
-const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
-const code = (text: string): Block => ({ kind: 'code', text })
+import type { Chapter, Block } from './types'
+import { _, t, p, ul, code } from './authoring'
 
 /* ============================================================================
  * Chapter 8 — Code Lifecycle (101)

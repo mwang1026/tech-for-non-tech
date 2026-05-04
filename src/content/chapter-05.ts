@@ -1,11 +1,5 @@
-import type { Chapter, Block, BodyNode, Inline } from './types'
-
-/* --------------------------- Authoring helpers --------------------------- */
-const _ = (text: string): BodyNode => ({ kind: 'text', text })
-const t = (text: string, glossaryId: string): BodyNode => ({ kind: 'term', text, glossaryId })
-const p = (...nodes: BodyNode[]): Block => ({ kind: 'p', nodes })
-// const h = (text: string): Block => ({ kind: 'h', text })  // available; rarely needed
-const ul = (...items: Inline[]): Block => ({ kind: 'ul', items })
+import type { Chapter, Block } from './types'
+import { _, t, p, ul, step, steps } from './authoring'
 
 /* ============================================================================
  * Chapter 5 — Architecture & Communication Patterns (101)
@@ -81,17 +75,29 @@ const cdn: Block[] = [
 /* --------------------------- Slide 4 — Ask vs. be told --------------------------- */
 
 const pollVsWebhook: Block[] = [
-  p(_('So far every conversation we’ve drawn has been initiated by the user’s browser: it asks, the server answers. Request-response.')),
-  p(_('But systems also need to talk to other systems, and not always on the user’s schedule. Imagine your app accepts payments through a payment processor. The processor takes a few seconds to confirm whether a charge succeeded. How does your app find out?')),
-  p(_('There are two answers, and they have very different costs:')),
-  ul(
-    [t('Polling', 'polling'), _(' — Your app keeps asking the payment processor: "is it done yet? is it done yet?" every few seconds. Simple to build (it’s just regular requests), but most of those checks return "no" — wasted bandwidth, wasted server time. And you’ll never know any faster than your poll interval.')],
-    [t('Webhooks', 'webhook'), _(' — Your app gives the payment processor a URL ahead of time and says "call me at this URL when something happens." The processor sends a request *to your app* the moment the charge confirms. No constant asking. Instant notification. The cost: your server has to be reachable from the public internet, and you have to verify each incoming webhook is really from the processor and not someone trying to spoof it.')],
+  p(_('We’ve been drawing our system as self-contained. In practice, almost every real product lives next to systems we don’t own — payment processors, identity providers, email senders, '), t('GitHub', 'github'), _(', geocoders, weather APIs. Conversations with those systems usually fall into one of three shapes.')),
+  steps(
+    step(
+      [
+        _('**Synchronous API call.** We send a request and the answer comes back in the same response — the work happens *during* the call. *Convert this currency. Translate this text. Geocode this address. Charge this card.* It’s request-response with someone else’s server, no different in shape from how a browser talks to ours. Most external traffic looks like this.'),
+      ],
+      { highlight: ['arrow:webhook-stripe-out', 'arrow:webhook-stripe-in', 'webhook-stripe'], status: 'pass', focus: 'full', pulse: 'once' },
+    ),
+    step(
+      [
+        _('**'), t('Polling', 'polling'), _('.** Same shape as a synchronous call, except the answer doesn’t exist yet. We kicked something off — or want to know about something that changes on its own — and the work takes time on their side. So we ask, *is it ready?*, get "not yet," wait, ask again, until eventually the answer is "yes." *Is the video encoded yet? Has the bank batch processed the payout? Are there new Shopify orders since the last sync?* Each check is a normal GET; the pattern is the *loop*. Polling is also where you land when the other system doesn’t support push, or when you can’t receive a push at all (a browser, a mobile app, a server with no public URL).'),
+      ],
+      { highlight: ['arrow:webhook-stripe-out', 'webhook-stripe'], status: 'neutral', focus: 'full', pulse: 'repeat' },
+    ),
+    step(
+      [
+        _('**'), t('Webhooks', 'webhook'), _('.** The inverse: they call us when something happens. We give the external system one of our URLs ahead of time, and they hit it the moment an event occurs. *Stripe pings us when a charge confirms. '),
+        t('GitHub', 'github'), _(' pings us when someone pushes code. Slack pings us when someone @s our bot.* The request originates from the outside — they’re talking, and our server is listening. Webhooks fit when both sides are servers and the external system supports them.'),
+      ],
+      { highlight: ['arrow:webhook-stripe-in', 'webhook-stripe'], status: 'pass', focus: 'full', pulse: 'once' },
+    ),
   ),
-  p(
-    _('Webhooks are how Stripe tells you a payment succeeded, how '),
-    t('GitHub', 'github'), _(' tells your build automation that someone pushed code, how Slack tells your bot that someone mentioned it. Anywhere one system needs to react to events in another system, webhooks are usually the right pattern.'),
-  ),
+  p(_('When you direct an agent to add a feature that touches an external system, the question to ask out loud is *which of these three is happening here, and why that one?* If the agent picked polling when webhooks were available, or made a synchronous call when the work actually takes time on their side, that’s where to push back.')),
 ]
 
 /* --------------------------- Slide 5 — One codebase or many --------------------------- */
@@ -118,7 +124,7 @@ export const chapter05: Chapter = {
     { id: 's1', level: 101, headline: 'One server isn’t enough', body: { kind: 'prose', blocks: oneServerEnough }, diagramFocus: 'app' },
     { id: 's2', level: 101, headline: 'Spread the work', body: { kind: 'prose', blocks: loadBalancers }, diagramFocus: 'lb' },
     { id: 's3', level: 101, headline: 'Static content, served close', body: { kind: 'prose', blocks: cdn }, diagramFocus: 'cdn' },
-    { id: 's4', level: 101, headline: 'Ask vs. be told', body: { kind: 'prose', blocks: pollVsWebhook }, diagramFocus: 'full' },
+    { id: 's4', level: 101, headline: 'Talking to external systems', body: { kind: 'prose', blocks: pollVsWebhook }, diagramFocus: 'full', extraVisible: ['webhook-stripe'] },
     { id: 's5', level: 101, headline: 'One codebase or many', body: { kind: 'prose', blocks: monolith }, diagramFocus: 'app' },
     {
       id: 's6',
@@ -130,7 +136,7 @@ export const chapter05: Chapter = {
         learned: [
           'A single back-end server can\'t serve a real audience — you need many, behind a load balancer that spreads requests across them',
           'CDNs cache static files (images, JS, fonts) close to users geographically, so most page weight never touches your origin server',
-          'Polling vs. webhooks: ask repeatedly, or tell the other system where to call you when something happens',
+          'Talking to external systems comes in three shapes — regular API calls, polling, and webhooks — and most cross-system features are one of those three',
           'Monolith vs. microservices is a team-and-scale decision, not a winner — the answer depends on how independent your teams need to be',
         ],
         whereInSystem: [
@@ -140,7 +146,7 @@ export const chapter05: Chapter = {
           _(' sits even further out at the network edge, serving static files from cache servers near each user.'),
         ],
         bridge: [
-          _('Coming up — Chapter 6: Concurrency. Now that we have many servers, the next problem appears: what happens when many requests want to read and write the same row at the same instant — and one of them silently overwrites the other.'),
+          _('Coming up — Chapter 6: Concurrency. Now that we have many servers handling thousands of requests at once, two questions appear. When two requests want the same row at the same instant, who wins — and how do we keep the loser from being silently overwritten? And when the work is too slow to make a user wait on it, where does it go instead? Sync, async, and what goes wrong with each.'),
         ],
       },
     },
