@@ -7,7 +7,7 @@ export const intro = {
     italic: "You still have to read the system.",
   },
   thesis:
-    "Your job isn’t to write the code. It’s to define what good looks like, understand what the agent proposes, and ask the right questions to steer it toward a design that fits your needs. That doesn’t require syntax. It requires reading the system you’re directing — the parts, the seams, and where a change actually lands. The chapters ahead are the groundwork for that.",
+    "Your job isn’t to write the code. It’s to define what good looks like, understand what the agent proposes, and ask the questions that surface the tradeoffs the agent is silently making. That doesn’t require syntax. It requires reading the system you’re directing — the parts, the boundaries between them, and where a change actually lands. The chapters ahead are the groundwork for that.",
   audienceLabel: "This is for you if",
   audience: [
     "You ship product but don’t write production code.",
