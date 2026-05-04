@@ -20,7 +20,7 @@ import { _, t, p, ul } from './authoring'
 /* --------------------------- Slide 1 — The multi-user problem --------------------------- */
 
 const multiUserProblem: Block[] = [
-  p(_('Coming out of Chapter 1, we have the request-response loop: browser asks, back-end answers. But here’s the situation we’ve been ignoring: real products serve hundreds, thousands, sometimes millions of users at once, all hitting the same back-end. Every one of those users wants to see *their* data — their orders, their messages, their account balance — and definitely not anyone else’s.')),
+  p(_('Coming out of Chapter 1, we have the request-response loop: browser asks, back-end answers. Real products serve hundreds, thousands, sometimes millions of users at once, all hitting the same back-end. Every one of those users wants to see *their* data — their orders, their messages, their account balance — and definitely not anyone else’s.')),
   p(_('Imagine the back-end ignored this question entirely. Two people log into the same banking app at the same time. Both make a request: "show me my account." The back-end reads its records. Which account does it return? Without something attached to the request that says "this is from user 123," the back-end has no way to know — and either every request gets the same data, or none of them do.')),
   p(_('What needs to happen: every single request the back-end receives has to carry, somehow, a verifiable answer to the question "who is this from?" That answer is what we call '), t('identity', 'identity'), _('. It’s the very first thing the system needs to know about every request — before it can decide what to do, it has to know who’s asking.')),
 ]
@@ -50,9 +50,9 @@ const loginOnce: Block[] = [
   ),
   p(_('Tokens have expiration dates and can be revoked — if your laptop is stolen, the token can be invalidated without anyone changing their password. (Sessions revoke trivially; JWTs are harder, since their "I am valid" lives inside the token itself — the JWT glossary entry has the details.)')),
   p(
-    _('Most teams don’t build this themselves. They use a hosted service like '),
-    t('Auth0', 'auth0'), _(', '), t('Clerk', 'clerk'), _(', or '), t('Okta', 'okta'),
-    _(' that handles login flows, issues tokens, and provides the verification logic. The team just plugs it in and trusts the service to get the cryptography right.'),
+    _('Hosted services like '),
+    t('Auth0', 'auth0'), _(', '), t('Clerk', 'clerk'), _(', and '), t('Okta', 'okta'),
+    _(' handle login flows, issue tokens, and provide the verification logic. Teams plug them in instead of writing the cryptography themselves.'),
   ),
 ]
 
@@ -60,10 +60,10 @@ const loginOnce: Block[] = [
 
 const whatTokenIs: Block[] = [
   p(_('Two questions follow from "the browser sends a token back on every request": what does the token actually look like, and how does the server verify it?')),
-  p(_('Imagine the token is just a number — 1, 2, 3 — that the server hands out in order. You can probably see the problem: anyone could guess "I bet someone has token 47" and pretend to be that user. Identity would be trivially forgeable. So the token has to be unguessable in practice — long enough and random enough that no attacker can produce a valid one without already having stolen it.')),
-  p(_('In practice, tokens come in two shapes:')),
+  p(_('Imagine the token is just a number — 1, 2, 3 — that the server hands out in order. You can probably see the problem: anyone could guess "I bet someone has token 47" and pretend to be that user. Identity would be trivially forgeable. So the token has to be unguessable — long enough and random enough that no attacker can produce a valid one without already having stolen it.')),
+  p(_('Tokens come in two shapes:')),
   ul(
-    [_('**Opaque random tokens** — long random strings, typically 30+ characters of letters and numbers (looks like `r3kT9xY2bQ8mN1pV...`). The string itself means nothing; the server checks it by looking it up in a list of issued tokens and finding which user it belongs to. Not found, or expired? Reject the request.')],
+    [_('**Opaque random tokens** — long random strings of letters and numbers, long enough to be unguessable (looks like `r3kT9xY2bQ8mN1pV...`). The string itself means nothing; the server checks it by looking it up in a list of issued tokens and finding which user it belongs to. Not found, or expired? Reject the request.')],
     [_('**Signed tokens (JWTs)** — the token contains the user’s ID, plus a tamper-proof seal (a *cryptographic signature*) that the server made when it issued the token. JWTs look more structured: `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.abc...` (you’re not meant to read it). The server checks that the seal is its own — if it is, the token is genuine and the user ID inside it is trustworthy. No lookup needed.')],
   ),
   p(_('Either way, the verification has to happen on every single request that does anything sensitive. Skipping the check, even once, is how breaches happen.')),
@@ -75,7 +75,7 @@ const slicingTheDb: Block[] = [
   p(_('Now we know how the request says "this is from user 123." But that’s only useful if the back-end actually does something with it.')),
   p(_('Picture the back-end’s data as one giant room with everyone’s stuff in it — every user’s notes, orders, messages, photos. Each item carries a small stamp: this one belongs to user 123, this one to user 456, and so on.')),
   p(_('When a request arrives that says "show me my notes," the back-end pulls the user ID out of the verified token (let’s say 123), then asks for everything stamped 123. Items stamped 456 are sitting right there next to them, but they were never asked for, so they never come back. The requesting user only ever sees their own.')),
-  p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a shared back-end into something that feels, to each user, like their own private space. Every safe multi-user system in the world works this way.')),
+  p(_('This is what we mean when we say identity "isolates" users from each other. The data isn’t really separated — it’s all in one place — but identity is the key that decides which slice of it any given request can read or change. It’s the thing that turns a shared back-end into something that feels, to each user, like their own private space.')),
 ]
 
 /* --------------------------- Recap --------------------------- */
@@ -106,7 +106,7 @@ export const chapter02: Chapter = {
         whereInSystem: [
           _('At this level, identity doesn’t add a new box to the diagram — it rides on the request arrows. A '),
           t('token', 'token'),
-          _(' travels from the browser to the back-end on every request. The back-end verifies it, extracts the user ID, and uses that ID to filter what gets read from or written to the database. Same boxes; smarter conversations.'),
+          _(' travels from the browser to the back-end on every request. The back-end verifies it, extracts the user ID, and uses that ID to filter what gets read from or written to the database.'),
         ],
         bridge: [
           _('Coming up — Chapter 3: Validation & Authorization. Knowing *who* the user is (this chapter) is one thing. Knowing whether they’re *allowed* to do this specific thing — read this record, change this setting, delete this account — is another. Identity says "this is user 123." Authorization says "and yes, user 123 is permitted to do what they’re asking."'),
