@@ -1,5 +1,5 @@
 import type { Chapter, Block } from './types'
-import { _, t, p, ul, code } from './authoring'
+import { _, t, p, h, ul, code } from './authoring'
 
 /* ============================================================================
  * Chapter 8 — From Edited Text to Merged Change (101)
@@ -60,17 +60,32 @@ const codeIsText: Block[] = [
 /* --------------------------- Slide 3 — Codebase organization --------------------------- */
 
 const organization: Block[] = [
-  p(_('A real product is rarely one giant text file. Splitting code into many smaller pieces is how a human (or an agent) navigates a codebase without drowning. The vocabulary for those scales:')),
+  p(_('A real product is rarely one giant text file. Splitting the code is how a human or an agent navigates it — and the splitting happens on two axes at once. One axis is the filesystem: folders and files on disk. The other is what lives inside a file: functions, classes, methods. A couple of terms — module, package — span both.')),
+  h('On disk'),
   ul(
     [_('A '), t('file', 'code-file'), _(' is one text document on disk. `Hero.tsx` is a file. The orange-sun change touches one file.')],
     [_('A '), t('folder', 'folder'), _(' (sometimes called a directory) groups files by purpose. `src/components/` holds UI components; `src/db/` holds database code. Folder structure is a navigation tool — it tells you where to look for a given concern.')],
+  ),
+  h('Inside a file'),
+  ul(
     [_('A '), t('function', 'function'), _(' is a named block of code that does one job. `getSunColor()` returns a color. Inside the file, code is organized into functions so each one can be read, tested, and reused on its own.')],
-    [_('A '), t('class', 'class'), _(' bundles related data together with the operations on it. A `User` class might hold a name and email plus operations like `changePassword()`. When a function lives inside a class, some languages call it a '), t('method', 'method'), _(' (Java, Python, Ruby do; JavaScript and Go usually still say function). Same job, different name by convention.')],
-    [_('A '), t('module', 'module'), _(' is a single file (or small group) treated as a unit other code imports from. `theme.ts` exporting the sun color is a module — other files bring it in by name.')],
-    [_('A '), t('package', 'package'), _(' is a folder of modules distributed and versioned together. The whole `your-repo/` codebase is a package. `react`, which other projects install and use, is also a package — published, versioned, and pulled in as a dependency.')],
+    [_('A '), t('class', 'class'), _(' bundles related data together with the operations on it. A `User` class might hold a name and email plus operations like `changePassword()`.')],
+    [_('A '), t('method', 'method'), _(' is what a function is called when it lives inside a class. Java, Python, and Ruby use the term; JavaScript and Go usually still say function. Same job, different name by convention.')],
+  ),
+  h('Spanning both'),
+  ul(
+    [_('A '), t('module', 'module'), _(' is a single file (or small group) treated as a unit other code imports from. `theme.ts` exporting the sun color is a module — other files bring it in by name. A module is the language\'s view of a file.')],
+    [_('A '), t('package', 'package'), _(' is a folder of modules distributed and versioned together. The whole `your-repo/` codebase is a package. `react`, which other projects install and use, is also a package — published, versioned, and pulled in as a dependency. A package is the language\'s view of a folder.')],
   ),
   p(_('Names blur across languages — what JavaScript calls a module is roughly what Python calls a module which is roughly what Java calls a class file. The reader doesn\'t need to know the differences. Just to recognize that when a reviewer or an agent says "module," "package," or "method," they\'re naming a scale of code organization, not a magic concept.')),
-  p(_('For the orange-sun change: the file is `Hero.tsx`, inside the `components` folder, inside `src`, inside the `your-repo` package. The line being changed sits inside a function called `getSunColor`, attached to a class called `Hero`. The reviewer asking "where\'s the change?" is asking for that path.')),
+  p(_('For the orange-sun change, the two hierarchies meet in one path:')),
+  code(`your-repo/                    ← package
+  src/                        ← folder
+    components/               ← folder
+      Hero.tsx                ← file (and module)
+        class Hero            ← class
+          getSunColor()       ← method`),
+  p(_('The reviewer asking "where\'s the change?" is asking for that path.')),
 ]
 
 /* --------------------------- Slide 4 — git, GitHub, clone --------------------------- */
