@@ -26,7 +26,7 @@ import { _, t, p, ul, step, steps } from './authoring'
 
 const manyAtOnce: Block[] = [
   p(_('Up until now we’ve followed a single request through the system. The gates from Chapter 3 do their job — token verified, permission checked, data validated — and the request flows through cleanly.')),
-  p(_('The reality is busier. A real back-end has thousands of requests in flight at any given moment. Most of them touch different data and never interact. Some of them collide.')),
+  p(_('The reality is busier. A real back-end has thousands of requests in flight at any given moment. Each one runs independently — until two land on the same row at the same instant.')),
   p(_('Before we get to the collisions, a frame: a back-end can handle each request one of two ways.')),
   ul(
     [
@@ -49,7 +49,7 @@ const syncDefinition: Block[] = [
     _(' request is the shape of every flow we’ve drawn so far. The browser opens a connection, sends a request, and waits with that connection held open. The server reads the request, does whatever the work is — query the database, check the user’s permission, render a response — and writes back. The user’s browser receives the answer and unblocks.'),
   ),
   p(_('From the back-end’s perspective: a single request kicks off whatever work is needed — function calls, database queries, calls out to other services — and once that work finishes, the result goes out as the response. The shape from the outside is still one in, one out, all in one continuous moment.')),
-  p(_('Why teams reach for sync first:')),
+  p(_('Why pick sync:')),
   ul(
     [_('The user gets an immediate, definitive answer in the same call.')],
     [_('The code is the simplest possible shape — one function, one return value, no extra moving parts. Easy to write, easy to debug.')],
@@ -87,9 +87,9 @@ const collide: Block[] = [
   ),
   p(
     _('This is called a '), t('race condition', 'race-condition'),
-    _('. Two operations racing against each other on the same data, where the outcome depends on which one happens to win — and where the losing write gets silently overwritten. In a typical setup, with no special protection, this is exactly what happens. At low traffic you may never see it, but it’s the kind of bug that passes every test, never reproduces locally, and only shows up in production when traffic is high enough that two requests really do land in the same instant.'),
+    _('. Two operations racing against each other on the same data, where the outcome depends on which one happens to win — and where the losing write gets silently overwritten. Without special protection, this is exactly what happens. At low traffic you may never see it, but it’s the kind of bug that passes every test, never reproduces locally, and only shows up in production when traffic is high enough that two requests really do land in the same instant.'),
   ),
-  p(_('In a typical relational database — Postgres, MySQL, the kind we’ve been drawing — the fix is built right in. We just have to use it correctly. (Some distributed and eventually-consistent setups don’t offer the same locks directly; in those, the application has to coordinate the protection itself. That’s 201 territory; the rest of this chapter sticks to the database-level case.)')),
+  p(_('In a relational database — Postgres, MySQL, the kind we’ve been drawing — the fix is built right in. We just have to use it correctly. (Some distributed and eventually-consistent setups don’t offer the same locks directly; in those, the application has to coordinate the protection itself. That’s 201 territory; the rest of this chapter sticks to the database-level case.)')),
 ]
 
 /* --------------------------- Slide 4 — Locks and atomicity --------------------------- */
@@ -110,7 +110,7 @@ const locks: Block[] = [
       _(' — you can ask the database to hold a lock on the rows you’re working with, so other transactions that want the same rows wait their turn. The lock releases when the transaction commits or rolls back.'),
     ],
   ),
-  p(_('Important catch: in most databases, just wrapping reads and writes in a transaction is *not* enough on its own. By default, two transactions can both read the same "1 in stock" before either has written. The lock that prevents this has to be asked for explicitly — it doesn’t come for free.')),
+  p(_('Important catch: just wrapping reads and writes in a transaction is *not* enough on its own. By default, two transactions can both read the same "1 in stock" before either has written. The lock that prevents this has to be asked for explicitly — it doesn’t come for free.')),
   p(_('Done correctly, the inventory replay works:')),
   ul(
     [_('Request A asks for the lock and gets it. Request B asks for the lock too and is told to wait.')],
@@ -125,7 +125,7 @@ const locks: Block[] = [
 
 const rmw: Block[] = [
   p(
-    _('The inventory example is dramatic, but the same shape shows up everywhere. Anywhere code reads a value, decides something based on it, and writes a new value back, there’s a potential race condition. The pattern has a name: '),
+    _('The inventory example is dramatic, but the same shape recurs anywhere code reads a value, decides something based on it, and writes a new value back. The pattern has a name: '),
     t('read-modify-write', 'read-modify-write'),
     _('.'),
   ),
@@ -136,7 +136,7 @@ const rmw: Block[] = [
     [_('Uniqueness checks — "is this username taken?" before creating an account with it.')],
     [_('State transitions — moving an order from "pending" to "paid" to "shipped."')],
   ),
-  p(_('These bugs are insidious because they almost always work fine. Two users rarely sign up with the same username at the exact same instant. Two payments rarely hit the same account at the same nanosecond. So under normal load, the code passes every test. Then traffic spikes — Black Friday, a viral tweet, an automated stress test — and suddenly the impossible coincidence happens many times an hour.')),
+  p(_('These bugs hide because they pass under normal load. Two users rarely sign up with the same username at the exact same instant. Two payments rarely hit the same account at the same nanosecond. So the code passes every test. Then traffic spikes — Black Friday, a viral tweet, an automated stress test — and suddenly the impossible coincidence happens many times an hour.')),
   p(_('The rule of thumb: any time the back-end reads a value and then writes a new value based on it, ask whether two of those operations could happen at the same time on the same row. If yes, you need a transaction with the right protection — the previous slide spelled out the options.')),
   p(_('That covers the synchronous side of concurrency. Now the other half: what if the user shouldn’t be waiting on the answer in the first place?')),
 ]
@@ -148,7 +148,7 @@ const asyncDefinition: Block[] = [
     _('An '), t('asynchronous', 'asynchronous'),
     _(' request starts the same way any other does — the user’s browser (or another system) sends a call to the server. What’s different is what the server does once it receives it. Instead of doing the work and replying with the answer, the server just records that there’s work to do, immediately replies "got it," and the actual work happens later, out of the request path, on its own time.'),
   ),
-  p(_('Four reasons teams reach for async, each one a real cost sync can’t pay:')),
+  p(_('Four reasons to pick async, each one a cost sync can’t pay:')),
   ul(
     [_('**Slow work.** Encoding a video takes minutes. Generating a fifty-page report takes thirty seconds. Sending ten thousand emails takes a while. The user shouldn’t sit there with a spinner.')],
     [_('**Server capacity.** Every in-flight request consumes one of the server’s slots for as long as it runs. Slow sync work means fewer slots free for everyone else, and the back-end starts dropping requests when it runs out.')],
@@ -173,11 +173,11 @@ const queuesAndWorkers: Block[] = [
     ],
   ),
   p(_('The producer (the back-end) and the consumer (the workers) never talk directly. They communicate through the queue. That’s the point — it decouples them. The back-end can keep accepting requests at full speed even while the workers are slowly chewing through a long backlog. If a worker crashes mid-job, the queue holds onto the job until another worker picks it up.')),
-  p(_('Common queues you’ll see in real systems:')),
+  p(_('Three queue systems you’ll encounter:')),
   ul(
-    [t('AWS SQS', 'sqs'), _(' — managed by AWS; you don’t run any servers for it yourself. The default for anything else running on AWS.')],
+    [t('AWS SQS', 'sqs'), _(' — managed by AWS; you don’t run any servers for it yourself. Integrated with the rest of AWS.')],
     [t('RabbitMQ', 'rabbitmq'), _(' — open-source, self-hosted. The general-purpose workhorse when you want full control.')],
-    [t('Kafka', 'kafka'), _(' — heavy-duty event streaming, used when the volume is enormous or many consumers need to read the same stream. Overkill for small job queues; reach for SQS or RabbitMQ first.')],
+    [t('Kafka', 'kafka'), _(' — heavy-duty event streaming, built for enormous volume or for cases where many consumers need to read the same stream. Overkill for small job queues.')],
   ),
   p(_('On the diagram: a queue and a worker pool now sit alongside the cache, with the back-end writing jobs into the queue, workers pulling them out, and workers writing results back into the database. From here on, every async flow runs through that path.')),
 ]
@@ -189,20 +189,20 @@ const asyncCosts: Block[] = [
   p(_('**The result arrives through a different channel.** The original request already returned "got it" — not the answer. The actual outcome surfaces later through one of the patterns from Chapter 5: polling a status endpoint, receiving a webhook, getting a push notification, or being told "we’ll email you when it’s ready." Whichever pattern you pick, it has to be designed in deliberately. The user has to know what to expect.')),
   p(_('**Jobs can run more than once.** If a worker crashes mid-job, the queue redelivers — the same job runs again. So the same job may run twice. The 101 takeaway when an agent is writing async work: ask *"what if this runs twice — does the user get charged twice, do we send the email twice, do we ship the order twice?"* The pattern that handles this safely has a name; that’s a 201 topic.')),
   p(_('**Workers still race.** Async doesn’t rescue you from concurrency. Two workers can grab two different jobs that touch the same row at the same instant — and the same race conditions from earlier in this chapter still apply. Transactions and locks still earn their keep, just inside the worker now instead of inside the request handler.')),
-  p(_('That last one is worth pausing on: async and concurrency are two separate problems. Async decides where the work runs (in the request, or later in a worker). Concurrency decides what protects shared rows when many things touch them at once. Most real systems need both.')),
+  p(_('That last one is worth pausing on: async and concurrency are two separate problems. Async decides where the work runs (in the request, or later in a worker). Concurrency decides what protects shared rows when many things touch them at once. Both come up in any real system that has slow work and shared state.')),
 ]
 
 /* --------------------------- Slide 9 — Sync vs async: choosing --------------------------- */
 
 const choosing: Block[] = [
-  p(_('Sync vs. async isn’t a project-wide religion. It’s a per-feature decision. Two questions decide it:')),
+  p(_('Sync vs. async isn’t a project-wide decision. It’s per-feature. Two questions decide it:')),
   ul(
     [_('**Is the user waiting on this answer to keep going?** If yes, lean sync. The user wants login to return a session, the comment to appear, the username check to come back yes or no.')],
     [_('**Is the work fast and reliable?** If yes, lean sync. Anything that finishes in well under a second and rarely fails belongs in the request path.')],
   ),
   p(_('When either answer is no — the work is slow, or fragile, or shouldn’t block the user — go async. Sending email. Generating a report. Encoding video. Settling a payment with the bank. Indexing an uploaded document. Calling a flaky third-party API on a retry. Notifying ten thousand subscribers. None of these belong in a request the user is staring at.')),
-  p(_('The common hybrid: sync acknowledgment + async work. The request returns "got your video, processing now, we’ll notify you when it’s ready" in a few hundred milliseconds. The heavy work runs in the background. The user sees fast feedback and a clear expectation for how the result will arrive.')),
-  p(_('Why this is judgment territory when working with an agent: an agent will default to whatever is simpler to write — usually sync. That’s fine until you ship a feature that takes thirty seconds and the browser times out, or until traffic spikes and the back-end melts. The right question to push the agent on:')),
+  p(_('A hybrid pattern: sync acknowledgment + async work. The request returns "got your video, processing now, we’ll notify you when it’s ready" in a few hundred milliseconds. The heavy work runs in the background. The user sees fast feedback and a clear expectation for how the result will arrive.')),
+  p(_('Why this is judgment territory when working with an agent: an agent will reach for sync by default, since it’s the simpler shape to write. That’s fine until you ship a feature that takes thirty seconds and the browser times out, or until traffic spikes and the back-end melts. The right question to push the agent on:')),
   p(_('  *"How long will this realistically take, and what should the user see while it runs?"*')),
   p(_('That one question pushes the agent off autopilot and makes the sync-vs-async call deliberate.')),
 ]
@@ -240,7 +240,7 @@ export const chapter06: Chapter = {
           'The sync-vs-async call is per feature. Sync if the user is waiting on the answer and the work is fast; async if the work is slow, fragile, or shouldn’t block',
         ],
         whereInSystem: [
-          _('Concurrency lives at the seam between the '),
+          _('Concurrency lives at the boundary between the '),
           t('back-end', 'back-end'),
           _(' and the '),
           t('database', 'database'),
