@@ -1644,14 +1644,38 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'feature-template',
     term: 'Feature template',
-    short: 'A fixed list of nine questions you ask the agent before letting it write any code for a new feature.',
+    short: 'A fixed list of ten questions you ask the agent before letting it write any code for a new feature.',
     body: [
-      'State, API contract, identity, authorization & validation, concurrency, performance, failure modes, front-end vs. back-end, diagram. Each one maps to a chapter in this primer.',
+      'State, API contract, identity, authorization & validation, concurrency, performance, failure modes, front-end vs. back-end, telemetry, diagram. Each one maps to a chapter in this primer.',
       'Running the template forces hand-waves to the surface in plain English — far easier to push back on than 800 lines of code that already look reasonable.',
     ],
     chapter: 10,
     category: 'agents',
-    related: ['claude-code'],
+    related: ['claude-code', 'claude-md'],
+  },
+  {
+    id: 'claude-md',
+    term: 'CLAUDE.md',
+    short: 'A markdown file in the repo root that the agent loads automatically every time it starts in that folder.',
+    body: [
+      'Standing instructions for the agent: architecture overview, conventions the team follows, build and test commands, things to avoid. Loaded into every session in this repo.',
+      'Treated like code — edits go through a branch and a pull request. Don\'t let the agent rewrite it inline mid-session; if a rule belongs in CLAUDE.md, propose it as its own change.',
+    ],
+    chapter: 10,
+    category: 'agents',
+    related: ['claude-code', 'claude-skill'],
+  },
+  {
+    id: 'claude-skill',
+    term: 'Skill',
+    short: 'A named, reusable workflow for the agent — invoked by slash command, like /review or /security-review.',
+    body: [
+      'Each skill is a markdown file (typically under `.claude/skills/<name>/SKILL.md`) with a name, a one-line description, and a body of instructions the agent loads when the skill is invoked. Common ones bundle a multi-step task — code review, project setup, security audit — into a single command.',
+      'When you find yourself running the same multi-step prompt repeatedly, that\'s a candidate to capture as a skill. Like CLAUDE.md, skills live in the repo and ship through normal pull-request review.',
+    ],
+    chapter: 10,
+    category: 'agents',
+    related: ['claude-code', 'claude-md'],
   },
 ]
 
