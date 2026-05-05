@@ -1575,6 +1575,32 @@ export const glossary: GlossaryEntry[] = [
    * Chapter 10 — Working with Claude Code
    * ==================================================================== */
   {
+    id: 'llm',
+    term: 'Large language model (LLM)',
+    short: 'A neural network trained to predict the next chunk of text given the text so far.',
+    body: [
+      'A function with billions to hundreds of billions of internal numbers (weights), trained on trillions of tokens of text — public web pages, books, documentation, source code from open repositories. Given some text, it outputs a ranking of likely next tokens; an agent picks one, appends it, and asks again. Repeat until done.',
+      'The architecture used by every major model — Claude, GPT, Gemini, Llama — is called a transformer, introduced by a Google paper in 2017.',
+      'It is a pattern completer, not a fact lookup. There is no internal database it queries when you ask a question. That is why it can be fluent and confidently wrong in the same paragraph; verifying is on you.',
+    ],
+    chapter: 10,
+    category: 'agents',
+    related: ['agent', 'claude-code'],
+  },
+  {
+    id: 'agent',
+    term: 'Agent',
+    short: 'A program that wraps a language model with tools, a system prompt, and a loop, letting it read files, run commands, and edit code.',
+    body: [
+      'The model itself is just text-in, text-out. An agent gives it tools — Read, Edit, Bash, Grep — a system prompt that describes how to use them, and runs a loop: send the request to the model, execute any tool the model asks for, feed the result back, repeat until the model stops.',
+      'Behavior is shaped by three things: the model\'s training, the tools the agent exposes, and the system prompt the agent sends with every turn. Two agents on the same model can feel very different because they ship different tools and different prompts.',
+      'Files like CLAUDE.md and the skills folder change agent behavior without changing the model — the agent appends them to the prompt it was already sending.',
+    ],
+    chapter: 10,
+    category: 'agents',
+    related: ['claude-code', 'llm', 'claude-md', 'claude-skill'],
+  },
+  {
     id: 'claude-code',
     term: 'Claude Code',
     short: 'Anthropic’s AI coding agent — runs in the terminal, reads and edits code in a real repository.',

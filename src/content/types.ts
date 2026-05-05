@@ -108,6 +108,10 @@ export type ConsoleBlock =
   | { kind: 'flag'; note: string }
   /** Blinking cursor — used for the literal-first-run slide. */
   | { kind: 'cursor' }
+  /** Animated next-token prediction — Slide A (LLM intro). */
+  | { kind: 'tokenCascade'; prompt: string; steps: TokenCascadeStep[]; finalNote?: string }
+  /** API-payload representation — Slide B (agent harness). */
+  | { kind: 'payload'; title?: string; entries: PayloadEntry[] }
 
 export type AgentSection = {
   label: string
@@ -115,6 +119,20 @@ export type AgentSection = {
   chapter?: string
   text: string
 }
+
+export type TokenCascadeStep = {
+  /** Top-N candidates for the next token, sorted desc by prob. */
+  candidates: { token: string; prob: number }[]
+  /** Index into candidates of the one that "wins" and gets appended. */
+  pickedIndex: number
+}
+
+export type PayloadEntry =
+  | { kind: 'systemPrompt'; text: string }
+  | { kind: 'context'; label: string; detail?: string }
+  | { kind: 'message'; role: 'user' | 'assistant'; text: string; latest?: boolean }
+  | { kind: 'toolUse'; tool: string; args: string }
+  | { kind: 'toolResult'; preview: string; sizeKB?: number }
 
 export type ConsolePane = {
   /** Optional small label for the pane chrome, e.g. "Terminal A". */
