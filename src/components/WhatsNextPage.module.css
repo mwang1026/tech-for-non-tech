@@ -1,0 +1,291 @@
+/* WhatsNextPage — the 0xFF closer.
+   Rendered as a standalone surface inside the content column.
+   Editorial-coda aesthetic: italic Fraunces title, hairline+dot ornament,
+   serif lede, sans body, italic Fraunces closing paragraph.
+   Inherits the project's two-font palette (Fraunces + Inter) and the warm
+   paper / vermillion-accent token set. */
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  /* Subtle paper warmth to set this surface apart from chapter slides. */
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(182, 55, 31, 0.035), transparent 60%),
+    radial-gradient(80% 60% at 100% 100%, rgba(26, 24, 21, 0.04), transparent 60%),
+    var(--paper);
+}
+
+.page {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding:
+    clamp(48px, 8vh, 112px)
+    clamp(var(--space-l), 5vw, 64px)
+    clamp(64px, 10vh, 128px);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* ──────────────────────────── Headline block ──────────────────────────── */
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--space-m);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(52px, 6.6vw, 92px);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.ornament {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin: var(--space-xl) 0 var(--space-l);
+  width: min(220px, 100%);
+}
+.ornamentRule {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline-strong);
+}
+.ornamentDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--hairline);
+}
+
+.ornamentTrailing {
+  composes: ornament;
+  margin: var(--space-xl) auto;
+  width: 280px;
+}
+
+/* ──────────────────────────── Lede + body ──────────────────────────── */
+
+.lede {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(21px, 1.7vw, 25px);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 0;
+  max-width: 38em;
+  text-wrap: pretty;
+}
+
+.body_p {
+  font-family: var(--font-ui);
+  font-size: 17.5px;
+  line-height: 1.75;
+  color: var(--ink);
+  margin: var(--space-l) 0 0;
+  max-width: 42em;
+  text-wrap: pretty;
+}
+
+.closing {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(20px, 1.6vw, 23px);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 0 auto;
+  max-width: 36em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ──────────────────────────── Console snippet ──────────────────────────── */
+
+.console {
+  margin: calc(var(--space-xl) + 4px) 0 0;
+  padding: 0;
+  max-width: 640px;
+}
+
+.consoleFrame {
+  background: #1A1815;
+  color: #EDE7DD;
+  border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.55;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 18px 40px -22px rgba(26, 24, 21, 0.55),
+    0 2px 4px -1px rgba(26, 24, 21, 0.18);
+}
+
+.consoleChrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.consoleDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+.consoleDot:first-child { background: rgba(255, 90, 76, 0.85); }
+.consoleDot:nth-child(2) { background: rgba(255, 189, 76, 0.85); }
+.consoleDot:nth-child(3) { background: rgba(76, 217, 100, 0.85); }
+.consoleCwd {
+  margin-left: 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(237, 231, 221, 0.55);
+}
+
+.consoleShell {
+  margin: 0;
+  padding: 16px 20px 8px;
+  color: rgba(237, 231, 221, 0.7);
+  white-space: pre-wrap;
+}
+
+.consolePrompt {
+  padding: 4px 20px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #EDE7DD;
+}
+.consoleAngle {
+  color: var(--accent);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.consolePromptText {
+  flex: 1;
+}
+.consoleCursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: #EDE7DD;
+  margin-left: 4px;
+  margin-top: 2px;
+  animation: blink 1.05s steps(2, jump-none) infinite;
+  flex-shrink: 0;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.consoleCaption {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink-muted);
+  text-align: center;
+  margin: 14px auto 0;
+  max-width: 52ch;
+  line-height: 1.5;
+}
+
+/* ──────────────────────────── Footer ──────────────────────────── */
+
+.footer {
+  margin-top: var(--space-xxl);
+  padding-top: var(--space-l);
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-l);
+  flex-wrap: wrap;
+}
+
+.returnLink {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.returnLink:hover {
+  border-bottom-color: var(--ink);
+}
+.returnArrow {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.returnLink:hover .returnArrow {
+  transform: translateX(-3px);
+}
+
+.colophon {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.colophonHex {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--accent);
+}
+.colophonDivider {
+  width: 18px;
+  height: 1px;
+  background: var(--hairline-strong);
+  display: inline-block;
+}
+.colophonNote {
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .footer {
+    justify-content: flex-start;
+  }
+  .colophon {
+    order: -1;
+  }
+}

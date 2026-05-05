@@ -6,7 +6,7 @@ import styles from './Slide.module.css'
 
 type Props = {
   slide: SlideType
-  chapterNumber: number
+  chapterNumber: number | string
   index: number
   total: number
   /** Active step within an interactive `steps` block; null when the slide has none. */

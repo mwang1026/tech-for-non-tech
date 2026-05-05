@@ -386,12 +386,12 @@ The diagram does not add new elements. It is fully accreted from Ch 1-6 (Act I s
 - Get oriented (what does this codebase do?).
 - Ask "why" about anything unfamiliar.
 - Use the feature template before letting the agent write code.
-- Always read the diff before merging.
+- Always have the agent walk you through what changed before merging — high-level, in plain English.
 
 ### 201 (additions)
 - The expanded nine-question feature template.
 - Prompts for tracing identity, state, and validation in *this* codebase.
-- Skipping the diff is how race conditions ship.
+- Skipping the post-change narration is how race conditions ship.
 
 **Tech named at 201:** Claude Code, Cursor, Codex, GitHub Copilot, Aider, Cline, Continue; VS Code, JetBrains, Neovim.
 
@@ -406,7 +406,7 @@ The diagram does not add new elements. It is fully accreted from Ch 1-6 (Act I s
 2. **Learn on demand** — ask about anything unfamiliar in context.
 3. **Run the feature template** — the nine-question framework before any code.
 4. **Push back when the plan doesn't fit** — catalog of red flags mapped back to chapters (authn smell → Ch 3, durability smell → Ch 4, staleness smell → Ch 4, read-modify-write smell → Ch 6, security-by-front-end smell → Ch 3, deploy-breaking-migration smell → Ch 9). The move: name the concern in the system's vocabulary, propose the alternative the chapter taught you. Cheapest place to redirect — before code is written.
-5. **Read the diff** — the last gate, where plan-vs-code drift gets caught.
+5. **Narrate the change and use it** — have the agent describe what changed in plain English and click through a preview of the feature, the last gate where plan-vs-code drift gets caught without reading every line.
 
 ### Claude Code prompts
 - "Use the nine-question feature template to plan [feature] in this codebase. Don't write code yet."
