@@ -1,8 +1,8 @@
-# Reading the System
+# Directing the Agent
 
-*A Field Guide for Working with AI Coding Agents*
+*For non-engineers who'd rather direct AI than rubber-stamp it.*
 
-(Repo name: `tech-for-non-tech` — kept for the directory; the product name is "Reading the System.")
+(Repo name: `tech-for-non-tech` — kept for the directory; the product name is "Directing the Agent.")
 
 ## What this project is
 

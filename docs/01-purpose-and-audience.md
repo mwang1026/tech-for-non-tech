@@ -2,9 +2,9 @@
 
 ## Title
 
-**Reading the System** — A Field Guide for Working with AI Coding Agents
+**Directing the Agent** — For non-engineers who'd rather direct AI than rubber-stamp it.
 
-The title foregrounds the comprehension goal (reading the system, not writing code). "Field guide" sets expectation that it's practical and reference-able. Repo directory name remains `tech-for-non-tech` for path stability.
+The title names the action (directing) and the object (the agent). The subtitle names the audience and the disposition: someone who refuses to passively accept AI output and wants a hand in the engineering decisions. Repo directory name remains `tech-for-non-tech` for path stability.
 
 ## What this project is
 

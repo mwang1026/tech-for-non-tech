@@ -1,7 +1,7 @@
 {
-  "name": "reading-the-system",
+  "name": "directing-the-agent",
   "version": "0.1.0",
-  "description": "Reading the System — a field guide for working with AI coding agents",
+  "description": "Directing the Agent — for non-engineers who'd rather direct AI than rubber-stamp it",
   "type": "module",
   "scripts": {
     "dev": "vite",

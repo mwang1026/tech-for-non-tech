@@ -36,6 +36,13 @@
   font-weight: 400;
 }
 
+/* Thesis group — paragraphs flow tightly within, grid gap separates from next section. */
+.thesisGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
 /* Thesis paragraph — constrained for readability even on wide content area. */
 .thesis {
   font-family: var(--font-ui);
