@@ -34,7 +34,7 @@ After working through the primer, the learner can:
 
 1. Open a real codebase with Claude Code and orient themselves (what is this, how is it shaped, where does each kind of work live).
 2. Direct the agent to add a feature using the nine-question template, and recognize when the agent's plan is missing something important.
-3. Read a diff and identify whether validation, identity checks, race conditions, and failure modes are handled.
+3. Have the agent walk through what changed in plain English and identify whether validation, identity checks, race conditions, and failure modes are handled — without reading the diff line by line.
 4. Map any unfamiliar technology name (Cloudflare, Nginx, Kafka, Redis, Auth0...) to its conceptual role.
 
 ## What this is not

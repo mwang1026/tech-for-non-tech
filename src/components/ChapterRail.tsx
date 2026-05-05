@@ -53,14 +53,14 @@ function ChapterRow({
   onSelectChapter: (id: string) => void
   onSelectSlide: (i: number) => void
 }) {
-  const num = String(chapter.number).padStart(2, '0')
+  const num = chapter.displayNumber ?? String(chapter.number).padStart(2, '0')
   return (
     <div className={`${styles.chapter} ${isCurrent ? styles.current : ''}`}>
       <button className={styles.chapterButton} onClick={() => onSelectChapter(chapter.id)}>
         <span className={styles.num}>{num}</span>
         <span className={styles.label}>{chapter.title}</span>
       </button>
-      {isCurrent && (
+      {isCurrent && chapter.kind !== 'page' && (
         visibleSlides.length === 0 ? (
           <div className={styles.slides}><div className={styles.empty}>No slides at this level.</div></div>
         ) : (

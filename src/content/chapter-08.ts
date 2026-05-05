@@ -171,13 +171,13 @@ const pullRequest: Block[] = [
   p(_('A PR is a webpage on GitHub. It has a URL anyone with access can read. On the page:')),
   ul(
     [_('**The title and description** — what this change is and why. For the orange-sun PR: title "change sun color from yellow to orange," description with any context the reviewer needs.')],
-    [_('**The diff** — every line added and removed across every file. For this PR, exactly two lines: `- sunColor = "yellow"` (red) and `+ sunColor = "orange"` (green). Reading a diff is what code review actually consists of, line by line.')],
+    [_('**The diff** — every line added and removed across every file. For this PR, exactly two lines: `- sunColor = "yellow"` (red) and `+ sunColor = "orange"` (green). Engineers scrutinize the diff line by line; as a non-coder directing an agent, the more useful skill is having the agent walk you through what changed at a high level and pressing on anything that doesn\'t match the plan.')],
     [_('**Discussion threads** — reviewers comment on specific lines or on the PR overall. Asking questions, requesting changes, approving.')],
     [_('**The list of commits** — every commit on the branch. For this PR, just one.')],
     [_('**A checks panel** — the live status of the automated checks that run on every PR. (Next slides cover what those checks are.)')],
   ),
   p(_('GitHub enforces team rules at the PR level. The standard configuration on a repo with more than one developer is "at least one other engineer has approved" plus "all automated checks pass" — both required before the merge button works. Those rules are set per repository. They\'re not a social convention; the merge button literally won\'t click on a PR that hasn\'t met them.')),
-  p(_('When an AI agent makes a change, it goes through the same path: branch, commits, PR, review, checks, merge. The PR is where a non-coder can verify what the agent did before any of it lands — read the diff, ask questions, approve or push back.')),
+  p(_('When an AI agent makes a change, it goes through the same path: branch, commits, PR, review, checks, merge. The PR is where a non-coder can verify what the agent did before any of it lands — get the agent to walk through what changed in plain English, ask questions, approve or push back.')),
 ]
 
 /* --------------------------- Slide 9 — Merge conflicts --------------------------- */

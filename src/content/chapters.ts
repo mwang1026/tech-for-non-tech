@@ -9,9 +9,13 @@ import { chapter07 } from './chapter-07'
 import { chapter08 } from './chapter-08'
 import { chapter09 } from './chapter-09'
 import { chapter10 } from './chapter-10'
+import { chapterFF } from './chapter-ff'
 
 /**
  * Display order. Filename N == const chapterN == id `chN` == display number N.
+ * Exception: the closing chapter is numbered 0xFF (filename `chapter-ff.ts`,
+ * id `chff`) so 11–254 stay open for chapters inserted between Ch 10 and the
+ * closer without renumbering this one.
  *
  * Act I — Anatomy of a request: 1–7
  *   1. Request-Response, 2. Identity, 3. Validation & Authorization,
@@ -20,6 +24,8 @@ import { chapter10 } from './chapter-10'
  *   8. Code Lifecycle, 9. Deployment & Operations
  * Act III — Working with the agent: 10
  *   10. Working with Claude Code
+ * Closer — past the primer: FF
+ *   FF. What's next
  */
 export const chapters: Chapter[] = [
   chapter01,
@@ -32,6 +38,7 @@ export const chapters: Chapter[] = [
   chapter08,
   chapter09,
   chapter10,
+  chapterFF,
 ]
 
 export const chapterById = (id: string) =>

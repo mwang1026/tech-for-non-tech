@@ -43,7 +43,7 @@ export function SlideStream({
         >
           <Slide
             slide={current}
-            chapterNumber={chapter.number}
+            chapterNumber={chapter.displayNumber ?? chapter.number}
             index={currentIndex}
             total={visibleSlides.length}
             activeStepIndex={activeStepIndex}

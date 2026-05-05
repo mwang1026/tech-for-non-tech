@@ -939,10 +939,10 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'pull-request',
     term: 'Pull request (PR)',
-    short: 'A proposal to merge your branch into main, where the team reviews the diff first.',
+    short: 'A proposal to merge your branch into main, where the team reviews the change first.',
     body: [
       'The PR shows the exact lines added, removed, and changed, alongside discussion threads where reviewers can comment on specific lines. Most teams require at least one approval before merging.',
-      'Opening a PR also triggers CI to run the test suite against your branch. Reading the PR diff is the last chance to catch mistakes before they ship — never skip it.',
+      'Opening a PR also triggers CI to run the test suite against your branch. The PR is the last gate before code reaches users — for engineers, that means line-by-line scrutiny of the diff; for a non-coder directing an agent, it means having the agent describe what changed at a high level and pressing on anything that doesn\'t match the plan.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -953,7 +953,8 @@ export const glossary: GlossaryEntry[] = [
     term: 'Diff',
     short: 'The exact lines added, removed, and changed in a commit or pull request.',
     body: [
-      'Diffs are how engineers read changes. Removed lines are usually red; added lines are usually green; unchanged context is plain. Reading a diff is a learnable skill — and the foundation of effective code review.',
+      'Diffs are how engineers read changes line by line. Removed lines are usually red; added lines are usually green; unchanged context is plain.',
+      'For a non-coder directing an agent, reading every line isn\'t the goal — having the agent summarize what changed and why, then asking targeted questions about anything that doesn\'t match the plan, gets you most of what a careful diff read would catch.',
     ],
     chapter: 8,
     category: 'code-lifecycle',

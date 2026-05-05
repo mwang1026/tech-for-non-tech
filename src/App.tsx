@@ -13,6 +13,7 @@ import { Console } from './components/console/Console'
 import { SlideStream } from './components/SlideStream'
 import { GlossaryPanel } from './components/GlossaryPanel'
 import { IntroPage } from './components/IntroPage'
+import { WhatsNextPage } from './components/WhatsNextPage'
 import type { Slide as SlideType, StepItem } from './content/types'
 
 const INTRO_ID = 'ch0'
@@ -37,6 +38,7 @@ function Inner() {
 
   const isIntro = chapterId === INTRO_ID
   const chapter = chapterById(chapterId)
+  const isPage = chapter.kind === 'page'
   const visibleSlides = useMemo(() => filter(chapter.slides), [chapter, filter])
   const safeIndex = Math.min(slideIndex, Math.max(0, visibleSlides.length - 1))
   const currentSlide = visibleSlides[safeIndex]
@@ -46,8 +48,9 @@ function Inner() {
   const safeStepIndex = stepsBlock ? Math.min(stepIndex, totalSteps - 1) : 0
   const activeStep = stepsBlock ? stepsBlock[safeStepIndex] : null
 
-  const nextChapter = chapters.find(c => c.number === chapter.number + 1)
-  const prevChapter = chapters.find(c => c.number === chapter.number - 1)
+  const chapterIdx = chapters.findIndex(c => c.id === chapter.id)
+  const nextChapter = chapterIdx >= 0 ? chapters[chapterIdx + 1] : undefined
+  const prevChapter = chapterIdx > 0 ? chapters[chapterIdx - 1] : undefined
 
   // Keep URL in sync with state. On the intro, write the sentinel id directly
   // rather than the chapter fallback that chapterById() returns.
@@ -206,11 +209,40 @@ function Inner() {
     )
   }
 
+  if (isPage) {
+    return (
+      <Layout
+        topBar={
+          <TopBar
+            chapterNumber={chapter.displayNumber ?? chapter.number}
+            chapterTitle={chapter.title}
+            slideIndex={0}
+            totalSlides={0}
+            onGoToIntro={() => goToChapter(INTRO_ID)}
+            hideCounter
+            levelToggle={null}
+          />
+        }
+        rail={
+          <ChapterRail
+            currentChapterId={chapter.id}
+            currentSlideIndex={0}
+            visibleSlides={[]}
+            onSelectChapter={goToChapter}
+            onSelectSlide={() => {}}
+          />
+        }
+        content={<WhatsNextPage onReturnToIntro={() => goToChapter(INTRO_ID)} />}
+        overlay={<GlossaryPanel />}
+      />
+    )
+  }
+
   return (
     <Layout
       topBar={
         <TopBar
-          chapterNumber={chapter.number}
+          chapterNumber={chapter.displayNumber ?? chapter.number}
           chapterTitle={chapter.title}
           slideIndex={safeIndex}
           totalSlides={visibleSlides.length}

@@ -12,8 +12,12 @@
 
 .main {
   width: 100%;
+  max-width: 920px;
   margin: 0 auto;
-  padding: clamp(var(--space-l), 6vh, 80px) clamp(var(--space-l), 6vw, 96px) var(--space-xl);
+  padding:
+    clamp(var(--space-l), 6vh, 80px)
+    clamp(var(--space-l), 5vw, 64px)
+    var(--space-xl);
   display: grid;
   gap: var(--space-l);
 }

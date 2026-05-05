@@ -2,7 +2,7 @@ export type Level = 101 | 201 | 301
 
 export type ChapterId =
   | 'ch1' | 'ch2' | 'ch3' | 'ch4' | 'ch5'
-  | 'ch6' | 'ch7' | 'ch8' | 'ch9' | 'ch10'
+  | 'ch6' | 'ch7' | 'ch8' | 'ch9' | 'ch10' | 'chff'
 
 export type SlideKind = 'content' | 'recap' | 'transition'
 
@@ -157,7 +157,11 @@ export type ConsoleSpec = {
 export type Chapter = {
   id: ChapterId
   number: number
+  /** Optional display override for the chapter number (e.g. 'FF' for the 0xFF closer). Falls back to the padded numeric. */
+  displayNumber?: string
   title: string
   subtitle?: string
+  /** 'slides' (default) — chapter renders through the slide stream. 'page' — chapter is a custom standalone surface (e.g. the 0xFF closer); slides are ignored. */
+  kind?: 'slides' | 'page'
   slides: Slide[]
 }
