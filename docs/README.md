@@ -1,6 +1,6 @@
 # Project documentation
 
-Living documentation for **Reading the System — A Field Guide for Working with AI Coding Agents**. Read in order if you're new to the project; otherwise jump to the doc you need.
+Living documentation for **Directing the Agent — For non-engineers who'd rather direct AI than rubber-stamp it**. Read in order if you're new to the project; otherwise jump to the doc you need.
 
 ## Index
 

@@ -31,11 +31,15 @@ export function IntroPage({ onBegin }: Props) {
           <em>{intro.headline.italic}</em>
         </motion.h1>
 
-        <motion.p className={styles.thesis} {...reveal(1)}>
-          {intro.thesis}
-        </motion.p>
+        <div className={styles.thesisGroup}>
+          {intro.thesis.map((para, i) => (
+            <motion.p key={i} className={styles.thesis} {...reveal(1 + i)}>
+              {para}
+            </motion.p>
+          ))}
+        </div>
 
-        <motion.section className={styles.section} {...reveal(2)}>
+        <motion.section className={styles.section} {...reveal(1 + intro.thesis.length)}>
           <div className={styles.sectionLabel}>{intro.audienceLabel}</div>
           <ul className={styles.audienceList}>
             {intro.audience.map((line, i) => (
@@ -44,7 +48,7 @@ export function IntroPage({ onBegin }: Props) {
           </ul>
         </motion.section>
 
-        <motion.div className={styles.cta} {...reveal(3)}>
+        <motion.div className={styles.cta} {...reveal(2 + intro.thesis.length)}>
           <button
             type="button"
             className={styles.beginBtn}

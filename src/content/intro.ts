@@ -4,10 +4,12 @@
 export const intro = {
   headline: {
     lead: "You don’t write the code.",
-    italic: "You still have to read the system.",
+    italic: "You still direct the agent.",
   },
-  thesis:
-    "Your job isn’t to write the code. It’s to define what good looks like, understand what the agent proposes, and ask the questions that surface the tradeoffs the agent is silently making. That doesn’t require syntax. It requires reading the system you’re directing — the parts, the boundaries between them, and where a change actually lands. The chapters ahead are the groundwork for that.",
+  thesis: [
+    "You could accept whatever the agent produces. Plenty of people do, and you can ship a real product that way. But if it makes you squeamish to ship a database choice, an auth pattern, or a caching strategy you couldn’t evaluate — this is for you. The goal isn’t to turn you into an engineer. It’s to put you on the path to making good calls when coding with an agent. That intuition builds the more you do it.",
+    "Your job isn’t to write the code. It’s to define what good looks like and understand what the agent proposes — which doesn’t require syntax, but does require understanding the system you’re directing: the parts, the boundaries between them, and where a change actually lands. The chapters ahead are the groundwork for that.",
+  ],
   audienceLabel: "This is for you if",
   audience: [
     "You ship product but don’t write production code.",
