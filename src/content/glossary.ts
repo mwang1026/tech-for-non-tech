@@ -49,8 +49,8 @@ export const glossary: GlossaryEntry[] = [
     term: 'Server',
     short: 'A computer somewhere on the internet that runs the application’s code and answers requests.',
     body: [
-      'When the browser sends a request, a server receives it, figures out what was asked for, and returns a response. A real product usually runs many servers at once behind a load balancer, not just one.',
-      '"Server" loosely covers anything that listens for requests — application servers, database servers, cache servers. When engineers say "the server" without qualification, they usually mean the application back-end.',
+      'When the browser sends a request, a server receives it, figures out what was asked for, and returns a response. A production system runs many servers at once behind a load balancer, not just one.',
+      '"Server" loosely covers anything that listens for requests — application servers, database servers, cache servers. When engineers say "the server" without qualification, they mean the application back-end.',
     ],
     chapter: 1,
     category: 'web-basics',
@@ -74,7 +74,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A specialized program that stores the application’s permanent data on disk.',
     body: [
       'Databases survive restarts and crashes — anything written to one is still there after the machine reboots. They’re slower than memory (milliseconds, not nanoseconds) but they’re where everything that has to outlive the next deploy actually lives.',
-      'In almost every system, the database is the "source of truth": when copies elsewhere (caches, in-memory snapshots) disagree, the database wins. PostgreSQL and MySQL are the two most common.',
+      'The database is the "source of truth": when copies elsewhere (caches, in-memory snapshots) disagree, the database wins. PostgreSQL and MySQL are two widely-used open-source options.',
     ],
     chapter: 1,
     category: 'state-data',
@@ -86,7 +86,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'The protocol — the agreed-on message format — that browsers and servers use to talk.',
     body: [
       'HTTP (HyperText Transfer Protocol) defines what a request and response look like: the verb (method), the URL, headers, and an optional body. Every browser and every server agrees on this format, which is why anything can talk to anything.',
-      'Modern sites use HTTPS — the encrypted version of HTTP — so messages between browser and server can’t be read in transit.',
+      'HTTPS is the encrypted version, so messages between browser and server can’t be read in transit. Chrome, Firefox, and Safari now flag plain HTTP pages as "Not secure."',
     ],
     chapter: 1,
     category: 'web-basics',
@@ -129,7 +129,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'HTTPS',
     short: 'HTTP, but encrypted in transit so anyone snooping the network sees gibberish.',
     body: [
-      'The "S" is for Secure. The small icon next to the URL in your browser shows the connection is encrypted (a lock, a "tune" icon, etc., depending on browser). Every legitimate site uses HTTPS now — plain HTTP is treated as broken.',
+      'The "S" is for Secure. The small icon next to the URL in your browser shows the connection is encrypted (a lock, a "tune" icon, etc., depending on browser). Chrome, Firefox, and Safari label plain HTTP pages "Not secure" in the address bar.',
     ],
     chapter: 1,
     category: 'web-basics',
@@ -141,7 +141,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A three-digit number on every HTTP response that summarizes what happened.',
     body: [
       '2xx means success, 3xx is a redirect, 4xx means the request was wrong, 5xx means the server broke. The first digit narrows the investigation: a 4xx points at the caller, a 5xx points at the server.',
-      'When a real product breaks for a user, the first thing engineers ask is "what status code came back?"',
+      'When a product breaks for a user, the status code is where engineers start: it tells you which side of the connection to look at.',
     ],
     chapter: 1,
     category: 'web-basics',
@@ -203,7 +203,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'State',
     short: 'Everything the system "knows" about the world right now.',
     body: [
-      'The user’s name, their cart, whether they’re logged in, how many items are in inventory, which notifications they haven’t opened — all of it is state. The question of where each piece of state lives (memory, database, cache) is one of the biggest decisions in software design.',
+      'The user’s name, their cart, whether they’re logged in, how many items are in inventory, which notifications they haven’t opened — all of it is state. Where each piece lives (memory, database, cache) determines how fast it’s read, whether it survives a restart, and which copy wins when they disagree.',
     ],
     chapter: 4,
     category: 'state-data',
@@ -226,7 +226,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'PostgreSQL',
     short: 'A widely-used open-source relational database — often "Postgres" for short.',
     body: [
-      'Mature, feature-rich, the default choice for most modern web back-ends. Strong support for transactions and complex queries.',
+      'Mature, feature-rich, with strong support for transactions and complex queries. The 2024 Stack Overflow Developer Survey put Postgres at the top of the most-used database list (49% of professional developers).',
     ],
     chapter: 4,
     category: 'state-data',
@@ -258,9 +258,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'redis',
     term: 'Redis',
-    short: 'The most common cache. An in-memory data store keyed by string.',
+    short: 'An in-memory key-value store, widely deployed as a cache.',
     body: [
-      'Redis sits between the back-end and the database, holding fast copies of recent answers. It’s also commonly used for session storage, rate-limit counters, and lightweight queues.',
+      'Redis sits between the back-end and the database, holding fast copies of recent answers. It’s also used for session storage, rate-limit counters, and lightweight queues.',
     ],
     chapter: 4,
     category: 'state-data',
@@ -271,7 +271,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Source of truth',
     short: 'The one place that, when copies disagree, is treated as authoritative.',
     body: [
-      'Once data lives in multiple places (database, cache, the user’s browser), they can disagree. The source of truth is whichever one wins by rule — usually the database. Caches are allowed to be stale and catch up later.',
+      'Once data lives in multiple places (database, cache, the user’s browser), they can disagree. The source of truth is whichever one wins by rule — for most web apps, the database. Caches are allowed to be stale and catch up later.',
       'Source-of-truth thinking heads off "I updated it but it’s not showing up" bugs across synced contacts, multi-device settings, inventory across stores, and anywhere else data is replicated.',
     ],
     chapter: 4,
@@ -300,7 +300,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'Who the request is from — the verified user behind the token.',
     body: [
       'Identity is the formal name for the user a request is being made on behalf of. The token from Chapter 2 is what proves it; everything downstream — authorization, permission checks, audit logs — runs on the identity the token resolves to.',
-      'In narrative we usually say "the user" or "user 47." Identity is what we mean when the distinction matters: the identity is whatever the verified token says, never whatever the request body says.',
+      'In narrative we say "the user" or "user 47." The technical word is "identity," and the rule attached to it is: the identity is whatever the verified token says, never whatever the request body says.',
     ],
     chapter: 2,
     category: 'identity-auth',
@@ -323,8 +323,8 @@ export const glossary: GlossaryEntry[] = [
     term: 'Session',
     short: 'A token where the server keeps a list of "this token belongs to this user."',
     body: [
-      'On every request, the server takes the token from the request, looks it up in its session store (often Redis), and finds the user. To revoke a session, just delete the row.',
-      'Trade-off vs. JWT: requires a lookup on every request, but invalidating a session is trivially easy.',
+      'On every request, the server takes the token from the request, looks it up in its session store (Redis is a common choice), and finds the user. To revoke a session, delete the row.',
+      'Trade-off vs. JWT: requires a lookup on every request, but invalidating a session is a single delete.',
     ],
     chapter: 2,
     category: 'identity-auth',
@@ -347,7 +347,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Auth0',
     short: 'A hosted identity service that handles login, token issuance, and user management for you.',
     body: [
-      'Most teams don’t build authentication from scratch. They use a service like Auth0, plug it into their app, and trust the service to get the cryptography and edge cases right.',
+      'Plug Auth0 into your app and the service handles password storage, token issuance, social logins, and the cryptography around all of it. The alternative is rolling your own — possible, but the surface area for mistakes is large.',
     ],
     chapter: 2,
     category: 'identity-auth',
@@ -356,9 +356,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'clerk',
     term: 'Clerk',
-    short: 'A modern hosted identity service, popular with React/Next.js apps.',
+    short: 'A hosted identity service with prebuilt React and Next.js components.',
     body: [
-      'Newer than Auth0 and Okta; bundles login UI components, social logins, and session management.',
+      'Newer than Auth0 and Okta; ships drop-in login UI components, social logins, and session management.',
     ],
     chapter: 2,
     category: 'identity-auth',
@@ -369,7 +369,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Okta',
     short: 'An enterprise-focused identity provider.',
     body: [
-      'Common in big companies that need single sign-on across many internal apps — log in once, get access to everything.',
+      'Used in large companies for single sign-on across many internal apps — log in once, get access to everything. Cisco, T-Mobile, and FedEx are public Okta customers.',
     ],
     chapter: 2,
     category: 'identity-auth',
@@ -385,7 +385,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'The verb a request is performing — read, edit, delete, create, list.',
     body: [
       'Most requests are "this identity wants to do this action on this resource." Reading, editing, deleting, creating, listing — those verbs are the actions. They show up in URLs (GET vs. POST), in API contracts, and in authorization rules.',
-      'Authorization checks are usually phrased as a question about an action: "Is this identity allowed to perform this action on this resource?" Naming the action explicitly is what makes the question crisp instead of fuzzy.',
+      'Authorization checks are phrased as a question about an action: "Is this identity allowed to perform this action on this resource?" Naming the action explicitly is what makes the question crisp instead of fuzzy.',
     ],
     chapter: 3,
     category: 'identity-auth',
@@ -397,7 +397,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'The thing a request is acting on — a row, a comment, an order, a document.',
     body: [
       'Every meaningful request reads or writes a specific thing: this comment, that order, the user’s profile. That thing is the resource. URLs name them (`/orders/42`); database tables hold them; authorization rules decide who can touch which one.',
-      '"Resource" is the load-bearing word for *what’s being acted on*, replacing the looser usage of "data," "record," "object," or "endpoint" that often blurs the question. When pushing back on a feature plan, naming the resource explicitly clarifies who owns what — and what could go wrong.',
+      '"Resource" names *what’s being acted on*, where "data," "record," "object," or "endpoint" each blur the question. When pushing back on a feature plan, naming the resource explicitly forces the questions of who owns it and who can touch it.',
     ],
     chapter: 3,
     category: 'identity-auth',
@@ -444,7 +444,7 @@ export const glossary: GlossaryEntry[] = [
     term: '401 Unauthorized',
     short: 'The status code for "we don’t know who you are." Authentication failed.',
     body: [
-      'Returned when the request has no token, an expired token, or a tampered token. The fix is usually for the user to log in again.',
+      'Returned when the request has no token, an expired token, or a tampered token. The fix is for the user to log in again.',
       'Despite the name, 401 actually means "unauthenticated" — confusingly different from 403 (Forbidden), which is the real "unauthorized."',
     ],
     chapter: 3,
@@ -508,7 +508,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'Two operations racing on the same data, where the outcome depends on which one wins.',
     body: [
       'Classic example: two buyers click "buy" on the last item at the same instant. Both reads see "1 in stock"; both writes set it to "0"; both customers get a confirmation. The store sold the same item twice.',
-      'Race conditions almost always pass tests, never reproduce locally, and only show up in production when traffic is high enough that two requests really do land in the same instant.',
+      'Race conditions pass tests, fail to reproduce locally, and only surface in production when traffic is high enough that two requests really do land in the same instant.',
     ],
     chapter: 6,
     category: 'concurrency',
@@ -520,7 +520,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A wrapper around a sequence of database operations that the database treats as a single unit.',
     body: [
       'A transaction is atomic (all or nothing — either every operation succeeds and commits, or any failure rolls everything back).',
-      'A common misconception: just wrapping reads and writes in a transaction is *not* enough to prevent race conditions on its own. Under most databases’ default settings, two transactions can both read the same value before either has written. To prevent that, you also have to ask for a lock on the rows (`SELECT ... FOR UPDATE`), or raise the isolation level, or express the read-and-write as a single atomic statement.',
+      'A common misconception: just wrapping reads and writes in a transaction is *not* enough to prevent race conditions on its own. At the default isolation level in Postgres and MySQL (Read Committed), two transactions can both read the same value before either has written. To prevent that, you also have to ask for a lock on the rows (`SELECT ... FOR UPDATE`), raise the isolation level, or express the read-and-write as a single atomic statement.',
     ],
     chapter: 6,
     category: 'concurrency',
@@ -543,7 +543,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A hold on one or more rows that makes other transactions wait until you release it.',
     body: [
       'A lock is the actual mechanism that prevents two transactions from racing on the same row. The transaction asks the database for the lock (`SELECT ... FOR UPDATE` is the standard form), the database grants it, and any other transaction that wants the same row queues up until the first one commits or rolls back.',
-      'Critically, locks are not automatic in most databases — you have to ask. A bare transaction without a lock request will not stop two simultaneous reads from seeing the same stale value.',
+      'Critically, in Postgres and MySQL at their default isolation levels, row locks are not taken automatically by a plain `SELECT` — you have to ask. A bare transaction without a lock request will not stop two simultaneous reads from seeing the same stale value.',
     ],
     chapter: 6,
     category: 'concurrency',
@@ -614,7 +614,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'AWS SQS',
     short: 'AWS’s managed message queue — you don’t run any servers for it yourself.',
     body: [
-      'The default queue for anything else running on AWS. Pay-per-message pricing, integrates with Lambda and the rest of the AWS catalog. No-ops in the operational sense — AWS handles durability, scaling, and availability.',
+      'Pay-per-message pricing, integrates with Lambda and the rest of the AWS catalog. No-ops in the operational sense — AWS handles durability, scaling, and availability — which is why teams already on AWS reach for it before standing up RabbitMQ themselves.',
     ],
     chapter: 6,
     category: 'concurrency',
@@ -623,9 +623,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'rabbitmq',
     term: 'RabbitMQ',
-    short: 'A popular open-source message queue. The general-purpose workhorse you self-host.',
+    short: 'An open-source message queue you self-host.',
     body: [
-      'Mature, flexible, supports many messaging patterns (fan-out, routing, work queues). Common when teams want full control over their messaging infrastructure or aren’t on AWS.',
+      'Mature, flexible, supports many messaging patterns (fan-out, routing, work queues). Chosen when a team wants full control over their messaging infrastructure or isn’t on AWS.',
     ],
     chapter: 6,
     category: 'concurrency',
@@ -662,9 +662,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'nginx',
     term: 'Nginx',
-    short: 'The most common general-purpose load balancer and reverse proxy. Open source.',
+    short: 'An open-source load balancer and reverse proxy that runs on a server you operate.',
     body: [
-      'Runs on a server you operate. Often used both as a load balancer in front of a fleet and as a static-file server in its own right.',
+      'Used both as a load balancer in front of a fleet and as a static-file server in its own right. Powers a large share of the public web alongside Apache.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -673,9 +673,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'haproxy',
     term: 'HAProxy',
-    short: 'Another popular open-source load balancer, known for very high throughput.',
+    short: 'Another open-source load balancer, known for very high throughput.',
     body: [
-      'Often chosen when you need to push enormous amounts of traffic through one machine, or when you want sophisticated routing rules at the load-balancer layer.',
+      'Chosen when you need to push enormous amounts of traffic through one machine, or when you want sophisticated routing rules at the load-balancer layer. GitHub, Stack Overflow, and Reddit have all used HAProxy at scale.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -686,7 +686,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'AWS Elastic Load Balancer (ELB)',
     short: 'AWS’s managed load balancer — you don’t run any servers for it yourself.',
     body: [
-      'You configure it through AWS, and AWS handles the underlying machines. The default choice for anything else running on AWS.',
+      'You configure it through AWS; AWS handles the underlying machines. When the rest of the stack already runs on AWS, ELB is the path of least resistance.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -697,7 +697,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Cloudflare Load Balancing',
     short: 'Load balancing that runs on Cloudflare’s global network, close to users.',
     body: [
-      'Often paired with Cloudflare’s CDN. Routes users to the nearest healthy origin server, and can fail over across regions automatically.',
+      'Pairs with Cloudflare’s CDN. Routes users to the nearest healthy origin server, and can fail over across regions automatically.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -719,7 +719,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'CDN (Content Delivery Network)',
     short: 'A fleet of cache servers around the world that serve your static files from the user’s nearest city.',
     body: [
-      'Most of what a web page actually delivers — images, JavaScript, fonts, stylesheets — is identical for every user. CDNs hold local copies of those files in dozens of cities so users don’t pay the round-trip cost across the planet.',
+      'The bulk of what a web page actually delivers — images, JavaScript, fonts, stylesheets — is identical for every user. CDNs hold local copies of those files in dozens of cities so users don’t pay the round-trip cost across the planet.',
       'The tradeoff is staleness: the CDN serves what it cached, not what’s live. Updating a file may take time to propagate, or you can manually purge the cache to force a refresh.',
     ],
     chapter: 5,
@@ -729,9 +729,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'cloudflare',
     term: 'Cloudflare',
-    short: 'The default CDN for most modern sites. Generous free tier, massive global network.',
+    short: 'A CDN with a generous free tier and a global network spanning hundreds of cities.',
     body: [
-      'Also offers DNS, DDoS protection, edge compute (Cloudflare Workers), load balancing, and more. Often the first piece of infrastructure a small team puts in front of their site.',
+      'Also offers DNS, DDoS protection, edge compute (Cloudflare Workers), load balancing, and more. The free tier is the reason many small teams put Cloudflare in front of their site as their first piece of infrastructure.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -740,7 +740,7 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'fastly',
     term: 'Fastly',
-    short: 'A CDN heavy in media (Stripe, Shopify, NYT). Known for very fast cache purges.',
+    short: 'A CDN used by Stripe, Shopify, and The New York Times. Known for very fast cache purges.',
     body: [
       'When you need to invalidate cached content within seconds (a breaking news update, a stale product price), Fastly’s purge speed is its claim to fame.',
     ],
@@ -751,9 +751,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'akamai',
     term: 'Akamai',
-    short: 'The enterprise CDN incumbent. Largest network; oldest in the space.',
+    short: 'The enterprise CDN incumbent — founded in 1998, the oldest commercial CDN.',
     body: [
-      'Powers a huge fraction of the world’s media and large-enterprise traffic. Less commonly chosen by startups but still ubiquitous in big-company stacks.',
+      'Carries traffic for many of the world’s largest media and enterprise sites. Rarely chosen by startups; still ubiquitous in big-company stacks.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -764,7 +764,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'AWS CloudFront',
     short: 'AWS’s CDN. Integrates tightly with the rest of AWS.',
     body: [
-      'Often the path of least resistance when your servers are already on AWS.',
+      'The path of least resistance when your servers are already on AWS.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -775,7 +775,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Polling',
     short: 'Repeatedly asking another system "is it done yet?" on a fixed interval.',
     body: [
-      'Simple to build (it’s just regular requests), but most checks return "no" — wasted bandwidth and server time. You’ll never know any faster than your poll interval.',
+      'Simple to build (it’s just regular requests). The cost: when the answer rarely changes, every "no" is wasted bandwidth and server time. And you’ll never learn any faster than your poll interval.',
       'Polling is the right answer when the other system doesn’t support webhooks, or when events are so frequent that the overhead of asking is cheaper than the overhead of receiving.',
     ],
     chapter: 5,
@@ -799,7 +799,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'GitHub',
     short: 'The dominant hosting service for git repositories, plus pull-request review and CI integrations.',
     body: [
-      'Most modern open-source code lives on GitHub, as does much of the world’s commercial code. Owned by Microsoft.',
+      'Hosts a large share of the world’s open-source and commercial code. Owned by Microsoft since 2018; reports more than 100 million developer accounts.',
       'In the deployment world, GitHub also sends webhooks (e.g. "a commit was just pushed to this branch") that trigger CI runs and deploys.',
     ],
     chapter: 5,
@@ -823,7 +823,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'One codebase, one program, one deployable unit — the whole back-end in a single bundle.',
     body: [
       'Simple to reason about — everything is in one place. Simple to deploy — one command pushes everything. The cost: every team shares it, so changes ripple, and the more code lives in one bundle, the slower the test suite and the riskier each deploy.',
-      'GitHub, Shopify, and Basecamp run famously large monoliths and ship fine. The "monoliths don’t scale" claim is a myth — what doesn’t scale is many teams sharing one without discipline.',
+      'GitHub, Shopify, and Basecamp run famously large monoliths and ship fine. The "monoliths don’t scale" claim is a myth — what doesn’t scale is many teams sharing one bundle without discipline.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -835,7 +835,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'The back-end split into many small programs, each owned by one team and deployed independently.',
     body: [
       'One team’s broken service doesn’t take down everyone else’s. One team can ship ten times a day without coordinating. The cost: complexity moves outward — services have to discover each other, the network between them can fail, and debugging crosses service boundaries.',
-      'Most companies start as monoliths and split when scale forces it. Netflix, Amazon, and Uber are the famous microservices stories.',
+      'Companies typically start as monoliths and split when scale forces it. Netflix, Amazon, and Uber are the famous microservices stories.',
     ],
     chapter: 5,
     category: 'architecture',
@@ -851,7 +851,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'The version-control system that tracks every change to the code, with full history.',
     body: [
       'Git lives in your project folder and treats the whole codebase as a sequence of snapshots over time. Every change is a commit; parallel work happens on branches; branches merge back together.',
-      'Essentially every modern team uses git. Other systems exist (Mercurial, Perforce, SVN) but git is the default.',
+      'Git is the standard version-control system for new projects. Mercurial, Perforce, and SVN still exist, mostly in older codebases.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -909,7 +909,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Branch',
     short: 'A parallel timeline of commits — a way to work without disturbing the main line.',
     body: [
-      'The main timeline is usually called `main` (or sometimes `master`). When you want to work on a feature, you create a branch off of it, make commits there, and main stays untouched until you merge.',
+      'The main timeline is called `main` (older repos still use `master`). When you want to work on a feature, you create a branch off of it, make commits there, and main stays untouched until you merge.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -953,7 +953,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Pull request (PR)',
     short: 'A proposal to merge your branch into main, where the team reviews the change first.',
     body: [
-      'The PR shows the exact lines added, removed, and changed, alongside discussion threads where reviewers can comment on specific lines. Most teams require at least one approval before merging.',
+      'The PR shows the exact lines added, removed, and changed, alongside discussion threads where reviewers can comment on specific lines. Teams typically require at least one approval before merging, and configure GitHub or GitLab to enforce that rule.',
       'Opening a PR also triggers CI to run the test suite against your branch. The PR is the last gate before code reaches users — for engineers, that means line-by-line scrutiny of the diff; for a non-coder directing an agent, it means having the agent describe what changed at a high level and pressing on anything that doesn\'t match the plan.',
     ],
     chapter: 8,
@@ -989,8 +989,8 @@ export const glossary: GlossaryEntry[] = [
     term: 'CI (Continuous Integration)',
     short: 'Automation that runs the test suite (and other checks) on every pull request.',
     body: [
-      'When a PR opens, CI runs every test, lints the code style, type-checks, sometimes runs security scans. Pass → green build, ready to merge. Fail → red build, blocked.',
-      'The team’s rule is usually simple: red PRs do not get merged.',
+      'When a PR opens, CI runs every test, lints the code style, type-checks, and may run security scans. Pass → green build, ready to merge. Fail → red build, blocked.',
+      'The standing rule on most engineering teams: red PRs do not get merged.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1001,7 +1001,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Green build',
     short: 'A CI run where every check passed — the PR is ready for review and merge.',
     body: [
-      'Most CI dashboards literally use a green icon. When engineers say "the build is green," they mean CI is passing.',
+      'GitHub, GitLab, and CircleCI dashboards all use a green checkmark for passing builds. When engineers say "the build is green," they mean CI is passing.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1023,7 +1023,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'GitHub Actions',
     short: 'CI built into GitHub — runs workflows defined in `.github/workflows/*.yml`.',
     body: [
-      'The default CI choice for most projects on GitHub. Workflows can run on every push, every PR, on a schedule, or in response to many other events.',
+      'Built into every GitHub repository, with no separate signup. Workflows can run on every push, every PR, on a schedule, or in response to many other events.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1032,9 +1032,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'circleci',
     term: 'CircleCI',
-    short: 'A widely-used standalone CI service.',
+    short: 'A standalone CI service that predates GitHub Actions.',
     body: [
-      'Common in larger orgs and in pipelines that predate GitHub Actions, but still actively chosen for new projects in some shops.',
+      'Used at organizations whose pipelines were set up before GitHub Actions existed; still actively chosen for new projects in some shops.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1045,7 +1045,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'GitLab CI',
     short: 'CI built into GitLab — workflows defined in `.gitlab-ci.yml`.',
     body: [
-      'The default CI choice when your code is hosted on GitLab.',
+      'Built into every GitLab project, with no separate signup. The natural pick when your code is already hosted on GitLab.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1056,7 +1056,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Buildkite',
     short: 'A CI service where you provide the runners (machines) and they orchestrate.',
     body: [
-      'Common in larger orgs that want CI control without operating the whole pipeline themselves.',
+      'Used at larger orgs (Shopify, Airbnb, Pinterest are public customers) that want CI control without operating the whole pipeline themselves.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1080,7 +1080,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A program that reads source text and executes it on the fly, every time the program runs.',
     body: [
       'Languages like Python and Ruby are interpreted. There is no separate compile step that produces a binary; the interpreter reads the source file directly and runs it.',
-      'JavaScript runs in the browser via the browser\'s built-in interpreter, and on the server via Node.js — the JavaScript runtime that executes the same code outside the browser.',
+      'JavaScript runs in the browser via the browser\'s built-in JavaScript engine — Chrome\'s V8, Firefox\'s SpiderMonkey, Safari\'s JavaScriptCore — and on the server via Node.js, which embeds V8 outside the browser.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1103,8 +1103,8 @@ export const glossary: GlossaryEntry[] = [
     term: 'Node.js',
     short: 'The JavaScript runtime that executes JavaScript outside the browser — used for back-end servers and build tooling.',
     body: [
-      'Node.js takes the same JavaScript engine browsers use (V8, the Chrome engine) and packages it as a standalone runtime, so JS can run on a server. Most modern back-ends in JS or TypeScript run on Node.',
-      'Many build steps and CI checks for JS/TS projects also run on Node — bundlers, type checkers, linters are themselves Node programs.',
+      'Node.js takes V8 — the JavaScript engine inside Chrome — and packages it as a standalone runtime, so JS can run on a server. Back-ends written in JavaScript or TypeScript run on Node (or compatible runtimes like Deno and Bun).',
+      'Build tooling for JS/TS projects also runs on Node — bundlers (esbuild, Vite), type checkers (TypeScript), and linters (ESLint) are themselves Node programs.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1174,7 +1174,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'A single file (or small group) treated as a unit other code imports from.',
     body: [
       '`theme.ts` exporting `sunColor` is a module — other files bring it in by name with an `import` statement.',
-      'Module is the most common term, but Java calls the same thing a "package" and Python uses "module" with a slightly different scope. The reader doesn\'t need to memorize the differences — just to recognize the word means "a chunk of code other code uses by name."',
+      'JavaScript and Python both use "module" for this; Java calls the same thing a "package," and the scoping rules differ between languages. The reader doesn\'t need to memorize the differences — just to recognize the word means "a chunk of code other code uses by name."',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1197,7 +1197,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'main (branch)',
     short: 'The canonical timeline of the codebase — what every developer branches off and merges back into.',
     body: [
-      'Newer repos call this `main`; older repos called it `master` and many still do. Same concept either way.',
+      'New repos default to `main`; older repos still use `master`. GitHub flipped its default to `main` in October 2020. Same concept either way.',
       'When a PR merges, its commits land on `main`. Anybody who pulls or clones the repo gets `main` by default.',
     ],
     chapter: 8,
@@ -1209,7 +1209,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Bitbucket',
     short: 'Atlassian\'s git hosting product — comparable to GitHub and GitLab.',
     body: [
-      'Less common than GitHub overall, but widely used in shops that already use Jira and Confluence (also Atlassian) and want everything in one vendor.',
+      'Smaller user base than GitHub. Used in shops that already run Jira and Confluence (also Atlassian) and want everything in one vendor.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1244,7 +1244,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Unit test',
     short: 'A test that exercises one function in isolation.',
     body: [
-      '"Given input X, do we get output Y?" Cheapest to run, cheapest to maintain, narrowest in what they prove. A typical codebase has thousands of unit tests covering individual functions.',
+      '"Given input X, do we get output Y?" Cheapest to run, cheapest to maintain, narrowest in what they prove. A mature codebase will have thousands of unit tests covering individual functions.',
     ],
     chapter: 8,
     category: 'code-lifecycle',
@@ -1293,7 +1293,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Docker',
     short: 'The dominant tool for building and running containers.',
     body: [
-      'When an engineer says "we run on Docker," they mean the back-end is packaged as Docker containers. Most modern hosting platforms accept Docker containers as the unit they deploy.',
+      'When an engineer says "we run on Docker," they mean the back-end is packaged as Docker containers. Hosting platforms (AWS ECS, Google Cloud Run, Fly.io, Render) accept Docker containers as the unit they deploy.',
     ],
     chapter: 9,
     category: 'deployment-ops',
@@ -1324,9 +1324,9 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'aws',
     term: 'AWS (Amazon Web Services)',
-    short: 'Amazon’s cloud platform — the dominant infrastructure provider.',
+    short: 'Amazon’s cloud platform — the largest cloud infrastructure provider by revenue.',
     body: [
-      'A vast catalog of services: EC2 (virtual servers), S3 (file storage), RDS (managed databases), Lambda (serverless functions), and hundreds more. Most large web products run on AWS or one of its competitors.',
+      'A vast catalog of services: EC2 (virtual servers), S3 (file storage), RDS (managed databases), Lambda (serverless functions), and hundreds more. Netflix, Airbnb, Lyft, and Stripe are public AWS customers; the rest of the cloud market is split mostly between Microsoft Azure and Google Cloud.',
     ],
     chapter: 9,
     category: 'deployment-ops',
@@ -1441,7 +1441,7 @@ export const glossary: GlossaryEntry[] = [
     short: 'Tools that capture each crash, group similar ones together, and show which are happening most often.',
     body: [
       'When the code crashes, an error tracker captures it with a record of exactly where the crash happened. You see which errors are new, which ones are spiking, and which users they affected.',
-      'Errors answer "what specifically is broken, and how often?" Sentry is the most common standalone tool; Datadog and similar platforms also include error tracking.',
+      'Errors answer "what specifically is broken, and how often?" Sentry is a widely-used standalone tool; Datadog, New Relic, and Honeycomb also include error tracking inside their broader platforms.',
     ],
     chapter: 9,
     category: 'deployment-ops',
@@ -1510,7 +1510,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Docker Hub',
     short: 'The original public registry — widely used for open-source images that anyone can pull.',
     body: [
-      'Most public images of common software (Postgres, Redis, Node, Python) are hosted on Docker Hub. Private repositories are also available on paid plans.',
+      'Public images of common software (Postgres, Redis, Node, Python) are hosted on Docker Hub. Private repositories are also available on paid plans.',
     ],
     chapter: 9,
     category: 'deployment-ops',
@@ -1543,7 +1543,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'AWS CloudWatch',
     short: 'AWS\'s built-in service for logs, metrics, and alarms.',
     body: [
-      'Most AWS services emit logs and metrics to CloudWatch by default. Smaller teams on AWS often start with CloudWatch alone and add Sentry / Datadog as their needs grow.',
+      'AWS services emit logs and metrics to CloudWatch by default. Smaller teams on AWS often start with CloudWatch alone and layer Sentry or Datadog on top as their needs grow.',
     ],
     chapter: 9,
     category: 'deployment-ops',
@@ -1639,7 +1639,7 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'cursor',
     term: 'Cursor',
-    short: 'An AI-native code editor — a customized version of VS Code (a popular code editor) with deep model integration.',
+    short: 'An AI-native code editor — a fork of VS Code (Microsoft\'s open-source editor) with deep model integration.',
     body: [
       'Lets you chat with the codebase, accept multi-file edits inline, and use AI-driven autocomplete as you type.',
     ],
@@ -1674,7 +1674,7 @@ export const glossary: GlossaryEntry[] = [
     term: 'Aider',
     short: 'An open-source AI pair-programmer — runs in the terminal, edits files, makes git commits.',
     body: [
-      'Provider-agnostic — works with Claude, OpenAI, and others. Popular among engineers who want full control of which model and how the agent behaves.',
+      'Provider-agnostic — works with Claude, OpenAI, and others. Picked by engineers who want full control of which model and how the agent behaves.',
     ],
     chapter: 10,
     category: 'agents',
