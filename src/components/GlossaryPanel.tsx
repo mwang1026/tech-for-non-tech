@@ -69,7 +69,7 @@ export function GlossaryPanel() {
                 <div className={styles.eyebrow}>Glossary</div>
                 <div className={styles.title}>{glossary.length} terms</div>
                 <div className={styles.quip}>
-                  you don’t really need this — you could just ask your friendly neighborhood LLM
+                  Every term used across the chapters, defined in one place. Search, scroll, or consult your friendly LLM.
                 </div>
               </div>
               <button className={styles.closeBtn} onClick={close} aria-label="Close glossary">×</button>
