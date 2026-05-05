@@ -57,6 +57,18 @@ export const glossary: GlossaryEntry[] = [
     related: ['back-end', 'load-balancer'],
   },
   {
+    id: 'client',
+    term: 'Client',
+    short: 'Whatever side of an exchange sends the request — most often the browser, but also mobile apps, scripts, or one server calling another.',
+    body: [
+      'Client and server describe roles in a single exchange. Whoever sends the request is the client; whoever answers is the server. The browser is the client when it loads a page. An iPhone app is the client when it fetches data. A back-end service calling a payment API is the client in that moment.',
+      'When chapters say "client" instead of "browser," it’s because the same point applies regardless of what’s making the request — security rules and the request/response shape hold whether it’s Chrome, an iOS app, or a script.',
+    ],
+    chapter: 1,
+    category: 'web-basics',
+    related: ['browser', 'server'],
+  },
+  {
     id: 'database',
     term: 'Database',
     short: 'A specialized program that stores the application’s permanent data on disk.',
