@@ -106,3 +106,11 @@ The line: if the character is doing *work* (it's an aside on real behavior, a sp
 - Static site, no server backend required for the primer itself.
 - Diagrams should evolve a single SVG/canvas state, not be a sequence of disconnected images.
 - Prompts and worked examples in the "Working with Claude Code" chapter use the agent in a real codebase as the teaching surface, not a toy app.
+
+## Git workflow
+
+Direct pushes to `main` are blocked by a GitHub repo rule (changes must go through a pull request). To ship a change:
+
+1. Commit on a feature branch and push it.
+2. `gh pr create` to open a PR.
+3. `gh pr merge <num> --admin --squash --delete-branch` to merge. The `--admin` flag bypasses the PR-required rule (the user has admin rights and prefers fast-merging their own work rather than waiting for review on a solo project).
