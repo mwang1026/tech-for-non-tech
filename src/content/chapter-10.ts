@@ -8,18 +8,48 @@ import { _, t, p, ul, ol, code } from './authoring'
  * the workflow for using an AI coding agent in a real codebase.
  *
  * Slide arc:
- *   1. Where Claude Code runs
- *   2. What's enforced before you can ship      (safety net the reader inherits)
- *   3. What your codebase already tells the agent (CLAUDE.md + skills)
- *   4. Phase 1 — Get oriented
- *   5. Phase 2 — Learn on demand
- *   6. Phase 3 — The feature template (10 questions)
- *   7. Phase 4 — When the plan doesn't fit
- *   8. Phase 5 — Narrate the change and use it
- *   9. Recap
+ *   1.  What's actually under the hood: a language model
+ *   2.  What an agent is: tools, prompts, and a loop around the model
+ *   3.  Where Claude Code runs
+ *   4.  What's enforced before you can ship      (safety net the reader inherits)
+ *   5.  What your codebase already tells the agent (CLAUDE.md + skills)
+ *   6.  Phase 1 — Get oriented
+ *   7.  Phase 2 — Learn on demand
+ *   8.  Phase 3 — The feature template (10 questions)
+ *   9.  Phase 4 — When the plan doesn't fit
+ *   10. Phase 5 — Narrate the change and use it
+ *   11. Recap
  * ============================================================================ */
 
-/* --------------------------- Slide 1 — Where Claude Code runs --------------------------- */
+/* --------------------------- Slide 1 — What's under the hood: an LLM --------------------------- */
+
+const llmIntro: Block[] = [
+  p(_('Claude Code, '), t('Cursor', 'cursor'), _(', '), t('Codex', 'codex'), _(', '), t('GitHub Copilot', 'copilot'), _(', '), t('Aider', 'aider'), _(' — every agent in this list is built around the same kind of component: a '), t('large language model', 'llm'), _(', or LLM.')),
+  p(_('An LLM is a neural network — a function with billions to hundreds of billions of numbers, called *weights* — that takes a chunk of text and outputs a ranking of which **token** is most likely to come next. A token is roughly a short word or a piece of one: `comment`, `_likes`, `(`, `user_id`. The agent picks the top-ranked token (or close to it), appends it to the text, and asks the model again. That is the entire generation loop.')),
+  p(_('The architecture is called a *transformer*, introduced by a Google paper in 2017 and now used by every major LLM — Claude, GPT, Gemini, Llama.')),
+  p(_('How it learned to predict tokens: it was shown trillions of tokens of text — public web pages, books, documentation, and a very large amount of source code from open repositories — and trained for months on specialized hardware. For each snippet it tried to predict the next token, was corrected, and had its weights nudged toward the right answer. After enough rounds, the function encodes patterns from everything it read.')),
+  p(_('Why it does well on code: code has tighter structure than prose. A variable declared on line 3 reappears on line 12 in a predictable shape. A function signature constrains what the body can plausibly look like. Test files mirror their implementation files. The model has read the open-source corpus — frameworks, common patterns, recurring bug shapes — many times over. When you ask for a Postgres handler that inserts a row idempotently, it has seen thousands of examples of exactly that.')),
+  p(_('It is a pattern completer, not a fact lookup. There is no internal database it queries when you ask a question. What feels like recall is the same next-token prediction, drawing on text it saw often enough during training to reproduce.')),
+  p(_('That is why it can be fluent and confidently wrong in the same paragraph. It was optimized to produce plausible-sounding text, not to be right. Verifying is on you.')),
+]
+
+/* --------------------------- Slide 2 — What an agent is --------------------------- */
+
+const agentDef: Block[] = [
+  p(_('The LLM by itself is just text-in, text-out. It can\'t read a file on your laptop, run a test, open a pull request, or even know what time it is. It generates tokens.')),
+  p(_('An '), t('agent', 'agent'), _(' is a program that wraps the model with three things: a set of tools, a system prompt, and a loop. When you type a request into '), t('Claude Code', 'claude-code'), _(':')),
+  ul(
+    [_('The agent sends your message to the model, along with a hidden **system prompt** describing the tools it can call — `Read`, `Edit`, `Bash`, `Grep`, and so on.')],
+    [_('The model replies with either text (back to you) or a structured request like *"run `Read` on `src/payments.ts`."*')],
+    [_('The agent executes the tool on your laptop, captures the result, and feeds it back to the model as the next chunk of context.')],
+    [_('The model decides what to do next. Repeat until it answers you or stops.')],
+  ),
+  p(_('The model itself runs on Anthropic\'s servers, not your laptop. Each turn is a network call: the agent ships your message *and the entire conversation so far* up to the model, and the next chunk of generated text comes back. The conversation grows on every turn — every prior message, every tool call and tool result, gets re-sent each time. That is why long sessions get slower and more expensive, and why a flaky network kills the session entirely.')),
+  p(_('Picking different tools, or shipping a different system prompt, gives you a different agent on the same model. '), t('Cursor', 'cursor'), _(' and '), t('Claude Code', 'claude-code'), _(' can both be configured to call Claude Sonnet, but they expose different tools and ship different system prompts, so the experience differs. Two files in your repo — '), t('CLAUDE.md', 'claude-md'), _(' and the `skills` folder, covered on the next slide — change how the agent behaves without changing the model at all. The agent appends them to the prompt it was already sending.')),
+  p(_('When the agent does something surprising, look in three places: the model\'s training, the tools it was given (or wasn\'t), or the prompt the agent steered it with — yours plus its built-in instructions. The next slides give you control over that third one.')),
+]
+
+/* --------------------------- Slide 3 — Where Claude Code runs --------------------------- */
 
 const whereItRuns: Block[] = [
   p(_('Coming out of Chapter 9, you have a mental model of how a real software system works — every layer, every gate, every kind of failure it can produce. AI coding agents — '), t('Claude Code', 'claude-code'), _(', '), t('Cursor', 'cursor'), _(', '), t('Codex', 'codex'), _(', '), t('GitHub Copilot', 'copilot'), _(', '), t('Aider', 'aider'), _(' — write code at remarkable speed. They can also confidently produce code that ships race conditions, missing authorization checks, naive caching, and the other failure modes the previous chapters walked through. Direct one well and you ship features faster than you could yourself; direct one badly and you ship plausible-looking bugs.')),
@@ -32,7 +62,7 @@ claude`),
   p(_('Two things to confirm before going further. First, your team has cleared you to use an AI coding agent at work; some companies haven\'t approved them yet, and that\'s a separate conversation. Second, the workflow you\'re about to learn is how to direct the agent like a fast contractor who\'s never seen this codebase: orient them, ask them to explain, force them to surface tradeoffs before writing code, read their work before merging.')),
 ]
 
-/* --------------------------- Slide 2 — What's enforced before you can ship --------------------------- */
+/* --------------------------- Slide 4 — What's enforced before you can ship --------------------------- */
 
 const safetyNet: Block[] = [
   p(_('Before walking into the workflow, see the rails. A non-trivial team has automated and human gates between any change and real users — most of which Chapters 8 and 9 already covered. The list, recalled in one place:')),
@@ -48,7 +78,7 @@ const safetyNet: Block[] = [
   p(_('What you do need to catch: the things automation can\'t. Logic that passes all the tests because no test was ever written for the case in question. Plan-level mistakes — wrong table design, wrong place for the auth check — that the agent confidently produces in clean, well-formatted code. Domain-specific judgments no static check will spot. The five phases ahead are aimed at exactly those.')),
 ]
 
-/* --------------------------- Slide 3 — What your codebase already tells the agent --------------------------- */
+/* --------------------------- Slide 5 — What your codebase already tells the agent --------------------------- */
 
 const codebaseTellsAgent: Block[] = [
   p(_('Two files in your repo configure how the agent behaves before you type anything. Worth knowing before your first session, because they\'re where your team\'s conventions live.')),
@@ -66,7 +96,7 @@ const codebaseTellsAgent: Block[] = [
   p(_('Authoring CLAUDE.md additions and skills yourself is a muscle worth growing into; the recap revisits it. For your first sessions, the consumer move — read what\'s there and use it — is enough.')),
 ]
 
-/* --------------------------- Slide 4 — Phase 1: Get oriented --------------------------- */
+/* --------------------------- Slide 6 — Phase 1: Get oriented --------------------------- */
 
 const phase1: Block[] = [
   p(_('Before asking the agent to *do* anything, ask it to explain what it\'s looking at. The agent is faster at reading code than you are; let it do that work and report back.')),
@@ -82,7 +112,7 @@ const phase1: Block[] = [
   p(_('Once you have the map, the next phase is filling in unfamiliar terms as you encounter them.')),
 ]
 
-/* --------------------------- Slide 5 — Phase 2: Learn on demand --------------------------- */
+/* --------------------------- Slide 7 — Phase 2: Learn on demand --------------------------- */
 
 const phase2: Block[] = [
   p(_('Software vocabulary is huge. No primer (including this one) covers everything you\'ll see in a real codebase. The good news is the agent is a tutor that works in context.')),
@@ -97,7 +127,7 @@ const phase2: Block[] = [
   p(_('Once you can navigate the codebase and ask about anything you don\'t recognize, you\'re ready to direct real changes. Which is where the feature template comes in.')),
 ]
 
-/* --------------------------- Slide 6 — Phase 3: The feature template --------------------------- */
+/* --------------------------- Slide 8 — Phase 3: The feature template --------------------------- */
 
 const phase3: Block[] = [
   p(
@@ -123,7 +153,7 @@ const phase3: Block[] = [
   p(_('What you\'re reading the answers for: hand-waves. "It\'ll be cached" without saying where, or what the staleness window is, is a hand-wave. "It\'s authenticated" without saying where the check happens is a hand-wave. "We\'ll know if it breaks" without naming a dashboard or an alert is a hand-wave. Each one is a place to push back — and the next slide is a catalog of the ones that show up most often, mapped back to the chapters that named them.')),
 ]
 
-/* --------------------------- Slide 7 — Phase 4: When the plan doesn't fit --------------------------- */
+/* --------------------------- Slide 9 — Phase 4: When the plan doesn't fit --------------------------- */
 
 const phase4_pushback: Block[] = [
   p(_('The agent runs the template. The plan comes back. Now what?')),
@@ -141,7 +171,7 @@ const phase4_pushback: Block[] = [
   p(_('Pushing back here is the cheapest place to do it. Once the agent has written 800 lines of code, the cost of redirecting goes up. Running the template before any code gets written is what catches the bad plan in plain English, where reasoning about the system is fastest.')),
 ]
 
-/* --------------------------- Slide 8 — Phase 5: Narrate the change and use it --------------------------- */
+/* --------------------------- Slide 10 — Phase 5: Narrate the change and use it --------------------------- */
 
 const phase5_diff: Block[] = [
   p(_('Plan iterated, plan accepted. The agent writes the code. A pull request opens. CI goes green. A reviewer approves. Are you done?')),
@@ -162,12 +192,132 @@ const phase5_diff: Block[] = [
 
 /* --------------------------- Console mocks --------------------------- *
  * The diagram column for Chapter 10 is replaced by a fake Claude Code session.
- * One worked feature ("add 👍 likes to comments on a multi-author blog,
- * BlogCorp") is carried across the phase slides so the chapter shows one
- * feature shipped end-to-end through the five phases.
+ * Slides 1–2 use bespoke visualizations (token cascade, API payload) to make
+ * the LLM and agent-as-program ideas concrete. One worked feature ("add 👍 likes
+ * to comments on a multi-author blog, BlogCorp") is carried across the phase
+ * slides so the chapter shows one feature shipped end-to-end through the five
+ * phases.
  */
 
-/* Slide 1 — literal first-run terminal. */
+/* Slide 1 — animated token-by-token prediction. The prompt is mid-function;
+ * each step shows top-5 next-token candidates, picks one, advances. The
+ * fluency-on-code point lands because most steps have a clear top candidate. */
+const console_llm: ConsoleSpec = {
+  panes: [
+    {
+      title: 'How the model picks the next token',
+      blocks: [
+        {
+          kind: 'tokenCascade',
+          prompt: 'function isValidEmail(email: string): boolean {\n  return email.',
+          steps: [
+            {
+              candidates: [
+                { token: 'includes', prob: 0.42 },
+                { token: 'match',    prob: 0.22 },
+                { token: 'indexOf',  prob: 0.14 },
+                { token: 'length',   prob: 0.10 },
+                { token: 'trim',     prob: 0.06 },
+              ],
+              pickedIndex: 0,
+            },
+            {
+              candidates: [
+                { token: '(',  prob: 0.91 },
+                { token: '?.', prob: 0.04 },
+                { token: '<',  prob: 0.02 },
+                { token: '=',  prob: 0.02 },
+                { token: '[',  prob: 0.01 },
+              ],
+              pickedIndex: 0,
+            },
+            {
+              candidates: [
+                { token: '"@"',   prob: 0.58 },
+                { token: "'@'",   prob: 0.20 },
+                { token: 'email', prob: 0.08 },
+                { token: '"."',   prob: 0.06 },
+                { token: '"\\n"', prob: 0.03 },
+              ],
+              pickedIndex: 0,
+            },
+            {
+              candidates: [
+                { token: ';',     prob: 0.34 },
+                { token: ' &&',   prob: 0.31 },
+                { token: '\n',    prob: 0.20 },
+                { token: ' ||',   prob: 0.10 },
+                { token: ' ?',    prob: 0.05 },
+              ],
+              pickedIndex: 1,
+            },
+            {
+              candidates: [
+                { token: ' email',  prob: 0.71 },
+                { token: ' /',      prob: 0.10 },
+                { token: ' !',      prob: 0.06 },
+                { token: ' (',      prob: 0.05 },
+                { token: ' typeof', prob: 0.05 },
+              ],
+              pickedIndex: 0,
+            },
+          ],
+          finalNote: '...one token at a time, until the model picks something that ends the function. Notice how the second step is nearly certain — the structure of code constrains what comes next much harder than prose would.',
+        },
+      ],
+    },
+  ],
+  caption: 'The model ranks every possible next token; the agent picks one and asks again. That loop is the whole generator.',
+}
+
+/* Slide 2 — stacked panes: chat the user sees on top, the API payload that
+ * gets sent on the bottom. The payload pane scrolls because the transcript
+ * always exceeds its share of the height — that's the point. Reuses the
+ * BlogCorp likes scenario for continuity with the phase slides. */
+const console_payload: ConsoleSpec = {
+  layout: 'stacked',
+  panes: [
+    {
+      title: 'Chat — what you see',
+      blocks: [
+        { kind: 'user',  text: 'Add likes to comments.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Plan: new comment_likes table, POST/DELETE /api/comments/:id/like, idempotent on dup clicks. user_id from req.userId, never the body. OK to implement?' },
+        { kind: 'spacer' },
+        { kind: 'user',  text: 'Looks good. Implement it.' },
+        { kind: 'spacer' },
+        { kind: 'agent', text: 'Done — added the migration, the routes, and the heart icon. PR #142 is open.' },
+        { kind: 'spacer' },
+        { kind: 'user',  text: 'Show me the auth line.' },
+      ],
+    },
+    {
+      title: 'Sent to model on this turn',
+      blocks: [
+        {
+          kind: 'payload',
+          entries: [
+            { kind: 'systemPrompt', text: 'You are Claude Code. Tools available: Read, Edit, Bash, Grep, Glob, … Follow project conventions.' },
+            { kind: 'context', label: 'CLAUDE.md', detail: '(2.1 KB, loaded from repo root)' },
+            { kind: 'context', label: 'Skills available', detail: '/review · /init · /security-review' },
+            { kind: 'message', role: 'user',      text: 'Add likes to comments.' },
+            { kind: 'message', role: 'assistant', text: 'Plan: new comment_likes table, POST/DELETE /api/comments/:id/like, …' },
+            { kind: 'message', role: 'user',      text: 'Looks good. Implement it.' },
+            { kind: 'toolUse', tool: 'Read', args: '"api/routes/comments.ts"' },
+            { kind: 'toolResult', preview: '<file contents>', sizeKB: 4.2 },
+            { kind: 'toolUse', tool: 'Edit', args: '"api/routes/likes.ts", …' },
+            { kind: 'toolResult', preview: 'Created file', sizeKB: 1.8 },
+            { kind: 'message', role: 'assistant', text: 'Done — added the migration, the routes, and the heart icon. PR #142 is open.' },
+            { kind: 'message', role: 'user',      text: 'Show me the auth line.', latest: true },
+          ],
+        },
+      ],
+    },
+  ],
+  caption: 'Top: the chat as you see it. Bottom: every byte the agent re-sends to the model on this turn — system prompt, CLAUDE.md, every prior message, every tool call, every tool result.',
+}
+
+/* Slide 3 — literal first-run terminal. */
 const console_s1: ConsoleSpec = {
   panes: [
     {
@@ -191,7 +341,7 @@ const console_s1: ConsoleSpec = {
   caption: 'A folder, a chat. Every prompt in this chapter happens here.',
 }
 
-/* Slide 2 — what gates an open PR has between merge and live. */
+/* Slide 4 — what gates an open PR has between merge and live. */
 const console_s2: ConsoleSpec = {
   panes: [
     {
@@ -229,7 +379,7 @@ const console_s2: ConsoleSpec = {
   caption: 'The rails between an open PR and real users. You inherit them; the phases ahead handle what they don\'t catch.',
 }
 
-/* Slide 3 — startup banner showing CLAUDE.md and skills loaded. */
+/* Slide 5 — startup banner showing CLAUDE.md and skills loaded. */
 const console_s3: ConsoleSpec = {
   panes: [
     {
@@ -263,7 +413,7 @@ const console_s3: ConsoleSpec = {
   caption: 'CLAUDE.md is read on every startup. Skills are saved workflows you invoke by name.',
 }
 
-/* Slide 4 — Phase 1, orient. */
+/* Slide 6 — Phase 1, orient. */
 const console_s4: ConsoleSpec = {
   phase: { n: 1, total: 5, label: 'Get oriented' },
   panes: [
@@ -285,7 +435,7 @@ const console_s4: ConsoleSpec = {
   caption: 'You now have a map. If anything here doesn\'t match what\'s actually in the file, that\'s where to dig.',
 }
 
-/* Slide 5 — Phase 2, learn on demand. */
+/* Slide 7 — Phase 2, learn on demand. */
 const console_s5: ConsoleSpec = {
   phase: { n: 2, total: 5, label: 'Learn on demand' },
   panes: [
@@ -302,7 +452,7 @@ const console_s5: ConsoleSpec = {
   caption: 'Asking "what is middleware here" beats asking "what is middleware" — you get an answer tied to lines you can open.',
 }
 
-/* Slide 6 — Phase 3, the feature template. */
+/* Slide 8 — Phase 3, the feature template. */
 const console_s6: ConsoleSpec = {
   phase: { n: 3, total: 5, label: 'Feature template' },
   panes: [
@@ -330,7 +480,7 @@ const console_s6: ConsoleSpec = {
   caption: 'Each line of the answer is a place you can push back. The next slide is exactly that.',
 }
 
-/* Slide 7 — Phase 4, pushback. */
+/* Slide 9 — Phase 4, pushback. */
 const console_s7: ConsoleSpec = {
   phase: { n: 4, total: 5, label: "When the plan doesn't fit" },
   panes: [
@@ -354,7 +504,7 @@ const console_s7: ConsoleSpec = {
   caption: 'Pushback in plain English: "won\'t this race?", "where does user_id come from?". Each flag has a chapter behind it.',
 }
 
-/* Slide 8 — Phase 5, narrate the diff and use the preview. */
+/* Slide 10 — Phase 5, narrate the diff and use the preview. */
 const console_s8: ConsoleSpec = {
   phase: { n: 5, total: 5, label: 'Narrate and use' },
   panes: [
@@ -378,7 +528,7 @@ const console_s8: ConsoleSpec = {
   caption: 'Two final gates: the agent narrates what it actually did, and you use the feature like a user would.',
 }
 
-/* Slide 9 — recap cookbook of the five phase prompts. */
+/* Slide 11 — recap cookbook of the five phase prompts. */
 const console_s9: ConsoleSpec = {
   panes: [
     {
@@ -407,16 +557,18 @@ export const chapter10: Chapter = {
   title: 'Working with Claude Code',
   subtitle: 'How to direct an AI coding agent in a real codebase',
   slides: [
-    { id: 's1', level: 101, headline: 'Where Claude Code runs', body: { kind: 'prose', blocks: whereItRuns }, console: console_s1 },
-    { id: 's2', level: 101, headline: 'What\'s enforced before you can ship', body: { kind: 'prose', blocks: safetyNet }, console: console_s2 },
-    { id: 's3', level: 101, headline: 'What your codebase already tells the agent', body: { kind: 'prose', blocks: codebaseTellsAgent }, console: console_s3 },
-    { id: 's4', level: 101, headline: 'Phase 1 — Get oriented', body: { kind: 'prose', blocks: phase1 }, console: console_s4 },
-    { id: 's5', level: 101, headline: 'Phase 2 — Learn on demand', body: { kind: 'prose', blocks: phase2 }, console: console_s5 },
-    { id: 's6', level: 101, headline: 'Phase 3 — Run the feature template', body: { kind: 'prose', blocks: phase3 }, console: console_s6 },
-    { id: 's7', level: 101, headline: 'Phase 4 — When the plan doesn\'t fit', body: { kind: 'prose', blocks: phase4_pushback }, console: console_s7 },
-    { id: 's8', level: 101, headline: 'Phase 5 — Narrate the change and use it', body: { kind: 'prose', blocks: phase5_diff }, console: console_s8 },
+    { id: 's1',  level: 101, headline: 'What\'s actually under the hood: a language model', body: { kind: 'prose', blocks: llmIntro },          console: console_llm },
+    { id: 's2',  level: 101, headline: 'What an agent is: tools, prompts, and a loop around the model', body: { kind: 'prose', blocks: agentDef }, console: console_payload },
+    { id: 's3',  level: 101, headline: 'Where Claude Code runs',                              body: { kind: 'prose', blocks: whereItRuns },       console: console_s1 },
+    { id: 's4',  level: 101, headline: 'What\'s enforced before you can ship',                body: { kind: 'prose', blocks: safetyNet },         console: console_s2 },
+    { id: 's5',  level: 101, headline: 'What your codebase already tells the agent',          body: { kind: 'prose', blocks: codebaseTellsAgent }, console: console_s3 },
+    { id: 's6',  level: 101, headline: 'Phase 1 — Get oriented',                              body: { kind: 'prose', blocks: phase1 },            console: console_s4 },
+    { id: 's7',  level: 101, headline: 'Phase 2 — Learn on demand',                           body: { kind: 'prose', blocks: phase2 },            console: console_s5 },
+    { id: 's8',  level: 101, headline: 'Phase 3 — Run the feature template',                  body: { kind: 'prose', blocks: phase3 },            console: console_s6 },
+    { id: 's9',  level: 101, headline: 'Phase 4 — When the plan doesn\'t fit',                body: { kind: 'prose', blocks: phase4_pushback },   console: console_s7 },
+    { id: 's10', level: 101, headline: 'Phase 5 — Narrate the change and use it',             body: { kind: 'prose', blocks: phase5_diff },       console: console_s8 },
     {
-      id: 's9',
+      id: 's11',
       level: 101,
       kind: 'recap',
       headline: 'What you have, end to end',
