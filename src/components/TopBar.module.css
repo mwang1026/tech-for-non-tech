@@ -74,3 +74,46 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
+
+/* Mobile-only chapter dropdown. Hidden by default; shown at the breakpoint. */
+.chapterSelect {
+  display: none;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-md);
+  padding: 6px 10px;
+  max-width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%),
+    linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+
+@media (max-width: 720px) {
+  .bar {
+    padding: 0 var(--space-m);
+    gap: var(--space-s);
+  }
+  .left {
+    gap: var(--space-s);
+    flex: 1;
+  }
+  .brandText { display: none; }
+  .crumb { display: none; }
+  .counter { display: none; }
+  .chapterSelect { display: inline-block; flex: 1; min-width: 0; }
+  .glossaryBtn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}

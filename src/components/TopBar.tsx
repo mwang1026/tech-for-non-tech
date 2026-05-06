@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import { useGlossary } from '../hooks/useGlossary'
+import { chapters } from '../content/chapters'
 import styles from './TopBar.module.css'
+
+const INTRO_ID = 'ch0'
 
 type Props = {
   chapterNumber: number | string
@@ -11,10 +14,19 @@ type Props = {
   isIntro?: boolean
   /** Hide the "X of Y" counter — used by page-kind chapters that aren't slide-paginated. */
   hideCounter?: boolean
+  /** Currently selected chapter id — used to bind the mobile chapter dropdown. */
+  currentChapterId?: string
+  /** Mobile dropdown handler — same callback the desktop rail uses. */
+  onSelectChapter?: (id: string) => void
   levelToggle?: ReactNode
 }
 
-export function TopBar({ chapterNumber, chapterTitle, slideIndex, totalSlides, onGoToIntro, isIntro, hideCounter, levelToggle }: Props) {
+export function TopBar({
+  chapterNumber, chapterTitle, slideIndex, totalSlides,
+  onGoToIntro, isIntro, hideCounter,
+  currentChapterId, onSelectChapter,
+  levelToggle,
+}: Props) {
   const { open } = useGlossary()
   return (
     <header className={styles.bar}>
@@ -34,8 +46,23 @@ export function TopBar({ chapterNumber, chapterTitle, slideIndex, totalSlides, o
             ? <><strong>Introduction</strong> · A Field Guide</>
             : hideCounter
               ? <>Ch {chapterNumber} · <strong>{chapterTitle}</strong></>
-              : <>Ch {chapterNumber} · <strong>{chapterTitle}</strong> · {slideIndex + 1} of {totalSlides}</>}
+              : <>Ch {chapterNumber} · <strong>{chapterTitle}</strong> · <span className={styles.counter}>{slideIndex + 1} of {totalSlides}</span></>}
         </div>
+        {onSelectChapter && (
+          <select
+            className={styles.chapterSelect}
+            value={currentChapterId ?? INTRO_ID}
+            onChange={(e) => onSelectChapter(e.target.value)}
+            aria-label="Jump to chapter"
+          >
+            <option value={INTRO_ID}>Introduction</option>
+            {chapters.map((c) => (
+              <option key={c.id} value={c.id}>
+                Ch {c.displayNumber ?? c.number} · {c.title}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className={styles.right}>
         <button
