@@ -362,3 +362,35 @@
   font-style: italic;
 }
 
+@media (max-width: 720px) {
+  .slide {
+    padding: var(--space-m) var(--space-m) var(--space-s);
+    overflow: hidden;
+  }
+  .inner {
+    max-width: none;
+    min-width: 0;
+  }
+  .headline {
+    font-size: 22px;
+    margin-bottom: var(--space-m);
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .body {
+    gap: 10px;
+    font-size: 15px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow-x: hidden;
+  }
+  .body p { font-size: 15px; }
+  .bulletList li,
+  .numberedList li,
+  .stepItem {
+    font-size: 15px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
+

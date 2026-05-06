@@ -192,6 +192,8 @@ function Inner() {
             slideIndex={0}
             totalSlides={0}
             isIntro
+            currentChapterId={INTRO_ID}
+            onSelectChapter={goToChapter}
             levelToggle={null}
           />
         }
@@ -221,6 +223,8 @@ function Inner() {
             totalSlides={0}
             onGoToIntro={() => goToChapter(INTRO_ID)}
             hideCounter
+            currentChapterId={chapter.id}
+            onSelectChapter={goToChapter}
             levelToggle={null}
           />
         }
@@ -248,6 +252,8 @@ function Inner() {
           slideIndex={safeIndex}
           totalSlides={visibleSlides.length}
           onGoToIntro={() => goToChapter(INTRO_ID)}
+          currentChapterId={chapter.id}
+          onSelectChapter={goToChapter}
           /* Glossary button placeholder — wires up in next pass.
              Level toggle removed for the 101-only phase. */
           levelToggle={null}

@@ -1,8 +1,10 @@
 .app {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: var(--topbar-h) 1fr;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100vw;
   overflow: hidden;
   background: var(--paper);
 }
@@ -53,5 +55,24 @@
   }
   .bodyNoDiagram {
     grid-template-columns: var(--rail-w-collapsed) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: min(28vh, 240px) minmax(0, 1fr);
+  }
+  .bodyNoDiagram {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rail {
+    display: none;
+  }
+  .diagramCol {
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    overflow: hidden;
+    min-height: 0;
   }
 }
