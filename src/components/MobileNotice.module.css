@@ -1,0 +1,86 @@
+/* Bottom sheet shown only on narrow viewports. Persists dismissal in
+   localStorage; re-appears if the key is cleared. */
+
+.sheet {
+  position: fixed;
+  left: var(--space-m);
+  right: var(--space-m);
+  bottom: var(--space-m);
+  z-index: 50;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--r-lg);
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 24px 48px -12px rgba(26, 24, 21, 0.45);
+  padding: var(--space-l);
+  display: grid;
+  gap: var(--space-m);
+  animation: slideUp var(--dur-slide) var(--ease-out);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(250, 247, 242, 0.75);
+  display: grid;
+  gap: var(--space-s);
+}
+
+.body strong {
+  color: var(--paper);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-s);
+  margin-top: var(--space-xs);
+}
+
+.dismiss {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--paper);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.dismiss:hover {
+  background: #cc4429;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: rgba(250, 247, 242, 0.6);
+  font-size: 18px;
+  line-height: 1;
+  border-radius: var(--r-sm);
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.close:hover {
+  color: var(--paper);
+  background: rgba(250, 247, 242, 0.08);
+}
