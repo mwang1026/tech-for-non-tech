@@ -14,6 +14,7 @@ import { SlideStream } from './components/SlideStream'
 import { GlossaryPanel } from './components/GlossaryPanel'
 import { IntroPage } from './components/IntroPage'
 import { WhatsNextPage } from './components/WhatsNextPage'
+import { MobileNotice } from './components/MobileNotice'
 import type { Slide as SlideType, StepItem } from './content/types'
 
 const INTRO_ID = 'ch0'
@@ -359,6 +360,7 @@ export function App() {
     <LevelProvider initial={101}>
       <GlossaryProvider>
         <Inner />
+        <MobileNotice />
       </GlossaryProvider>
     </LevelProvider>
   )
